@@ -21,5 +21,12 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/execution/solution-worker.ts", "src/lib", "src/execution/executor.ts"]
+  "include": [
+    "src/execution/solution-worker.ts",
+    "src/execution/executor.ts",
+    "src/lib/codec.ts",
+    "src/lib/deep-equal.ts",
+    "src/lib/polyfills.ts",
+    "src/lib/transpile.ts"
+  ]
 }
