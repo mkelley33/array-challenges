@@ -9,9 +9,7 @@
  * rely on these APIs in every execution environment.
  */
 
-export async function fromAsyncImpl<T>(
-  source: ArrayLike<T> | AsyncIterable<T> | Iterable<T>,
-): Promise<Awaited<T>[]>;
+export async function fromAsyncImpl<T>(source: ArrayLike<T> | AsyncIterable<T> | Iterable<T>): Promise<Awaited<T>[]>;
 export async function fromAsyncImpl<T, U>(
   source: ArrayLike<T> | AsyncIterable<T> | Iterable<T>,
   mapFn: (value: Awaited<T>, index: number) => PromiseLike<U> | U,

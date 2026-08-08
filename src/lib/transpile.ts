@@ -7,8 +7,7 @@ import { transform } from 'sucrase';
  */
 
 export type TranspileResult =
-  | { code: string; ok: true }
-  | { column?: number; line?: number; message: string; ok: false };
+  { code: string; ok: true } | { column?: number; line?: number; message: string; ok: false };
 
 const LOCATION_PATTERN = /\((\d+):(\d+)\)\s*$/;
 

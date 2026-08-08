@@ -68,12 +68,7 @@ describe('Map, Set, Date', () => {
     ]);
     expect(deepEqual(a, b)).toBe(true);
     expect(deepEqual(a, new Map([['k', 2]]))).toBe(false);
-    expect(
-      deepEqual(
-        new Map([['k', 1]]),
-        new Map([['k', 2]]),
-      ),
-    ).toBe(false);
+    expect(deepEqual(new Map([['k', 1]]), new Map([['k', 2]]))).toBe(false);
   });
 
   it('compares Sets order-insensitively with deep membership', () => {
