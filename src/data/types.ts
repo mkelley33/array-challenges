@@ -28,4 +28,18 @@ export interface CategoryModule {
   challenges: Challenge[];
 }
 
+export interface Submission {
+  challengeId: string;
+  code: string;
+  id: string;
+  status: 'failed' | 'passed';
+  updatedAt: string;
+}
+
+export interface DbFile {
+  categories: Category[];
+  challenges: Challenge[];
+  submissions: Submission[];
+}
+
 export const SOLVE_FN_NAME = 'solve';

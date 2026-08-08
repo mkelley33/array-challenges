@@ -1,0 +1,452 @@
+{
+  "categories": [
+    {
+      "description": "Build arrays from scratch, from other values, and from async sources — without falling into the holes.",
+      "id": "creating-arrays",
+      "order": 1,
+      "title": "Creating Arrays"
+    }
+  ],
+  "challenges": [
+    {
+      "categoryId": "creating-arrays",
+      "description": "Return an array containing every integer from `start` up to and including `end`. If `start` is greater than `end`, return an empty array.\n\nSignature: `solve(start: number, end: number): number[]`\n\nConstraint: build the array declaratively — no `push` inside a loop.",
+      "difficulty": "novice",
+      "explanation": "`Array.from` accepts any array-like — an object with a `length` property counts — and an optional map function receiving `(element, index)`. Passing `{ length: n }` with a map function of `(_, i) => start + i` materializes the range in one expression. `Math.max(0, end - start + 1)` clamps the length so an inverted range yields `[]` instead of throwing on a negative array length. This “counting range” is the canonical `Array.from` trick and replaces manual `for` loops for sequence generation.",
+      "id": "range-of-numbers",
+      "methods": [
+        "Array.from"
+      ],
+      "order": 1,
+      "solution": "export function solve(start: number, end: number): number[] {\n  return Array.from({ length: Math.max(0, end - start + 1) }, (_, index) => start + index);\n}\n",
+      "starterCode": "export function solve(start: number, end: number): number[] {\n  // Build [start, start + 1, ..., end] without push-in-a-loop.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            1,
+            5
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "name": "ascending range"
+        },
+        {
+          "args": [
+            3,
+            3
+          ],
+          "expected": [
+            3
+          ],
+          "name": "single element when start equals end"
+        },
+        {
+          "args": [
+            5,
+            1
+          ],
+          "expected": [],
+          "name": "empty when start exceeds end"
+        },
+        {
+          "args": [
+            -2,
+            1
+          ],
+          "expected": [
+            -2,
+            -1,
+            0,
+            1
+          ],
+          "name": "negative bounds"
+        },
+        {
+          "args": [
+            -19,
+            -15
+          ],
+          "expected": [
+            -19,
+            -18,
+            -17,
+            -16,
+            -15
+          ],
+          "name": "faker: generated case 1"
+        }
+      ],
+      "title": "Range of numbers"
+    },
+    {
+      "categoryId": "creating-arrays",
+      "description": "Return an array containing `count` copies of `value`. A `count` of zero yields an empty array.\n\nSignature: `solve(value: string, count: number): string[]`",
+      "difficulty": "novice",
+      "explanation": "`new Array(count)` allocates a sparse array of holes — no indices exist yet, so `map` would skip every slot. `fill(value)` writes the value into every position, converting holes into real elements. `Array(count).fill(value)` is the idiomatic “repeat” one-liner. Beware the shared-reference trap: filling with an object puts the *same* object in every slot, which is why this challenge uses a string.",
+      "id": "repeat-value",
+      "methods": [
+        "fill"
+      ],
+      "order": 2,
+      "solution": "export function solve(value: string, count: number): string[] {\n  return new Array<string>(count).fill(value);\n}\n",
+      "starterCode": "export function solve(value: string, count: number): string[] {\n  // new Array(count) alone gives you holes, not values...\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            "ha",
+            3
+          ],
+          "expected": [
+            "ha",
+            "ha",
+            "ha"
+          ],
+          "name": "three copies"
+        },
+        {
+          "args": [
+            "nope",
+            0
+          ],
+          "expected": [],
+          "name": "zero copies"
+        },
+        {
+          "args": [
+            "solo",
+            1
+          ],
+          "expected": [
+            "solo"
+          ],
+          "name": "one copy"
+        },
+        {
+          "args": [
+            "aliquam",
+            1
+          ],
+          "expected": [
+            "aliquam"
+          ],
+          "name": "faker: generated case 1"
+        }
+      ],
+      "title": "Repeat a value"
+    },
+    {
+      "categoryId": "creating-arrays",
+      "description": "Return the `n × n` identity matrix: a two-dimensional array with `1` on the main diagonal and `0` everywhere else.\n\nSignature: `solve(n: number): number[][]`\n\nExample: `solve(2)` → `[[1, 0], [0, 1]]`",
+      "difficulty": "intermediate",
+      "explanation": "Nesting two `Array.from` calls builds a matrix declaratively: the outer call produces each row, the inner call produces each cell, and the two indices meet in `row === column ? 1 : 0`. Because each inner `Array.from` allocates a fresh row array, the rows are independent — unlike the classic `Array(n).fill(Array(n).fill(0))` mistake, which fills every row slot with the *same* inner array, so writing to one row mutates them all.",
+      "id": "identity-matrix",
+      "methods": [
+        "Array.from"
+      ],
+      "order": 3,
+      "solution": "export function solve(n: number): number[][] {\n  return Array.from({ length: n }, (_, row) => Array.from({ length: n }, (_, column) => (row === column ? 1 : 0)));\n}\n",
+      "starterCode": "export function solve(n: number): number[][] {\n  // Each row must be its own array — beware fill() sharing one row object.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            2
+          ],
+          "expected": [
+            [
+              1,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "name": "2x2"
+        },
+        {
+          "args": [
+            3
+          ],
+          "expected": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ],
+          "name": "3x3"
+        },
+        {
+          "args": [
+            1
+          ],
+          "expected": [
+            [
+              1
+            ]
+          ],
+          "name": "1x1"
+        },
+        {
+          "args": [
+            0
+          ],
+          "expected": [],
+          "name": "0x0"
+        },
+        {
+          "args": [
+            3
+          ],
+          "expected": [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              1
+            ]
+          ],
+          "name": "faker: generated case 1"
+        }
+      ],
+      "title": "Identity matrix"
+    },
+    {
+      "categoryId": "creating-arrays",
+      "description": "Return the first `n` perfect squares: `[0, 1, 4, 9, ...]`.\n\nSignature: `solve(n: number): number[]`\n\nTrap to understand before you start: `new Array(n).map((_, i) => i * i)` returns `n` holes, not squares. Why? Fix it.",
+      "difficulty": "advanced",
+      "explanation": "`new Array(n)` creates a sparse array: `length` is `n` but no index properties exist. Iteration methods like `map`, `forEach`, and `filter` *skip holes entirely*, so mapping over holes produces more holes. Two idiomatic escapes: `Array.from({ length: n }, (_, i) => i * i)` (the map function runs for every position because `Array.from` never produces holes) or `new Array(n).fill(0).map((_, i) => i * i)` (fill densifies first). Knowing that holes are skipped explains a whole family of “why is my map not running” bugs.",
+      "id": "squares-without-holes",
+      "methods": [
+        "Array.from",
+        "fill",
+        "map"
+      ],
+      "order": 4,
+      "solution": "export function solve(n: number): number[] {\n  return Array.from({ length: n }, (_, index) => index * index);\n}\n",
+      "starterCode": "export function solve(n: number): number[] {\n  // Why does new Array(n).map((_, i) => i * i) NOT work here?\n  return new Array<number>(n);\n}\n",
+      "tests": [
+        {
+          "args": [
+            5
+          ],
+          "expected": [
+            0,
+            1,
+            4,
+            9,
+            16
+          ],
+          "name": "first five squares"
+        },
+        {
+          "args": [
+            1
+          ],
+          "expected": [
+            0
+          ],
+          "name": "single square"
+        },
+        {
+          "args": [
+            0
+          ],
+          "expected": [],
+          "name": "empty"
+        },
+        {
+          "args": [
+            3
+          ],
+          "expected": [
+            0,
+            1,
+            4
+          ],
+          "name": "first three squares"
+        },
+        {
+          "args": [
+            6
+          ],
+          "expected": [
+            0,
+            1,
+            4,
+            9,
+            16,
+            25
+          ],
+          "name": "faker: generated case 1"
+        }
+      ],
+      "title": "Squares, no holes"
+    },
+    {
+      "categoryId": "creating-arrays",
+      "description": "Return the Unicode code point of every character in `text`, handling characters outside the Basic Multilingual Plane (like emoji) correctly.\n\nSignature: `solve(text: string): number[]`\n\nHint: `\"👍\".split(\"\")` gives you two broken halves. Something iterates strings better.",
+      "difficulty": "intermediate",
+      "explanation": "`Array.from(text)` iterates the string with its `Symbol.iterator`, which walks *code points*, so an emoji stays one element — unlike `split(\"\")`, which slices by UTF-16 code units and tears surrogate pairs apart. Combined with the map-function argument, `Array.from(text, (char) => char.codePointAt(0) ?? 0)` converts in a single pass. Reach for `Array.from` (or spread `[...text]`) whenever strings may contain astral characters.",
+      "id": "code-points",
+      "methods": [
+        "Array.from",
+        "codePointAt"
+      ],
+      "order": 5,
+      "solution": "export function solve(text: string): number[] {\n  return Array.from(text, (char) => char.codePointAt(0) ?? 0);\n}\n",
+      "starterCode": "export function solve(text: string): number[] {\n  // split('') breaks emoji into surrogate halves — find the iterator-aware way.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            "abc"
+          ],
+          "expected": [
+            97,
+            98,
+            99
+          ],
+          "name": "ascii"
+        },
+        {
+          "args": [
+            "a👍"
+          ],
+          "expected": [
+            97,
+            128077
+          ],
+          "name": "emoji stays whole"
+        },
+        {
+          "args": [
+            ""
+          ],
+          "expected": [],
+          "name": "empty string"
+        },
+        {
+          "args": [
+            "é"
+          ],
+          "expected": [
+            233
+          ],
+          "name": "accented characters"
+        },
+        {
+          "args": [
+            "valde"
+          ],
+          "expected": [
+            118,
+            97,
+            108,
+            100,
+            101
+          ],
+          "name": "faker: generated case 1"
+        }
+      ],
+      "title": "Code points, not code units"
+    },
+    {
+      "categoryId": "creating-arrays",
+      "description": "You receive an array of order totals. Simulate fetching each total asynchronously, then return a promise of the totals with 10% tax applied, in the original order.\n\nSignature: `solve(totals: number[]): Promise<number[]>`\n\nRequirement: use `Array.fromAsync` with an async map function (round each result with `Math.round`).",
+      "difficulty": "expert",
+      "explanation": "`Array.fromAsync` (ES2024) is the async twin of `Array.from`: it accepts sync iterables, async iterables, and array-likes, awaits each element, and awaits the map function's result before collecting it. `Array.fromAsync(totals, async (total) => Math.round(total * 1.1))` therefore yields the taxed totals in input order — unlike racing promises manually, sequencing is built in. Compare with `Promise.all(totals.map(async ...))`, which runs mappers concurrently; `fromAsync` awaits one element at a time, which matters when each step must observe the previous one's side effects.",
+      "id": "async-tax",
+      "methods": [
+        "Array.fromAsync"
+      ],
+      "order": 6,
+      "solution": "export function solve(totals: number[]): Promise<number[]> {\n  return Array.fromAsync(totals, async (total) => Math.round(total * 1.1));\n}\n",
+      "starterCode": "export function solve(totals: number[]): Promise<number[]> {\n  // Array.from cannot await — its ES2024 twin can.\n  return Promise.resolve([]);\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              100,
+              200
+            ]
+          ],
+          "expected": [
+            110,
+            220
+          ],
+          "name": "applies 10% tax"
+        },
+        {
+          "args": [
+            [
+              99
+            ]
+          ],
+          "expected": [
+            109
+          ],
+          "name": "rounds to nearest integer"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty order list"
+        },
+        {
+          "args": [
+            [
+              50
+            ]
+          ],
+          "expected": [
+            55
+          ],
+          "name": "single order"
+        },
+        {
+          "args": [
+            [
+              145,
+              298,
+              253
+            ]
+          ],
+          "expected": [
+            160,
+            328,
+            278
+          ],
+          "name": "faker: generated case 1"
+        }
+      ],
+      "title": "Async tax collector"
+    }
+  ],
+  "submissions": []
+}
