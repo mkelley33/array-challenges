@@ -1,0 +1,7 @@
+dist
+coverage
+node_modules
+pnpm-lock.yaml
+db.json
+src/components/ui
+CHANGELOG.md
