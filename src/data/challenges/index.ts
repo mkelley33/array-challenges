@@ -1,8 +1,26 @@
 import type { Category, CategoryModule, Challenge } from '@/data/types';
 
+import { accessAndSearch } from './access-and-search';
 import { creatingArrays } from './creating-arrays';
+import { filteringAndSlicing } from './filtering-and-slicing';
+import { groupingAndAggregation } from './grouping-and-aggregation';
+import { iterationBasics } from './iteration-basics';
+import { mappingAndTransforming } from './mapping-and-transforming';
+import { reduceAndFolding } from './reduce-and-folding';
+import { sortingAndOrdering } from './sorting-and-ordering';
+import { tricksAndPatterns } from './tricks-and-patterns';
 
-const modules: CategoryModule[] = [creatingArrays];
+const modules: CategoryModule[] = [
+  accessAndSearch,
+  creatingArrays,
+  filteringAndSlicing,
+  groupingAndAggregation,
+  iterationBasics,
+  mappingAndTransforming,
+  reduceAndFolding,
+  sortingAndOrdering,
+  tricksAndPatterns,
+];
 
 const sortedModules = [...modules].sort((a, b) => a.category.order - b.category.order);
 
