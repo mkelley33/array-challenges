@@ -5,6 +5,66 @@
       "id": "creating-arrays",
       "order": 1,
       "title": "Creating Arrays"
+    },
+    {
+      "description": "Read elements by position and hunt for values — from either end of the array, past the NaN trap, and across every occurrence.",
+      "id": "access-and-search",
+      "order": 2,
+      "title": "Access & Search"
+    },
+    {
+      "description": "Walk arrays with the core iteration tools — forEach for side effects, some and every for yes/no questions, and entries for index-value pairs.",
+      "id": "iteration-basics",
+      "order": 3,
+      "title": "Iteration Basics"
+    },
+    {
+      "description": "Keep the elements that matter and carve out the ranges you need — without mutating what you were given.",
+      "id": "filtering-and-slicing",
+      "order": 4,
+      "title": "Filtering & Slicing"
+    },
+    {
+      "description": "Transform every element into something new — one-to-one reshaping with map, index-aware callbacks, and the traps hiding in their extra arguments.",
+      "id": "mapping-and-transforming",
+      "order": 5,
+      "title": "Mapping & Transforming"
+    },
+    {
+      "description": "Fold arrays down to numbers, objects, and new arrays — and learn exactly when reduce blows up without a seed.",
+      "id": "reduce-and-folding",
+      "order": 6,
+      "title": "Reduce & Folding"
+    },
+    {
+      "description": "Sort numbers, strings, and objects correctly — dodging the string-comparison default, mutation surprises, and locale traps.",
+      "id": "sorting-and-ordering",
+      "order": 7,
+      "title": "Sorting & Ordering"
+    },
+    {
+      "description": "Collapse nested arrays and compose new ones — flat, flatMap, and concat turn map-then-flatten chores into single passes.",
+      "id": "flattening-and-composing",
+      "order": 8,
+      "title": "Flattening & Composing"
+    },
+    {
+      "description": "Change array contents without mutating the source — the ES2023 change-by-copy methods with, toReversed, and toSpliced return fresh arrays every time.",
+      "id": "immutable-updates",
+      "order": 9,
+      "title": "Immutable Updates"
+    },
+    {
+      "description": "Turn flat lists into keyed structures — objects, Maps, and nested Maps — with the ES2024 groupBy family.",
+      "id": "grouping-and-aggregation",
+      "order": 10,
+      "title": "Grouping & Aggregation"
+    },
+    {
+      "description": "The classic array idioms — chunking, deduping, windowing, transposing, and flattening — built from first principles.",
+      "id": "tricks-and-patterns",
+      "order": 11,
+      "title": "Tricks & Patterns"
     }
   ],
   "challenges": [
@@ -446,6 +506,5546 @@
         }
       ],
       "title": "Async tax collector"
+    },
+    {
+      "categoryId": "access-and-search",
+      "description": "Return a two-element array holding the last element of `values` and the `k`-th element counting from the end (`k` of 1 is the last element). Out-of-range positions yield `undefined`.\n\nSignature: `solve(values: number[], k: number): (number | undefined)[]`\n\nHint: `values[-1]` is NOT the last element — why?",
+      "difficulty": "novice",
+      "explanation": "`at` accepts negative indices and counts backwards from the end, so `values.at(-1)` is the last element and `values.at(-k)` is the k-th from the end. Bracket indexing cannot do this: `values[-1]` looks up a property literally named `\"-1\"`, which arrays never define, so it silently yields `undefined`. Before `at`, the idiom was `values[values.length - 1]` — correct, but it repeats the array expression and breaks on chained calls that have no variable to reference. `at` also returns `undefined` (rather than throwing) when the position is out of range, which is why the empty-array case needs no special handling.",
+      "id": "last-and-kth-from-end",
+      "methods": [
+        "at"
+      ],
+      "order": 1,
+      "solution": "export function solve(values: number[], k: number): (number | undefined)[] {\n  return [values.at(-1), values.at(-k)];\n}\n",
+      "starterCode": "export function solve(values: number[], k: number): (number | undefined)[] {\n  // values[-1] reads a property named '-1' — one method counts from the end for real.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              10,
+              20,
+              30,
+              40
+            ],
+            2
+          ],
+          "expected": [
+            40,
+            30
+          ],
+          "name": "last and second from end"
+        },
+        {
+          "args": [
+            [
+              5,
+              6,
+              7
+            ],
+            1
+          ],
+          "expected": [
+            7,
+            7
+          ],
+          "name": "k of one duplicates the last element"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            5
+          ],
+          "expected": [
+            2,
+            {
+              "$t": "undef"
+            }
+          ],
+          "name": "k beyond the length yields undefined"
+        },
+        {
+          "args": [
+            [],
+            1
+          ],
+          "expected": [
+            {
+              "$t": "undef"
+            },
+            {
+              "$t": "undef"
+            }
+          ],
+          "name": "empty array yields two undefined"
+        }
+      ],
+      "title": "Counting from the end"
+    },
+    {
+      "categoryId": "access-and-search",
+      "description": "Return the first user whose `role` matches the requested role, or `null` when nobody matches.\n\nSignature: `solve(users: { name: string; role: string }[], role: string): { name: string; role: string } | null`\n\nTrap: the search method reports a miss with `undefined`, but this challenge wants `null`.",
+      "difficulty": "novice",
+      "explanation": "`find` walks the array in order, runs the predicate on each element, and returns the *first element* that satisfies it — stopping immediately, so later users are never inspected. Its sibling `findIndex` returns the first matching *position* instead (`-1` on a miss); reach for it when you need to splice or replace rather than read. On a miss `find` returns `undefined`, and `?? null` converts exactly that into the `null` this challenge asks for — nullish coalescing only fires on `null`/`undefined`, so a legitimately found user is never replaced.",
+      "id": "first-user-with-role",
+      "methods": [
+        "find",
+        "findIndex"
+      ],
+      "order": 2,
+      "solution": "interface User {\n  name: string;\n  role: string;\n}\n\nexport function solve(users: User[], role: string): User | null {\n  return users.find((user) => user.role === role) ?? null;\n}\n",
+      "starterCode": "interface User {\n  name: string;\n  role: string;\n}\n\nexport function solve(users: User[], role: string): User | null {\n  // find() hands back undefined on a miss — the signature promises null.\n  return null;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "role": "admin"
+              },
+              {
+                "name": "Linus",
+                "role": "user"
+              },
+              {
+                "name": "Grace",
+                "role": "admin"
+              }
+            ],
+            "admin"
+          ],
+          "expected": {
+            "name": "Ada",
+            "role": "admin"
+          },
+          "name": "finds the first admin"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Sam",
+                "role": "user"
+              },
+              {
+                "name": "Kim",
+                "role": "editor"
+              }
+            ],
+            "editor"
+          ],
+          "expected": {
+            "name": "Kim",
+            "role": "editor"
+          },
+          "name": "finds a match in the middle"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Sam",
+                "role": "user"
+              }
+            ],
+            "admin"
+          ],
+          "expected": null,
+          "name": "returns null when no role matches"
+        },
+        {
+          "args": [
+            [],
+            "admin"
+          ],
+          "expected": null,
+          "name": "empty user list"
+        }
+      ],
+      "title": "First user with a role"
+    },
+    {
+      "categoryId": "access-and-search",
+      "description": "Return `true` when `needle` occurs anywhere in `values`, `false` otherwise — and the needle may be `NaN`.\n\nSignature: `solve(values: number[], needle: number): boolean`\n\nTrap: the starter code looks reasonable and passes four of the five tests. Which one does it miss, and why?",
+      "difficulty": "intermediate",
+      "explanation": "`includes` compares with the SameValueZero algorithm, under which `NaN` equals `NaN` (and `+0` equals `-0`), so `values.includes(NaN)` genuinely finds a stored `NaN`. `indexOf` compares with strict equality (`===`), and `NaN === NaN` is famously `false` — so `values.indexOf(NaN)` returns `-1` no matter what the array holds. That single difference is why `includes(x)` is the correct membership test while `indexOf(x) !== -1` is a subtle bug whenever `NaN` can appear: parsed user input, failed `Math` operations, and holes in numeric data all produce it.",
+      "id": "membership-despite-nan",
+      "methods": [
+        "includes",
+        "indexOf"
+      ],
+      "order": 3,
+      "solution": "export function solve(values: number[], needle: number): boolean {\n  return values.includes(needle);\n}\n",
+      "starterCode": "export function solve(values: number[], needle: number): boolean {\n  // Four tests pass... but NaN === NaN is false, and indexOf uses ===.\n  return values.indexOf(needle) !== -1;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            2
+          ],
+          "expected": true,
+          "name": "finds an ordinary number"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            9
+          ],
+          "expected": false,
+          "name": "missing number"
+        },
+        {
+          "args": [
+            [
+              1,
+              {
+                "$t": "nan"
+              },
+              3
+            ],
+            {
+              "$t": "nan"
+            }
+          ],
+          "expected": true,
+          "name": "finds NaN"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            {
+              "$t": "nan"
+            }
+          ],
+          "expected": false,
+          "name": "no NaN hiding in the values"
+        },
+        {
+          "args": [
+            [],
+            7
+          ],
+          "expected": false,
+          "name": "empty array holds nothing"
+        }
+      ],
+      "title": "Membership despite NaN"
+    },
+    {
+      "categoryId": "access-and-search",
+      "description": "Sensor readings arrive oldest-first. Return the most recent reading strictly below `threshold`, or `null` when no reading qualifies.\n\nSignature: `solve(readings: number[], threshold: number): number | null`\n\nConstraint: search from the end — do not reverse the array.",
+      "difficulty": "intermediate",
+      "explanation": "`findLast` (ES2023) is `find` mirrored: it walks from the last index towards `0` and returns the first element the predicate accepts — which, read in array order, is the *last* match. That makes “most recent entry satisfying X” a one-liner with no `reverse()` (which mutates and copies) and no manual backwards `for` loop. On a miss it returns `undefined`, so `?? null` adapts it to this signature. Note the zero-reading test: `??` leaves a found `0` alone because `0` is not nullish — using `||` there would be a bug.",
+      "id": "latest-reading-below-threshold",
+      "methods": [
+        "findLast"
+      ],
+      "order": 4,
+      "solution": "export function solve(readings: number[], threshold: number): number | null {\n  return readings.findLast((reading) => reading < threshold) ?? null;\n}\n",
+      "starterCode": "export function solve(readings: number[], threshold: number): number | null {\n  // find() returns the OLDEST match — a 2023 sibling searches from the end.\n  return null;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              80,
+              42,
+              95,
+              37,
+              99
+            ],
+            50
+          ],
+          "expected": 37,
+          "name": "latest reading below the limit"
+        },
+        {
+          "args": [
+            [
+              10,
+              90,
+              91
+            ],
+            50
+          ],
+          "expected": 10,
+          "name": "single match early in the list"
+        },
+        {
+          "args": [
+            [
+              70,
+              80
+            ],
+            50
+          ],
+          "expected": null,
+          "name": "no reading qualifies"
+        },
+        {
+          "args": [
+            [
+              5,
+              0,
+              88
+            ],
+            50
+          ],
+          "expected": 0,
+          "name": "zero is a real reading, not a miss"
+        },
+        {
+          "args": [
+            [],
+            50
+          ],
+          "expected": null,
+          "name": "empty readings"
+        }
+      ],
+      "title": "Latest reading below threshold"
+    },
+    {
+      "categoryId": "access-and-search",
+      "description": "Return the index of every occurrence of `target` in `values`, in ascending order.\n\nSignature: `solve(values: number[], target: number): number[]`\n\nConstraint: use `indexOf` with its second parameter (`fromIndex`) to resume each search where the previous one left off — no per-element scanning with `filter` or `forEach`.",
+      "difficulty": "advanced",
+      "explanation": "`indexOf` takes a second argument, `fromIndex`, that tells it where to start looking — everything before it is ignored. That turns a single-hit method into a cursor: find the first occurrence, record it, then call `indexOf(target, position + 1)` to hunt strictly *after* the previous hit. The `+ 1` is the load-bearing part — resuming at `position` itself would rediscover the same element forever, an infinite loop. When `indexOf` finally returns `-1` the cursor has walked off the end and the loop stops. The same fromIndex pattern powers `lastIndexOf` (scanning backwards) and `String.prototype.indexOf`.",
+      "id": "all-indices-of-target",
+      "methods": [
+        "indexOf"
+      ],
+      "order": 5,
+      "solution": "export function solve(values: number[], target: number): number[] {\n  const indices: number[] = [];\n  let position = values.indexOf(target);\n  while (position !== -1) {\n    indices.push(position);\n    position = values.indexOf(target, position + 1);\n  }\n  return indices;\n}\n",
+      "starterCode": "export function solve(values: number[], target: number): number[] {\n  // indexOf(target, fromIndex) resumes the hunt — restart just past each hit.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              7,
+              1,
+              7,
+              3,
+              7
+            ],
+            7
+          ],
+          "expected": [
+            0,
+            2,
+            4
+          ],
+          "name": "several occurrences"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            2
+          ],
+          "expected": [
+            1
+          ],
+          "name": "single occurrence"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            9
+          ],
+          "expected": [],
+          "name": "absent value"
+        },
+        {
+          "args": [
+            [
+              4,
+              4,
+              4
+            ],
+            4
+          ],
+          "expected": [
+            0,
+            1,
+            2
+          ],
+          "name": "adjacent duplicates"
+        },
+        {
+          "args": [
+            [],
+            1
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "Every index of a value"
+    },
+    {
+      "categoryId": "access-and-search",
+      "description": "Return the sub-array strictly between the FIRST and LAST occurrence of `sentinel` in `values` — excluding both sentinels themselves. If `sentinel` appears fewer than two times, return `[]`.\n\nSignature: `solve(values: number[], sentinel: number): number[]`\n\nCareful: occurrences of the sentinel *between* the outer two stay in the result.",
+      "difficulty": "expert",
+      "explanation": "`findIndex` locates the first occurrence and `findLastIndex` (ES2023) the last, scanning from opposite ends — two O(n) passes, no reversing, no manual loops. The subtle case is “fewer than two occurrences”: when the sentinel appears exactly once, both searches land on the *same* index, so `last === first` detects it (and `first === -1` covers zero occurrences). With the bounds in hand, `slice(first + 1, last)` does the exclusive extraction in one call, because `slice` already excludes its end index — and when the sentinels sit adjacent, `first + 1` equals `last`, an empty range, so `slice` naturally returns `[]` with no special case.",
+      "id": "between-the-sentinels",
+      "methods": [
+        "findIndex",
+        "findLastIndex",
+        "slice"
+      ],
+      "order": 6,
+      "solution": "export function solve(values: number[], sentinel: number): number[] {\n  const first = values.findIndex((value) => value === sentinel);\n  const last = values.findLastIndex((value) => value === sentinel);\n  if (first === -1 || last === first) {\n    return [];\n  }\n  return values.slice(first + 1, last);\n}\n",
+      "starterCode": "export function solve(values: number[], sentinel: number): number[] {\n  // Locate the first and last sentinel, then slice out what sits between them.\n  return values;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              0,
+              5,
+              6,
+              0,
+              9
+            ],
+            0
+          ],
+          "expected": [
+            5,
+            6
+          ],
+          "name": "slice between the outer sentinels"
+        },
+        {
+          "args": [
+            [
+              3,
+              2,
+              3,
+              3,
+              2,
+              3,
+              1
+            ],
+            3
+          ],
+          "expected": [
+            2,
+            3,
+            3,
+            2
+          ],
+          "name": "inner sentinels are kept"
+        },
+        {
+          "args": [
+            [
+              4,
+              0,
+              0,
+              4
+            ],
+            0
+          ],
+          "expected": [],
+          "name": "adjacent sentinels leave nothing between"
+        },
+        {
+          "args": [
+            [
+              1,
+              0,
+              2
+            ],
+            0
+          ],
+          "expected": [],
+          "name": "single occurrence is not enough"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            0
+          ],
+          "expected": [],
+          "name": "sentinel never appears"
+        }
+      ],
+      "title": "Between the sentinels"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Sum only the valid amounts in a ledger — an amount is valid when it is zero or greater; negative entries are data errors and must be skipped.\n\nSignature: `solve(amounts: number[]): number`\n\nConstraint: iterate with `forEach` and an accumulator variable — no `reduce`, no `for` loop.",
+      "difficulty": "novice",
+      "explanation": "`forEach` runs the callback once per element and always returns `undefined` — it exists purely for side effects, so the running total must live in a variable *outside* the callback that each call mutates. Returning a value from the callback does nothing; `amounts.forEach((a) => total + a)` computes sums and throws every one away. Contrast with `reduce`, which threads the accumulator *through* the iteration as an argument and hands the final value back — no outer variable needed. `forEach` plus a captured accumulator is the imperative half of that trade: easier to step through, but the state lives in your scope, not the method’s.",
+      "id": "sum-valid-amounts",
+      "methods": [
+        "forEach"
+      ],
+      "order": 1,
+      "solution": "export function solve(amounts: number[]): number {\n  let total = 0;\n  amounts.forEach((amount) => {\n    if (amount >= 0) {\n      total += amount;\n    }\n  });\n  return total;\n}\n",
+      "starterCode": "export function solve(amounts: number[]): number {\n  // forEach returns undefined — accumulate into a variable it can close over.\n  let total = 0;\n  return total;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              10,
+              -5,
+              20,
+              -1,
+              5
+            ]
+          ],
+          "expected": 35,
+          "name": "sums the non-negative amounts"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": 6,
+          "name": "all amounts valid"
+        },
+        {
+          "args": [
+            [
+              -4,
+              -2
+            ]
+          ],
+          "expected": 0,
+          "name": "all amounts negative"
+        },
+        {
+          "args": [
+            [
+              0,
+              5
+            ]
+          ],
+          "expected": 5,
+          "name": "zero counts as valid"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": 0,
+          "name": "empty ledger"
+        }
+      ],
+      "title": "Sum the valid amounts"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Return `true` when at least one product in the catalog is out of stock — that is, its `quantity` is exactly `0` — and `false` otherwise.\n\nSignature: `solve(products: { name: string; quantity: number }[]): boolean`",
+      "difficulty": "novice",
+      "explanation": "`some` asks “does at least one element satisfy this predicate?” and answers with a boolean. It stops at the first `true` — once one out-of-stock product is found, the remaining products are never examined — which makes it both the clearest and the cheapest way to write an existence check. The habit to build: whenever you catch yourself writing `filter(...).length > 0` or a `find(...) !== undefined` comparison just to get a boolean, `some` says the same thing directly and short-circuits instead of building a throwaway array. On an empty catalog `some` returns `false`: no elements, so no element can match.",
+      "id": "any-product-out-of-stock",
+      "methods": [
+        "some"
+      ],
+      "order": 2,
+      "solution": "interface Product {\n  name: string;\n  quantity: number;\n}\n\nexport function solve(products: Product[]): boolean {\n  return products.some((product) => product.quantity === 0);\n}\n",
+      "starterCode": "interface Product {\n  name: string;\n  quantity: number;\n}\n\nexport function solve(products: Product[]): boolean {\n  // 'At least one matches' is a single method call, not a filter-and-count.\n  return false;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "tea",
+                "quantity": 4
+              },
+              {
+                "name": "mug",
+                "quantity": 0
+              }
+            ]
+          ],
+          "expected": true,
+          "name": "one product is out of stock"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "tea",
+                "quantity": 4
+              },
+              {
+                "name": "mug",
+                "quantity": 2
+              }
+            ]
+          ],
+          "expected": false,
+          "name": "everything is stocked"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "pen",
+                "quantity": 0
+              },
+              {
+                "name": "ink",
+                "quantity": 9
+              }
+            ]
+          ],
+          "expected": true,
+          "name": "first product already answers"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": false,
+          "name": "empty catalog has nothing out of stock"
+        }
+      ],
+      "title": "Anything out of stock?"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Return `true` when every score in the list is valid — between `0` and `100` inclusive — and `false` as soon as any score falls outside that range.\n\nSignature: `solve(scores: number[]): boolean`\n\nThink first: what should an *empty* list of scores return, and why?",
+      "difficulty": "intermediate",
+      "explanation": "`every` is the universal quantifier: it returns `true` only if the predicate holds for *all* elements, and it short-circuits to `false` at the first counterexample. The edge case worth internalizing is the empty array: `[].every(...)` is `true` for any predicate. That is vacuous truth — “all elements are valid” cannot be falsified when there are no elements to falsify it with — and it mirrors `some` returning `false` on `[]`; the two are De Morgan duals (`every(p)` equals `!some(not p)`). Code that treats an empty list as invalid must check `length` explicitly, because `every` will not do it for you.",
+      "id": "all-scores-in-range",
+      "methods": [
+        "every"
+      ],
+      "order": 3,
+      "solution": "export function solve(scores: number[]): boolean {\n  return scores.every((score) => score >= 0 && score <= 100);\n}\n",
+      "starterCode": "export function solve(scores: number[]): boolean {\n  // 'All elements pass' is one call — and mind what it says about [].\n  return false;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              0,
+              55,
+              100
+            ]
+          ],
+          "expected": true,
+          "name": "all scores in range"
+        },
+        {
+          "args": [
+            [
+              10,
+              101
+            ]
+          ],
+          "expected": false,
+          "name": "one score too high"
+        },
+        {
+          "args": [
+            [
+              -1,
+              50
+            ]
+          ],
+          "expected": false,
+          "name": "negative score fails"
+        },
+        {
+          "args": [
+            [
+              0,
+              100
+            ]
+          ],
+          "expected": true,
+          "name": "boundaries are inclusive"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": true,
+          "name": "empty list is vacuously valid"
+        }
+      ],
+      "title": "All scores in range"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Produce a numbered label for each item: `\"0: apple\"`, `\"1: banana\"`, and so on, using the position within the array.\n\nSignature: `solve(items: string[]): string[]`\n\nConstraint: get the index from `entries()` (spread it into an array first), not from `map`’s second callback argument.",
+      "difficulty": "intermediate",
+      "explanation": "`entries` returns an *iterator* of `[index, value]` pairs — `[0, \"apple\"]`, `[1, \"banana\"]` — the same shape you destructure in `for (const [i, item] of items.entries())`. An iterator has no `map` of its own, so `[...items.entries()]` materializes the pairs into a real array first; then `map` with a destructuring parameter `([index, item]) => ...` unpacks each pair by position. Here `map`’s second callback argument would admittedly do the same job, but the `entries` form is the one that generalizes: it survives being passed through `filter` or `slice` (which reindex from zero) because each pair *carries* its original index instead of asking for it.",
+      "id": "numbered-labels",
+      "methods": [
+        "entries",
+        "map"
+      ],
+      "order": 4,
+      "solution": "export function solve(items: string[]): string[] {\n  return [...items.entries()].map(([index, item]) => index + ': ' + item);\n}\n",
+      "starterCode": "export function solve(items: string[]): string[] {\n  // items.entries() yields [index, value] pairs — spread them, then map.\n  return items;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "apple",
+              "banana"
+            ]
+          ],
+          "expected": [
+            "0: apple",
+            "1: banana"
+          ],
+          "name": "numbers each fruit"
+        },
+        {
+          "args": [
+            [
+              "solo"
+            ]
+          ],
+          "expected": [
+            "0: solo"
+          ],
+          "name": "single item"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "x"
+            ]
+          ],
+          "expected": [
+            "0: x",
+            "1: x"
+          ],
+          "name": "duplicate values get distinct indices"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty list"
+        }
+      ],
+      "title": "Numbered labels"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Validate a matrix: return `true` only when every row has the same length AND at least one cell anywhere is non-zero.\n\nSignature: `solve(matrix: number[][]): boolean`\n\nEdge case to reason through: an empty matrix has consistent rows — but does it have a non-zero cell?",
+      "difficulty": "advanced",
+      "explanation": "The two rules quantify in opposite directions, so each maps to its own method: “all rows share one length” is `every` (comparing each row against the first row’s length), and “a non-zero cell exists somewhere” is `some` nested inside `some` — the outer asks “does some row...”, the inner “...contain some non-zero cell?”. Both short-circuit: `every` bails at the first ragged row, `some` at the first signal. The empty matrix shows why the two checks are independent — `every` on `[]` is vacuously `true` (no row can disagree), while `some` on `[]` is `false` (no cell exists to be non-zero) — so the combined validation correctly rejects it on the second rule alone.",
+      "id": "validate-matrix-shape",
+      "methods": [
+        "some",
+        "every"
+      ],
+      "order": 5,
+      "solution": "export function solve(matrix: number[][]): boolean {\n  const width = matrix.length === 0 ? 0 : matrix[0].length;\n  const rectangular = matrix.every((row) => row.length === width);\n  const hasSignal = matrix.some((row) => row.some((cell) => cell !== 0));\n  return rectangular && hasSignal;\n}\n",
+      "starterCode": "export function solve(matrix: number[][]): boolean {\n  // Same length for ALL rows (every) + a non-zero cell in SOME row (some in some).\n  return false;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                3
+              ]
+            ]
+          ],
+          "expected": true,
+          "name": "rectangular with a non-zero cell"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3
+              ]
+            ]
+          ],
+          "expected": false,
+          "name": "ragged rows fail"
+        },
+        {
+          "args": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ]
+          ],
+          "expected": false,
+          "name": "all zeros fail"
+        },
+        {
+          "args": [
+            [
+              [
+                7
+              ]
+            ]
+          ],
+          "expected": true,
+          "name": "single cell matrix"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": false,
+          "name": "empty matrix has no signal"
+        }
+      ],
+      "title": "Validate the matrix"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Return the index at which the running total of `amounts` first becomes strictly greater than `limit`, or `-1` if it never does.\n\nSignature: `solve(amounts: number[], limit: number): number`\n\nConstraint: iterate with `some` so the walk stops at the crossing point — no `for` loop, no `findIndex` over precomputed sums.",
+      "difficulty": "expert",
+      "explanation": "This is the “`some` as `break`” pattern. `some` stops iterating the moment its callback returns `true`, so a callback that updates the running total, records the index, and returns `true` at the crossing point behaves exactly like a loop with `break` — elements after the crossing are never visited, and the boolean `some` itself returns gets discarded because the answer was smuggled out through the captured `breakIndex` variable. `forEach` cannot do this: it offers no protocol to stop early (short of throwing an exception), and returning from its callback merely skips to the next element. Note the strictness details the tests pin down: hitting the limit exactly is not “exceeds”, and a running total can dip on negative amounts before finally crossing.",
+      "id": "running-total-crossing",
+      "methods": [
+        "some"
+      ],
+      "order": 6,
+      "solution": "export function solve(amounts: number[], limit: number): number {\n  let total = 0;\n  let breakIndex = -1;\n  amounts.some((amount, index) => {\n    total += amount;\n    if (total > limit) {\n      breakIndex = index;\n      return true;\n    }\n    return false;\n  });\n  return breakIndex;\n}\n",
+      "starterCode": "export function solve(amounts: number[], limit: number): number {\n  // Returning true from some() is your break statement — capture the index first.\n  return -1;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              40,
+              50,
+              30
+            ],
+            80
+          ],
+          "expected": 1,
+          "name": "crosses mid-array"
+        },
+        {
+          "args": [
+            [
+              100,
+              1
+            ],
+            50
+          ],
+          "expected": 0,
+          "name": "first element already exceeds"
+        },
+        {
+          "args": [
+            [
+              50,
+              50
+            ],
+            100
+          ],
+          "expected": -1,
+          "name": "exactly reaching the limit does not count"
+        },
+        {
+          "args": [
+            [
+              60,
+              -30,
+              80
+            ],
+            70
+          ],
+          "expected": 2,
+          "name": "negative amounts can delay the crossing"
+        },
+        {
+          "args": [
+            [],
+            5
+          ],
+          "expected": -1,
+          "name": "empty list never crosses"
+        }
+      ],
+      "title": "Where the total first exceeds"
+    },
+    {
+      "categoryId": "filtering-and-slicing",
+      "description": "Return only the products that are in stock, preserving their original order. The input array must come back untouched — no removing items in place.\n\nSignature: `solve(products: { inStock: boolean; name: string }[]): { inStock: boolean; name: string }[]`",
+      "difficulty": "novice",
+      "explanation": "`filter` calls its predicate once per element and collects every element whose predicate returns a truthy value into a *brand-new* array — the original is never modified, which is why filtering is safe on shared data like props or state. `products.filter((product) => product.inStock)` reads as a sentence: keep the products that are in stock. Contrast this with a `for` loop that `splice`s matches out: that mutates the source and skips elements as indices shift. When the goal is “a subset, order preserved, source intact,” `filter` is always the tool.",
+      "id": "in-stock-products",
+      "methods": [
+        "filter"
+      ],
+      "order": 1,
+      "solution": "interface Product {\n  inStock: boolean;\n  name: string;\n}\n\nexport function solve(products: Product[]): Product[] {\n  return products.filter((product) => product.inStock);\n}\n",
+      "starterCode": "interface Product {\n  inStock: boolean;\n  name: string;\n}\n\nexport function solve(products: Product[]): Product[] {\n  // Keep the elements whose predicate returns true — without touching the input.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "inStock": true,
+                "name": "apple"
+              },
+              {
+                "inStock": false,
+                "name": "banana"
+              },
+              {
+                "inStock": true,
+                "name": "cherry"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "inStock": true,
+              "name": "apple"
+            },
+            {
+              "inStock": true,
+              "name": "cherry"
+            }
+          ],
+          "name": "keeps only in-stock products"
+        },
+        {
+          "args": [
+            [
+              {
+                "inStock": true,
+                "name": "kiwi"
+              },
+              {
+                "inStock": true,
+                "name": "mango"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "inStock": true,
+              "name": "kiwi"
+            },
+            {
+              "inStock": true,
+              "name": "mango"
+            }
+          ],
+          "name": "everything in stock"
+        },
+        {
+          "args": [
+            [
+              {
+                "inStock": false,
+                "name": "durian"
+              }
+            ]
+          ],
+          "expected": [],
+          "name": "nothing in stock"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty inventory"
+        }
+      ],
+      "title": "In-stock products"
+    },
+    {
+      "categoryId": "filtering-and-slicing",
+      "description": "Return the first `n` and the last `n` items of an array as `{ first, last }`, without modifying the input. When `n` is `0`, both slices must be empty — careful, `slice(-0)` does not do what you might hope.\n\nSignature: `solve(items: number[], n: number): { first: number[]; last: number[] }`",
+      "difficulty": "novice",
+      "explanation": "`slice(start, end)` copies the half-open range `[start, end)` into a new array and never mutates the source; called with no arguments at all, `slice()` is the idiomatic shallow copy. Negative indices count from the end, so `items.slice(-n)` means “the last n items.” The trap: when `n` is `0`, `-n` is still `0`, and `slice(0)` returns the *whole* array instead of the empty “last zero items.” Negative indices only kick in for genuinely negative numbers, so the `n === 0` case needs an explicit guard. `slice(0, n)` needs no guard — an `end` of `0` naturally yields `[]`.",
+      "id": "first-and-last-n",
+      "methods": [
+        "slice"
+      ],
+      "order": 2,
+      "solution": "export function solve(items: number[], n: number): { first: number[]; last: number[] } {\n  return {\n    first: items.slice(0, n),\n    last: n === 0 ? [] : items.slice(-n),\n  };\n}\n",
+      "starterCode": "export function solve(items: number[], n: number): { first: number[]; last: number[] } {\n  // slice(0, n) handles first; slice(-n) handles last... except when n is 0.\n  return { first: [], last: [] };\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            2
+          ],
+          "expected": {
+            "first": [
+              1,
+              2
+            ],
+            "last": [
+              4,
+              5
+            ]
+          },
+          "name": "first and last two"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            0
+          ],
+          "expected": {
+            "first": [],
+            "last": []
+          },
+          "name": "n of zero yields empty slices"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            5
+          ],
+          "expected": {
+            "first": [
+              1,
+              2
+            ],
+            "last": [
+              1,
+              2
+            ]
+          },
+          "name": "n larger than the array takes everything"
+        },
+        {
+          "args": [
+            [],
+            3
+          ],
+          "expected": {
+            "first": [],
+            "last": []
+          },
+          "name": "empty array"
+        }
+      ],
+      "title": "First n, last n"
+    },
+    {
+      "categoryId": "filtering-and-slicing",
+      "description": "Compact an array: return a new array with every falsy value removed, keeping all truthy values in order.\n\nSignature: `solve(values: unknown[]): unknown[]`\n\nAim for the one-liner — the predicate you need is a built-in function you already know.",
+      "difficulty": "intermediate",
+      "explanation": "`filter(Boolean)` passes each element to the `Boolean` constructor-as-function, which returns `false` for exactly the falsy values — `false`, `0`, `-0`, `0n`, `''`, `null`, `undefined`, and `NaN` — and `true` for everything else. Everything else includes surprises like `[]`, `{}`, and `'0'`, which are all truthy and survive the compaction. The pitfall runs the other way too: *legitimate* data vanishes. A price of `0` or an intentionally empty string `''` is falsy and gets dropped along with the junk, so reach for `filter(Boolean)` only when every falsy value really is noise — otherwise write a precise predicate like `(value) => value !== null && value !== undefined`.",
+      "id": "compact-falsy-values",
+      "methods": [
+        "filter"
+      ],
+      "order": 3,
+      "solution": "export function solve(values: unknown[]): unknown[] {\n  return values.filter(Boolean);\n}\n",
+      "starterCode": "export function solve(values: unknown[]): unknown[] {\n  // Eight values are falsy in JavaScript — one built-in predicate rejects them all.\n  return values;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              null,
+              2,
+              {
+                "$t": "undef"
+              },
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "removes null and undefined"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "",
+              0,
+              "b"
+            ]
+          ],
+          "expected": [
+            "a",
+            "b"
+          ],
+          "name": "removes empty strings and zeros"
+        },
+        {
+          "args": [
+            [
+              {
+                "$t": "nan"
+              },
+              false,
+              "keep",
+              42
+            ]
+          ],
+          "expected": [
+            "keep",
+            42
+          ],
+          "name": "removes NaN and false"
+        },
+        {
+          "args": [
+            [
+              null,
+              {
+                "$t": "undef"
+              },
+              0,
+              "",
+              false
+            ]
+          ],
+          "expected": [],
+          "name": "all falsy"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "Compact the array"
+    },
+    {
+      "categoryId": "filtering-and-slicing",
+      "description": "Remove `count` items starting at index `start` and report both halves of the operation as `{ removed, remaining }` — but the caller’s array must not change.\n\nSignature: `solve(items: string[], start: number, count: number): { removed: string[]; remaining: string[] }`",
+      "difficulty": "intermediate",
+      "explanation": "`splice(start, count)` is the rare array method that does two things at once: it *mutates* the array it is called on by deleting `count` elements at `start`, and it *returns* the deleted elements as a new array. That double behavior is exactly what this challenge needs — after `const removed = copy.splice(start, count)`, `removed` holds what came out and `copy` has become the remainder. The essential move is spreading into a copy first (`[...items]`): calling `splice` directly on the argument would destroy the caller’s data, the classic splice foot-gun. `splice` is also forgiving — a `count` running past the end just deletes to the end, and splicing an empty array removes nothing.",
+      "id": "splice-out-a-section",
+      "methods": [
+        "splice"
+      ],
+      "order": 4,
+      "solution": "export function solve(items: string[], start: number, count: number): { removed: string[]; remaining: string[] } {\n  const remaining = [...items];\n  const removed = remaining.splice(start, count);\n  return { removed, remaining };\n}\n",
+      "starterCode": "export function solve(items: string[], start: number, count: number): { removed: string[]; remaining: string[] } {\n  // splice both mutates its array AND returns what it deleted — use a copy.\n  return { removed: [], remaining: [] };\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e"
+            ],
+            1,
+            2
+          ],
+          "expected": {
+            "removed": [
+              "b",
+              "c"
+            ],
+            "remaining": [
+              "a",
+              "d",
+              "e"
+            ]
+          },
+          "name": "removes two from the middle"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "y",
+              "z"
+            ],
+            0,
+            1
+          ],
+          "expected": {
+            "removed": [
+              "x"
+            ],
+            "remaining": [
+              "y",
+              "z"
+            ]
+          },
+          "name": "removes from the start"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b"
+            ],
+            1,
+            0
+          ],
+          "expected": {
+            "removed": [],
+            "remaining": [
+              "a",
+              "b"
+            ]
+          },
+          "name": "count of zero removes nothing"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c"
+            ],
+            2,
+            5
+          ],
+          "expected": {
+            "removed": [
+              "c"
+            ],
+            "remaining": [
+              "a",
+              "b"
+            ]
+          },
+          "name": "count past the end stops at the end"
+        },
+        {
+          "args": [
+            [],
+            0,
+            3
+          ],
+          "expected": {
+            "removed": [],
+            "remaining": []
+          },
+          "name": "empty array"
+        }
+      ],
+      "title": "Surgical removal"
+    },
+    {
+      "categoryId": "filtering-and-slicing",
+      "description": "Partition exam scores into `{ pass, fail }` in a **single pass**: a score passes when it is greater than or equal to `threshold`. Both groups keep the original order.\n\nSignature: `solve(scores: number[], threshold: number): { fail: number[]; pass: number[] }`\n\nConstraint: walk the array once — no double filtering.",
+      "difficulty": "advanced",
+      "explanation": "The obvious solution is two `filter` calls — `scores.filter((s) => s >= threshold)` and its negation — which is perfectly readable but walks the array twice and evaluates the predicate twice per element. A single `reduce` pass does both classifications in one traversal: the accumulator starts as `{ fail: [], pass: [] }`, each score is pushed onto exactly one bucket, and the accumulator is returned so the next iteration receives it. Order is preserved within each group because elements are visited left to right. For small arrays, prefer the two-`filter` version for clarity; reach for the `reduce` partition when the array is large or the predicate is expensive — same result, half the work.",
+      "id": "partition-pass-fail",
+      "methods": [
+        "reduce",
+        "filter"
+      ],
+      "order": 5,
+      "solution": "export function solve(scores: number[], threshold: number): { fail: number[]; pass: number[] } {\n  return scores.reduce<{ fail: number[]; pass: number[] }>(\n    (groups, score) => {\n      if (score >= threshold) {\n        groups.pass.push(score);\n      } else {\n        groups.fail.push(score);\n      }\n      return groups;\n    },\n    { fail: [], pass: [] },\n  );\n}\n",
+      "starterCode": "export function solve(scores: number[], threshold: number): { fail: number[]; pass: number[] } {\n  // One reduce pass, two buckets in the accumulator — remember to return it.\n  return { fail: [], pass: [] };\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              80,
+              45,
+              90,
+              60
+            ],
+            60
+          ],
+          "expected": {
+            "fail": [
+              45
+            ],
+            "pass": [
+              80,
+              90,
+              60
+            ]
+          },
+          "name": "splits pass and fail"
+        },
+        {
+          "args": [
+            [
+              70,
+              80
+            ],
+            50
+          ],
+          "expected": {
+            "fail": [],
+            "pass": [
+              70,
+              80
+            ]
+          },
+          "name": "everyone passes"
+        },
+        {
+          "args": [
+            [
+              10,
+              20
+            ],
+            50
+          ],
+          "expected": {
+            "fail": [
+              10,
+              20
+            ],
+            "pass": []
+          },
+          "name": "everyone fails"
+        },
+        {
+          "args": [
+            [
+              50
+            ],
+            50
+          ],
+          "expected": {
+            "fail": [],
+            "pass": [
+              50
+            ]
+          },
+          "name": "boundary score passes"
+        },
+        {
+          "args": [
+            [],
+            60
+          ],
+          "expected": {
+            "fail": [],
+            "pass": []
+          },
+          "name": "empty scores"
+        }
+      ],
+      "title": "Partition in one pass"
+    },
+    {
+      "categoryId": "filtering-and-slicing",
+      "description": "Paginate a list: return `{ page, totalPages }` where `page` holds the items on the 1-based page `pageNumber` and `totalPages` is the number of pages needed for the whole list. Out-of-range pages (including page `0` and negative pages) yield `page: []`; an empty list has `totalPages: 0`.\n\nSignature: `solve(items: string[], pageSize: number, pageNumber: number): { page: string[]; totalPages: number }`",
+      "difficulty": "expert",
+      "explanation": "`slice` is forgiving at the far end: a `start` at or beyond `length` returns `[]` and an `end` past `length` is clamped, so `items.slice(start, start + pageSize)` handles both full pages, the final partial page, and pages past the end with zero special-casing. The danger sits at the *near* end: for page `0` or a negative page, `start` goes negative, and `slice` reinterprets negative indices as offsets from the end — silently serving items from the back of the list instead of nothing. That is why `pageNumber < 1` needs an explicit guard while overshooting does not. `totalPages` falls out of `Math.ceil(items.length / pageSize)`: the ceiling rounds a trailing partial page up to a full page, and an empty list gives `Math.ceil(0)`, which is `0` pages — no special case needed there either.",
+      "id": "paginate-a-list",
+      "methods": [
+        "slice"
+      ],
+      "order": 6,
+      "solution": "export function solve(items: string[], pageSize: number, pageNumber: number): { page: string[]; totalPages: number } {\n  const totalPages = Math.ceil(items.length / pageSize);\n  const start = (pageNumber - 1) * pageSize;\n  return {\n    page: pageNumber < 1 ? [] : items.slice(start, start + pageSize),\n    totalPages,\n  };\n}\n",
+      "starterCode": "export function solve(items: string[], pageSize: number, pageNumber: number): { page: string[]; totalPages: number } {\n  // slice forgives overshooting the end — but negative starts wrap around. Guard page < 1.\n  return { page: [], totalPages: 0 };\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e"
+            ],
+            2,
+            1
+          ],
+          "expected": {
+            "page": [
+              "a",
+              "b"
+            ],
+            "totalPages": 3
+          },
+          "name": "first page"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e"
+            ],
+            2,
+            3
+          ],
+          "expected": {
+            "page": [
+              "e"
+            ],
+            "totalPages": 3
+          },
+          "name": "last page is partial"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e"
+            ],
+            2,
+            9
+          ],
+          "expected": {
+            "page": [],
+            "totalPages": 3
+          },
+          "name": "page past the end"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c"
+            ],
+            2,
+            0
+          ],
+          "expected": {
+            "page": [],
+            "totalPages": 2
+          },
+          "name": "page zero is out of range"
+        },
+        {
+          "args": [
+            [],
+            10,
+            1
+          ],
+          "expected": {
+            "page": [],
+            "totalPages": 0
+          },
+          "name": "empty list has zero pages"
+        }
+      ],
+      "title": "Paginate a list"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Prices arrive as integer cents. Return them formatted as dollar strings with two decimals: `150` becomes `'$1.50'` and `99` becomes `'$0.99'`.\n\nSignature: `solve(cents: number[]): string[]`",
+      "difficulty": "novice",
+      "explanation": "`map` transforms each element through a callback and collects the results into a new array with a hard guarantee: the output has *exactly* the same length as the input, one result per element, in the same order. That 1:1 shape guarantee is what separates `map` from `filter` (which may shrink) and `reduce` (which may collapse to anything). The transform itself is `(amount / 100).toFixed(2)`: dividing shifts cents to dollars, and `toFixed(2)` formats with exactly two decimals — `(0.99).toFixed(2)` gives '0.99' and `(5).toFixed(2)` gives '5.00', padding and rounding as needed — then a '$' is prefixed with plain string concatenation.",
+      "id": "cents-to-prices",
+      "methods": [
+        "map"
+      ],
+      "order": 1,
+      "solution": "export function solve(cents: number[]): string[] {\n  return cents.map((amount) => '$' + (amount / 100).toFixed(2));\n}\n",
+      "starterCode": "export function solve(cents: number[]): string[] {\n  // One input element, one output element: divide by 100, then toFixed(2).\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              150,
+              99
+            ]
+          ],
+          "expected": [
+            "$1.50",
+            "$0.99"
+          ],
+          "name": "formats dollars and cents"
+        },
+        {
+          "args": [
+            [
+              500
+            ]
+          ],
+          "expected": [
+            "$5.00"
+          ],
+          "name": "whole dollars keep two decimals"
+        },
+        {
+          "args": [
+            [
+              1
+            ]
+          ],
+          "expected": [
+            "$0.01"
+          ],
+          "name": "single cent pads the zeros"
+        },
+        {
+          "args": [
+            [
+              0
+            ]
+          ],
+          "expected": [
+            "$0.00"
+          ],
+          "name": "zero cents"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty cart"
+        }
+      ],
+      "title": "Cents to prices"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Turn items into a numbered list starting at 1: `['a', 'b']` becomes `['1. a', '2. b']`.\n\nSignature: `solve(items: string[]): string[]`",
+      "difficulty": "novice",
+      "explanation": "The `map` callback receives more than the element: its full signature is `(value, index, array)`. The second argument is the zero-based position, so numbering a list is just `items.map((item, index) => String(index + 1) + '. ' + item)` — the `+ 1` converts zero-based indices into the one-based numbers humans expect. No counter variable, no loop bookkeeping; the index arrives for free on every iteration. Remembering that `map` passes the index is also the key to a classic trap coming up later in this category — callbacks that silently accept a second argument.",
+      "id": "numbered-list",
+      "methods": [
+        "map"
+      ],
+      "order": 2,
+      "solution": "export function solve(items: string[]): string[] {\n  return items.map((item, index) => String(index + 1) + '. ' + item);\n}\n",
+      "starterCode": "export function solve(items: string[]): string[] {\n  // The map callback gets a second argument — use it, plus 1.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": [
+            "1. a",
+            "2. b"
+          ],
+          "name": "numbers two items"
+        },
+        {
+          "args": [
+            [
+              "milk",
+              "eggs",
+              "bread"
+            ]
+          ],
+          "expected": [
+            "1. milk",
+            "2. eggs",
+            "3. bread"
+          ],
+          "name": "numbers a shopping list"
+        },
+        {
+          "args": [
+            [
+              "solo"
+            ]
+          ],
+          "expected": [
+            "1. solo"
+          ],
+          "name": "single item"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty list"
+        }
+      ],
+      "title": "Number the items"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Parse an array of decimal strings into numbers. The starter code looks correct and even compiles — run it and study *why* `['1', '7', '11'].map(parseInt)` yields `[1, NaN, 3]` before fixing it.\n\nSignature: `solve(values: string[]): number[]`",
+      "difficulty": "intermediate",
+      "explanation": "`map` invokes its callback with three arguments — `(value, index, array)` — and `parseInt` happily accepts two: `(string, radix)`. Passed directly to `map`, `parseInt` receives each *index as its radix*: `parseInt('1', 0)` treats radix 0 as 10 and returns 1; `parseInt('7', 1)` is `NaN` because radix 1 is invalid; `parseInt('11', 2)` reads '11' as binary and returns 3. Hence the infamous `[1, NaN, 3]`. Two idiomatic fixes: `map(Number)` — `Number` takes exactly one argument, so the extra index is harmless — or an explicit arrow `(value) => parseInt(value, 10)` that pins the radix. The general lesson: never feed `map` a function whose second parameter means something, unless you wrap it.",
+      "id": "parse-decimal-strings",
+      "methods": [
+        "map"
+      ],
+      "order": 3,
+      "solution": "export function solve(values: string[]): number[] {\n  return values.map(Number);\n}\n",
+      "starterCode": "export function solve(values: string[]): number[] {\n  // Looks fine, compiles fine — but map hands parseInt a second argument.\n  return values.map(parseInt);\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "1",
+              "7",
+              "11"
+            ]
+          ],
+          "expected": [
+            1,
+            7,
+            11
+          ],
+          "name": "the classic trap strings"
+        },
+        {
+          "args": [
+            [
+              "10",
+              "20",
+              "30"
+            ]
+          ],
+          "expected": [
+            10,
+            20,
+            30
+          ],
+          "name": "two-digit strings"
+        },
+        {
+          "args": [
+            [
+              "-5",
+              "8"
+            ]
+          ],
+          "expected": [
+            -5,
+            8
+          ],
+          "name": "negative numbers"
+        },
+        {
+          "args": [
+            [
+              "42"
+            ]
+          ],
+          "expected": [
+            42
+          ],
+          "name": "single value"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "The parseInt trap"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Build one CSV line from an array of cell objects: escape each cell (wrap it in double quotes and double any inner quotes when the text contains a comma or a quote), then join the fields with commas. An empty row produces an empty string.\n\nSignature: `solve(cells: { text: string }[]): string`",
+      "difficulty": "intermediate",
+      "explanation": "This is the classic transform-then-serialize pipeline: `map` turns each cell object into its escaped field string, and `join(',')` glues the results into one line. `join` takes a separator argument — omit it and you get commas anyway (the default), but being explicit documents intent; `join('')` and `join(' | ')` are the same method doing very different jobs. Two edge behaviors earn their keep here: `[].join(',')` returns the empty string `''` (not `','` or `undefined`), so an empty row needs no special case, and a single-element array yields just that element with no separator. The escaping itself follows CSV rules: only fields containing a comma or quote get wrapped, and inner quotes are doubled (`\"` becomes `\"\"`) so a parser can tell a literal quote from a closing one.",
+      "id": "csv-line-builder",
+      "methods": [
+        "map",
+        "join"
+      ],
+      "order": 4,
+      "solution": "export function solve(cells: { text: string }[]): string {\n  return cells\n    .map((cell) => {\n      const needsQuoting = cell.text.includes(',') || cell.text.includes('\"');\n      return needsQuoting ? '\"' + cell.text.replaceAll('\"', '\"\"') + '\"' : cell.text;\n    })\n    .join(',');\n}\n",
+      "starterCode": "export function solve(cells: { text: string }[]): string {\n  // map each cell to an escaped field, then join with commas.\n  return '';\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "text": "ada"
+              },
+              {
+                "text": "grace"
+              }
+            ]
+          ],
+          "expected": "ada,grace",
+          "name": "plain fields"
+        },
+        {
+          "args": [
+            [
+              {
+                "text": "lovelace, ada"
+              },
+              {
+                "text": "1815"
+              }
+            ]
+          ],
+          "expected": "\"lovelace, ada\",1815",
+          "name": "field with a comma gets quoted"
+        },
+        {
+          "args": [
+            [
+              {
+                "text": "say \"hi\""
+              }
+            ]
+          ],
+          "expected": "\"say \"\"hi\"\"\"",
+          "name": "field with quotes doubles them"
+        },
+        {
+          "args": [
+            [
+              {
+                "text": "solo"
+              }
+            ]
+          ],
+          "expected": "solo",
+          "name": "single plain field"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": "",
+          "name": "empty row"
+        }
+      ],
+      "title": "CSV line builder"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Zip two arrays into pairs: `solve(['a', 'b'], [1, 2])` gives `[['a', 1], ['b', 2]]`. When the arrays differ in length, truncate to the shorter one — no `undefined` padding.\n\nSignature: `solve(left: string[], right: number[]): [string, number][]`",
+      "difficulty": "advanced",
+      "explanation": "The zip pattern rides on `map`’s index argument: mapping over one array while indexing into the other pairs elements positionally — `(item, index) => [item, right[index]]`. The subtlety is *which* array to map over. Mapping over the longer one produces pairs with `undefined` holes where the shorter array ran out, so the move is to cut down to the common length first: `left.slice(0, Math.min(left.length, right.length))` guarantees every index that `map` visits exists in *both* arrays. `slice` returns a new array, so neither input is disturbed, and when either side is empty the sliced length is 0 and `map` simply never runs.",
+      "id": "zip-into-pairs",
+      "methods": [
+        "map"
+      ],
+      "order": 5,
+      "solution": "export function solve(left: string[], right: number[]): [string, number][] {\n  const length = Math.min(left.length, right.length);\n  return left.slice(0, length).map((item, index): [string, number] => [item, right[index]]);\n}\n",
+      "starterCode": "export function solve(left: string[], right: number[]): [string, number][] {\n  // map over the SHORTER side (slice to the min length), pairing by index.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b"
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              1
+            ],
+            [
+              "b",
+              2
+            ]
+          ],
+          "name": "zips equal lengths"
+        },
+        {
+          "args": [
+            [
+              "a"
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              1
+            ]
+          ],
+          "name": "left side shorter"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c"
+            ],
+            [
+              1
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              1
+            ]
+          ],
+          "name": "right side shorter"
+        },
+        {
+          "args": [
+            [],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [],
+          "name": "empty side yields empty result"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "y",
+              "z"
+            ],
+            [
+              10,
+              20,
+              30
+            ]
+          ],
+          "expected": [
+            [
+              "x",
+              10
+            ],
+            [
+              "y",
+              20
+            ],
+            [
+              "z",
+              30
+            ]
+          ],
+          "name": "pairs keep index alignment"
+        }
+      ],
+      "title": "Zip into pairs"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Build a lookup object from an array of `{ code, name }` records so that `lookup[code]` gives the name. When two records share a `code`, the later one wins.\n\nSignature: `solve(items: { code: string; name: string }[]): Record<string, string>`",
+      "difficulty": "expert",
+      "explanation": "`Object.fromEntries` inverts `Object.entries`: it consumes an iterable of `[key, value]` pairs and builds an object from them. Pairing it with `map` gives the idiomatic array-to-lookup transform — `items.map((item) => [item.code, item.name])` reshapes each record into an entry pair, and `Object.fromEntries` assembles the object in one step, replacing the old `reduce`-with-accumulator boilerplate. Duplicate keys resolve by assignment order: pairs are applied left to right, so a later pair with the same key silently overwrites the earlier one — “last write wins,” exactly like repeated assignments to the same property. That makes input order load-bearing when duplicates are possible, which is worth a comment in real code.",
+      "id": "entries-to-lookup",
+      "methods": [
+        "map",
+        "Object.fromEntries"
+      ],
+      "order": 6,
+      "solution": "export function solve(items: { code: string; name: string }[]): Record<string, string> {\n  return Object.fromEntries(items.map((item): [string, string] => [item.code, item.name]));\n}\n",
+      "starterCode": "export function solve(items: { code: string; name: string }[]): Record<string, string> {\n  // map each record to a [key, value] pair, then let Object.fromEntries assemble them.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "code": "US",
+                "name": "United States"
+              },
+              {
+                "code": "FR",
+                "name": "France"
+              }
+            ]
+          ],
+          "expected": {
+            "FR": "France",
+            "US": "United States"
+          },
+          "name": "builds a code-to-name lookup"
+        },
+        {
+          "args": [
+            [
+              {
+                "code": "US",
+                "name": "first"
+              },
+              {
+                "code": "US",
+                "name": "second"
+              }
+            ]
+          ],
+          "expected": {
+            "US": "second"
+          },
+          "name": "later duplicate code wins"
+        },
+        {
+          "args": [
+            [
+              {
+                "code": "JP",
+                "name": "Japan"
+              }
+            ]
+          ],
+          "expected": {
+            "JP": "Japan"
+          },
+          "name": "single entry"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "empty list gives an empty object"
+        }
+      ],
+      "title": "Entries to lookup"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Return the average of `numbers`. An empty array averages to `0`, not `NaN`.\n\nSignature: `solve(numbers: number[]): number`\n\nUse `reduce` with an explicit initial value to build the sum.",
+      "difficulty": "novice",
+      "explanation": "`reduce` threads an accumulator through the array: the callback receives `(accumulator, element)` and whatever it returns becomes the accumulator for the next element. The second argument to `reduce` — here `0` — is the initial accumulator, so the very first call sees `(0, numbers[0])`. Summing with a seed of `0` then dividing by `length` gives the average in two clean steps. The early return guards the empty case: with no elements the fold never runs and `0 / 0` would otherwise produce `NaN`.",
+      "id": "average-with-reduce",
+      "methods": [
+        "reduce"
+      ],
+      "order": 1,
+      "solution": "export function solve(numbers: number[]): number {\n  if (numbers.length === 0) {\n    return 0;\n  }\n  const total = numbers.reduce((sum, value) => sum + value, 0);\n  return total / numbers.length;\n}\n",
+      "starterCode": "export function solve(numbers: number[]): number {\n  // Fold the array into a sum first — reduce((acc, value) => ..., initial).\n  return 0;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              2,
+              4,
+              6
+            ]
+          ],
+          "expected": 4,
+          "name": "average of whole numbers"
+        },
+        {
+          "args": [
+            [
+              7
+            ]
+          ],
+          "expected": 7,
+          "name": "single element is its own average"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": 0,
+          "name": "empty array averages to zero"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": 1.5,
+          "name": "fractional average"
+        },
+        {
+          "args": [
+            [
+              -2,
+              2,
+              6
+            ]
+          ],
+          "expected": 2,
+          "name": "negative values pull the average down"
+        }
+      ],
+      "title": "Average via reduce"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Count how many times each word appears in `words`, returning a plain object mapping word → count.\n\nSignature: `solve(words: string[]): Record<string, number>`\n\nExample: `solve([\"a\", \"b\", \"a\"])` → `{ a: 2, b: 1 }`",
+      "difficulty": "intermediate",
+      "explanation": "The accumulator of a `reduce` does not have to be a number — seeding it with `{}` turns the fold into an index builder. Each step writes `counts[word] = (counts[word] ?? 0) + 1`: the `??` supplies `0` the first time a word appears, because reading a missing key yields `undefined`. Returning the same object from every step keeps the fold O(n); the classic mistake is forgetting the `return counts`, which makes the next iteration receive `undefined` and crash. This accumulator-object pattern is the hand-rolled ancestor of `Object.groupBy`.",
+      "id": "count-occurrences",
+      "methods": [
+        "reduce"
+      ],
+      "order": 2,
+      "solution": "export function solve(words: string[]): Record<string, number> {\n  return words.reduce<Record<string, number>>((counts, word) => {\n    counts[word] = (counts[word] ?? 0) + 1;\n    return counts;\n  }, {});\n}\n",
+      "starterCode": "export function solve(words: string[]): Record<string, number> {\n  // Seed reduce with an empty object and bump counts[word] each step.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "apple",
+              "banana",
+              "apple"
+            ]
+          ],
+          "expected": {
+            "apple": 2,
+            "banana": 1
+          },
+          "name": "counts repeated words"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c"
+            ]
+          ],
+          "expected": {
+            "a": 1,
+            "b": 1,
+            "c": 1
+          },
+          "name": "all unique words count once"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "empty array yields empty record"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "x",
+              "x",
+              "x"
+            ]
+          ],
+          "expected": {
+            "x": 4
+          },
+          "name": "one word repeated many times"
+        }
+      ],
+      "title": "Count occurrences"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Return the person with the highest `wealth`. If two people tie, keep the earlier one. An empty list returns `null`.\n\nSignature: `solve(people: { name: string; wealth: number }[]): { name: string; wealth: number } | null`",
+      "difficulty": "intermediate",
+      "explanation": "`reduce` doubles as a max-finder that keeps the *whole element*, not just the winning number: the callback `(richest, person) => (person.wealth > richest.wealth ? person : richest)` carries the best candidate forward. Compare with `Math.max(...people.map((p) => p.wealth))`: the spread pushes every element onto the call stack (hundreds of thousands of elements can throw a RangeError), and even when it survives you only get the number back — a second pass is needed to find who owned it. The strict `>` keeps the first of any tie, and the length guard returns `null` before a seedless fold could throw on `[]`.",
+      "id": "richest-person",
+      "methods": [
+        "reduce"
+      ],
+      "order": 3,
+      "solution": "interface Person {\n  name: string;\n  wealth: number;\n}\n\nexport function solve(people: Person[]): Person | null {\n  if (people.length === 0) {\n    return null;\n  }\n  return people.reduce((richest, person) => (person.wealth > richest.wealth ? person : richest));\n}\n",
+      "starterCode": "interface Person {\n  name: string;\n  wealth: number;\n}\n\nexport function solve(people: Person[]): Person | null {\n  // Carry the best candidate object through the fold — not just its number.\n  return null;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "wealth": 300
+              },
+              {
+                "name": "Grace",
+                "wealth": 500
+              },
+              {
+                "name": "Alan",
+                "wealth": 200
+              }
+            ]
+          ],
+          "expected": {
+            "name": "Grace",
+            "wealth": 500
+          },
+          "name": "finds the richest person"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Solo",
+                "wealth": 1
+              }
+            ]
+          ],
+          "expected": {
+            "name": "Solo",
+            "wealth": 1
+          },
+          "name": "single person wins by default"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": null,
+          "name": "empty list yields null"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "First",
+                "wealth": 100
+              },
+              {
+                "name": "Second",
+                "wealth": 100
+              }
+            ]
+          ],
+          "expected": {
+            "name": "First",
+            "wealth": 100
+          },
+          "name": "tie keeps the earlier person"
+        }
+      ],
+      "title": "Richest person"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Total a shopping cart: return the sum of `amounts`, and `0` when the cart is empty.\n\nSignature: `solve(amounts: number[]): number`\n\nThe starter code works on every non-empty cart and throws a `TypeError` on `[]` — figure out why before fixing it.",
+      "difficulty": "advanced",
+      "explanation": "`reduce` has two modes. With an initial value, the fold starts at your seed and visits every element. *Without* one, `reduce` silently promotes element 0 to be the seed and starts folding from element 1 — which usually works, masks the bug, and then throws `TypeError: Reduce of empty array with no initial value` the first time an empty array shows up, because there is no element 0 to promote. The seedless form also changes types subtly: the accumulator starts as an *element*, not as whatever your seed would be. Passing `0` as the explicit initial value fixes both behaviors at once — `[].reduce(fn, 0)` never invokes the callback and just returns the seed. Rule of thumb: always pass an initial value unless you have proven the array is non-empty.",
+      "id": "safe-total",
+      "methods": [
+        "reduce"
+      ],
+      "order": 4,
+      "solution": "export function solve(amounts: number[]): number {\n  return amounts.reduce((total, amount) => total + amount, 0);\n}\n",
+      "starterCode": "export function solve(amounts: number[]): number {\n  // Works right up until amounts is [] — what does reduce use as its seed here?\n  return amounts.reduce((total, amount) => total + amount);\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              12,
+              30,
+              8
+            ]
+          ],
+          "expected": 50,
+          "name": "sums a full cart"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": 0,
+          "name": "empty cart totals zero"
+        },
+        {
+          "args": [
+            [
+              42
+            ]
+          ],
+          "expected": 42,
+          "name": "single amount"
+        },
+        {
+          "args": [
+            [
+              100,
+              -25,
+              -5
+            ]
+          ],
+          "expected": 70,
+          "name": "negative adjustments subtract"
+        }
+      ],
+      "title": "The empty-cart TypeError"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Turn a list of transactions into a running balance: each output element is the sum of all transactions up to and including that point.\n\nSignature: `solve(transactions: number[]): number[]`\n\nExample: `solve([100, -30, 50])` → `[100, 70, 120]`",
+      "difficulty": "advanced",
+      "explanation": "This is a *scan* — a fold that keeps every intermediate accumulator instead of only the last one. Seeding `reduce` with an empty array, each step appends one new balance: `[...balances, (balances.at(-1) ?? 0) + transaction]`. The previous running total is simply the last element already collected, and `?? 0` covers the very first step when nothing has been collected yet. Note what makes this different from `map`: each output element depends on *all* previous inputs, which is exactly the dependency shape `reduce` exists to express. (Spreading rebuilds the array each step — fine for teaching; a `push` into the accumulator is the O(n) variant.)",
+      "id": "running-balance",
+      "methods": [
+        "reduce"
+      ],
+      "order": 5,
+      "solution": "export function solve(transactions: number[]): number[] {\n  return transactions.reduce<number[]>(\n    (balances, transaction) => [...balances, (balances.at(-1) ?? 0) + transaction],\n    [],\n  );\n}\n",
+      "starterCode": "export function solve(transactions: number[]): number[] {\n  // A scan keeps every intermediate total — the previous balance is the last element you collected.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              100,
+              -30,
+              50
+            ]
+          ],
+          "expected": [
+            100,
+            70,
+            120
+          ],
+          "name": "deposits and withdrawals"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty statement stays empty"
+        },
+        {
+          "args": [
+            [
+              25
+            ]
+          ],
+          "expected": [
+            25
+          ],
+          "name": "single transaction is its own balance"
+        },
+        {
+          "args": [
+            [
+              50,
+              -80,
+              10
+            ]
+          ],
+          "expected": [
+            50,
+            -30,
+            -20
+          ],
+          "name": "overdraft goes negative"
+        }
+      ],
+      "title": "Running balance (scan)"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Build a nested object from a key path: wrap `value` inside one object per key, innermost key last.\n\nSignature: `solve(path: string[], value: number): unknown`\n\nExample: `solve([\"a\", \"b\", \"c\"], 42)` → `{ a: { b: { c: 42 } } }`. An empty path returns `value` itself.",
+      "difficulty": "expert",
+      "explanation": "`reduceRight` folds from the *last* element toward the first — same contract as `reduce`, opposite direction. That direction is exactly what nesting needs: the innermost layer must be built first. Seeding with `value`, the first step wraps it in the last key (`{ c: 42 }`), the next step wraps that in `b`, and so on outward: `path.reduceRight((nested, key) => ({ [key]: nested }), value)`. Running plain `reduce` with the same callback would produce `{ a: 42 }` wrapped in `b`, then `c` — inside-out and wrong. The computed property `[key]` builds each layer, the parentheses around the object literal keep it from parsing as an arrow-function body, and an empty path never invokes the callback, so the seed passes through untouched.",
+      "id": "nested-path-object",
+      "methods": [
+        "reduceRight"
+      ],
+      "order": 6,
+      "solution": "export function solve(path: string[], value: number): unknown {\n  return path.reduceRight<unknown>((nested, key) => ({ [key]: nested }), value);\n}\n",
+      "starterCode": "export function solve(path: string[], value: number): unknown {\n  // The innermost object must exist first — which direction must the fold run?\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c"
+            ],
+            42
+          ],
+          "expected": {
+            "a": {
+              "b": {
+                "c": 42
+              }
+            }
+          },
+          "name": "three-level path"
+        },
+        {
+          "args": [
+            [
+              "root"
+            ],
+            7
+          ],
+          "expected": {
+            "root": 7
+          },
+          "name": "single key wraps once"
+        },
+        {
+          "args": [
+            [],
+            99
+          ],
+          "expected": 99,
+          "name": "empty path returns the value itself"
+        },
+        {
+          "args": [
+            [
+              "server",
+              "port"
+            ],
+            8080
+          ],
+          "expected": {
+            "server": {
+              "port": 8080
+            }
+          },
+          "name": "two-level config path"
+        }
+      ],
+      "title": "Fold right into nesting"
+    },
+    {
+      "categoryId": "sorting-and-ordering",
+      "description": "Return `numbers` sorted in ascending numeric order, without mutating the input.\n\nSignature: `solve(numbers: number[]): number[]`\n\nTrap: the starter code looks correct but returns `[1, 10, 9]` for `[10, 9, 1]`. Why?",
+      "difficulty": "novice",
+      "explanation": "With no comparator, `sort` and `toSorted` convert every element to a *string* and compare Unicode code units — so `10` becomes `\"10\"`, which sorts before `\"9\"` because `\"1\" < \"9\"`. That default exists for historical reasons and is almost never what you want for numbers. Passing `(a, b) => a - b` fixes it: a comparator returns negative when `a` belongs first, positive when `b` does, and zero for ties, and subtraction produces exactly those signs for numbers. `toSorted` (ES2023) applies the same comparator contract as `sort` but returns a new array instead of mutating in place.",
+      "id": "numeric-sort-trap",
+      "methods": [
+        "sort",
+        "toSorted"
+      ],
+      "order": 1,
+      "solution": "export function solve(numbers: number[]): number[] {\n  return numbers.toSorted((a, b) => a - b);\n}\n",
+      "starterCode": "export function solve(numbers: number[]): number[] {\n  // Looks right, sorts wrong: what does the default comparator compare?\n  return numbers.toSorted();\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              10,
+              9,
+              1
+            ]
+          ],
+          "expected": [
+            1,
+            9,
+            10
+          ],
+          "name": "double digits expose the trap"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "already sorted stays sorted"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty array"
+        },
+        {
+          "args": [
+            [
+              -5,
+              100,
+              -20,
+              3
+            ]
+          ],
+          "expected": [
+            -20,
+            -5,
+            3,
+            100
+          ],
+          "name": "negatives sort numerically"
+        },
+        {
+          "args": [
+            [
+              8
+            ]
+          ],
+          "expected": [
+            8
+          ],
+          "name": "single element"
+        }
+      ],
+      "title": "Sort numbers, not strings"
+    },
+    {
+      "categoryId": "sorting-and-ordering",
+      "description": "Return a tuple `[sortedCopy, original]`: the first element is `xs` sorted ascending, the second is `xs` itself — which must still be in its original order after your code runs.\n\nSignature: `solve(xs: number[]): [number[], number[]]`\n\nExample: `solve([3, 1, 2])` → `[[1, 2, 3], [3, 1, 2]]`. If you reach for in-place `sort`, the second element comes back reordered and the test fails.",
+      "difficulty": "novice",
+      "explanation": "`sort` mutates: `xs.sort()` reorders the array you were handed *and* returns that same array, so both tuple elements end up pointing at one sorted array — the test sees `[[1, 2, 3], [1, 2, 3]]` and fails. `toSorted` (ES2023) is the copying twin: it allocates a new array, sorts the copy, and leaves the original untouched, which is why `[xs.toSorted((a, b) => a - b), xs]` passes. This matters beyond puzzles — mutating a prop, a piece of state, or a function argument with `sort` is a classic source of spooky action at a distance. The pre-ES2023 spelling of the same idea is `[...xs].sort(...)`.",
+      "id": "sorted-copy-original-intact",
+      "methods": [
+        "toSorted",
+        "sort"
+      ],
+      "order": 2,
+      "solution": "export function solve(xs: number[]): [number[], number[]] {\n  return [xs.toSorted((a, b) => a - b), xs];\n}\n",
+      "starterCode": "export function solve(xs: number[]): [number[], number[]] {\n  // sort() reorders xs itself — the second tuple element must stay untouched.\n  return [xs.sort((a, b) => a - b), xs];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              3,
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              3,
+              1,
+              2
+            ]
+          ],
+          "name": "copy is sorted, original untouched"
+        },
+        {
+          "args": [
+            [
+              9,
+              5,
+              1
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              5,
+              9
+            ],
+            [
+              9,
+              5,
+              1
+            ]
+          ],
+          "name": "reverse-ordered input"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [
+            [],
+            []
+          ],
+          "name": "empty array"
+        },
+        {
+          "args": [
+            [
+              10,
+              2
+            ]
+          ],
+          "expected": [
+            [
+              2,
+              10
+            ],
+            [
+              10,
+              2
+            ]
+          ],
+          "name": "double digits stay numeric"
+        }
+      ],
+      "title": "Prove you did not mutate"
+    },
+    {
+      "categoryId": "sorting-and-ordering",
+      "description": "Sort people alphabetically by `name` the way a human would file them — `Émile` belongs with the Es, not after `Zoe`.\n\nSignature: `solve(people: { name: string }[]): { name: string }[]`\n\nUse `localeCompare` with the `en` locale; do not mutate the input.",
+      "difficulty": "intermediate",
+      "explanation": "Comparing strings with `<` ranks them by raw code units: `É` is U+00C9 (201), far beyond `Z` (90), so a plain comparator files Émile after Zoe — and every lowercase letter after every uppercase one, which is why `ana` would land after `Ben`. `localeCompare` consults real collation rules instead: accented letters sort with their base letter and case differences only break ties. It also returns exactly the negative/zero/positive contract a comparator needs, so `(a, b) => a.name.localeCompare(b.name, \"en\")` drops straight into `toSorted`. Pinning the locale to `\"en\"` keeps results identical across machines instead of inheriting whatever the runtime's default locale happens to be.",
+      "id": "sort-names-locale",
+      "methods": [
+        "toSorted",
+        "localeCompare"
+      ],
+      "order": 3,
+      "solution": "interface Person {\n  name: string;\n}\n\nexport function solve(people: Person[]): Person[] {\n  return people.toSorted((a, b) => a.name.localeCompare(b.name, 'en'));\n}\n",
+      "starterCode": "interface Person {\n  name: string;\n}\n\nexport function solve(people: Person[]): Person[] {\n  // 'É' < 'Z' is false in code units — humans disagree. Compare with locale rules.\n  return people;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Zoe"
+              },
+              {
+                "name": "Émile"
+              },
+              {
+                "name": "Adam"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "Adam"
+            },
+            {
+              "name": "Émile"
+            },
+            {
+              "name": "Zoe"
+            }
+          ],
+          "name": "accented names collate with their base letter"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "carol"
+              },
+              {
+                "name": "alice"
+              },
+              {
+                "name": "bob"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "alice"
+            },
+            {
+              "name": "bob"
+            },
+            {
+              "name": "carol"
+            }
+          ],
+          "name": "plain ascii names"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Ben"
+              },
+              {
+                "name": "ana"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "ana"
+            },
+            {
+              "name": "Ben"
+            }
+          ],
+          "name": "lowercase does not sort after uppercase"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty roster"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Ada"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "Ada"
+            }
+          ],
+          "name": "single person"
+        }
+      ],
+      "title": "Human-friendly name sort"
+    },
+    {
+      "categoryId": "sorting-and-ordering",
+      "description": "Sort employees by `department` ascending, and *within* each department by `salary` descending.\n\nSignature: `solve(employees: { department: string; name: string; salary: number }[]): { department: string; name: string; salary: number }[]`\n\nDo not mutate the input.",
+      "difficulty": "intermediate",
+      "explanation": "Multi-key sorting is comparator chaining: compare by the primary key, and only when that comparison returns `0` fall through to the secondary key. The `||` idiom encodes the fall-through in one expression — `byDepartment || b.salary - a.salary` — because a non-zero primary result is truthy and short-circuits, while a `0` (tie) is falsy and hands control to the salary comparison. Flipping the operands to `b.salary - a.salary` inverts the sign contract, which is all “descending” means. `toSorted` runs the whole chain in a single pass over the data; sorting twice by separate keys only works if you sort by the *secondary* key first and rely on stability, and it costs two passes.",
+      "id": "department-then-salary",
+      "methods": [
+        "toSorted"
+      ],
+      "order": 4,
+      "solution": "interface Employee {\n  department: string;\n  name: string;\n  salary: number;\n}\n\nexport function solve(employees: Employee[]): Employee[] {\n  return employees.toSorted((a, b) => {\n    const byDepartment = a.department < b.department ? -1 : a.department > b.department ? 1 : 0;\n    return byDepartment || b.salary - a.salary;\n  });\n}\n",
+      "starterCode": "interface Employee {\n  department: string;\n  name: string;\n  salary: number;\n}\n\nexport function solve(employees: Employee[]): Employee[] {\n  // Compare departments first; only on a tie (0) fall through to salary — || does exactly that.\n  return employees;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "department": "Sales",
+                "name": "Uma",
+                "salary": 90
+              },
+              {
+                "department": "Eng",
+                "name": "Ada",
+                "salary": 120
+              },
+              {
+                "department": "Eng",
+                "name": "Lin",
+                "salary": 150
+              },
+              {
+                "department": "Sales",
+                "name": "Rex",
+                "salary": 110
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "department": "Eng",
+              "name": "Lin",
+              "salary": 150
+            },
+            {
+              "department": "Eng",
+              "name": "Ada",
+              "salary": 120
+            },
+            {
+              "department": "Sales",
+              "name": "Rex",
+              "salary": 110
+            },
+            {
+              "department": "Sales",
+              "name": "Uma",
+              "salary": 90
+            }
+          ],
+          "name": "two departments, salaries descend within each"
+        },
+        {
+          "args": [
+            [
+              {
+                "department": "Ops",
+                "name": "Al",
+                "salary": 50
+              },
+              {
+                "department": "Ops",
+                "name": "Bo",
+                "salary": 75
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "department": "Ops",
+              "name": "Bo",
+              "salary": 75
+            },
+            {
+              "department": "Ops",
+              "name": "Al",
+              "salary": 50
+            }
+          ],
+          "name": "single department sorts by salary only"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty team"
+        },
+        {
+          "args": [
+            [
+              {
+                "department": "Eng",
+                "name": "First",
+                "salary": 100
+              },
+              {
+                "department": "Eng",
+                "name": "Second",
+                "salary": 100
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "department": "Eng",
+              "name": "First",
+              "salary": 100
+            },
+            {
+              "department": "Eng",
+              "name": "Second",
+              "salary": 100
+            }
+          ],
+          "name": "salary tie keeps original order"
+        }
+      ],
+      "title": "Department up, salary down"
+    },
+    {
+      "categoryId": "sorting-and-ordering",
+      "description": "Rank submissions by `score` descending. Submissions with equal scores must keep the order they were submitted in — first in, first listed.\n\nSignature: `solve(submissions: { name: string; score: number }[]): { name: string; score: number }[]`\n\nDo not mutate the input, and do not add tiebreak keys — the sort itself must preserve submission order.",
+      "difficulty": "advanced",
+      "explanation": "Since ES2019, `sort` — and therefore `toSorted` — is guaranteed *stable*: elements that compare equal keep their original relative order. That guarantee is what makes `(a, b) => b.score - a.score` a complete solution here. Look at the first test: Ana, Cy, and Ed all score 80, so the comparator returns `0` for every pair among them and expresses no preference — an unstable sort could legally emit them as `Ed, Ana, Cy` or any other permutation, and the expected output would be a coin flip. Stability removes the coin flip: ties resolve to input order, deterministically, with no extra tiebreak key. Before ES2019 engines really did differ (V8 used an unstable sort for arrays over 10 elements), which is why older code carries defensive index tiebreakers you no longer need.",
+      "id": "stable-leaderboard",
+      "methods": [
+        "toSorted"
+      ],
+      "order": 5,
+      "solution": "interface Submission {\n  name: string;\n  score: number;\n}\n\nexport function solve(submissions: Submission[]): Submission[] {\n  return submissions.toSorted((a, b) => b.score - a.score);\n}\n",
+      "starterCode": "interface Submission {\n  name: string;\n  score: number;\n}\n\nexport function solve(submissions: Submission[]): Submission[] {\n  // Descending by score — and let guaranteed stability handle the ties for you.\n  return submissions;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Ana",
+                "score": 80
+              },
+              {
+                "name": "Bo",
+                "score": 95
+              },
+              {
+                "name": "Cy",
+                "score": 80
+              },
+              {
+                "name": "Di",
+                "score": 95
+              },
+              {
+                "name": "Ed",
+                "score": 80
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "Bo",
+              "score": 95
+            },
+            {
+              "name": "Di",
+              "score": 95
+            },
+            {
+              "name": "Ana",
+              "score": 80
+            },
+            {
+              "name": "Cy",
+              "score": 80
+            },
+            {
+              "name": "Ed",
+              "score": 80
+            }
+          ],
+          "name": "ties keep submission order"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "A",
+                "score": 50
+              },
+              {
+                "name": "B",
+                "score": 50
+              },
+              {
+                "name": "C",
+                "score": 50
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "A",
+              "score": 50
+            },
+            {
+              "name": "B",
+              "score": 50
+            },
+            {
+              "name": "C",
+              "score": 50
+            }
+          ],
+          "name": "all scores equal means order unchanged"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Low",
+                "score": 10
+              },
+              {
+                "name": "High",
+                "score": 99
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "High",
+              "score": 99
+            },
+            {
+              "name": "Low",
+              "score": 10
+            }
+          ],
+          "name": "no ties sorts purely by score"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty leaderboard"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Only",
+                "score": 42
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "name": "Only",
+              "score": 42
+            }
+          ],
+          "name": "single submission"
+        }
+      ],
+      "title": "Stability is a feature"
+    },
+    {
+      "categoryId": "sorting-and-ordering",
+      "description": "Sort labels the way a file browser does: `item2` before `item10`, because the digit runs compare as numbers, not characters.\n\nSignature: `solve(labels: string[]): string[]`\n\nPlain lexicographic sorting yields `[\"item1\", \"item10\", \"item2\"]` — fix it without parsing the strings yourself.",
+      "difficulty": "expert",
+      "explanation": "Lexicographic comparison walks character by character, so `\"item10\" < \"item2\"` — the `1` loses to `2` before the second digit is ever seen. You could split each label into text and number chunks yourself, but `localeCompare` already ships that algorithm behind the `numeric` collation option: `a.localeCompare(b, \"en\", { numeric: true })` segments both strings, compares digit runs by numeric value and everything else by locale rules. Dropped into `toSorted`, it produces the “natural sort” every file browser uses, and it handles version-ish strings like `v1.9` vs `v1.10` for free. One caveat for hot paths: options-bearing `localeCompare` builds collation machinery per call — cache an `Intl.Collator(\"en\", { numeric: true })` and pass its `compare` method when sorting huge lists.",
+      "id": "natural-numeric-sort",
+      "methods": [
+        "toSorted",
+        "localeCompare"
+      ],
+      "order": 6,
+      "solution": "export function solve(labels: string[]): string[] {\n  return labels.toSorted((a, b) => a.localeCompare(b, 'en', { numeric: true }));\n}\n",
+      "starterCode": "export function solve(labels: string[]): string[] {\n  // Lexicographic order ranks 'item10' before 'item2' — ask for numeric collation instead.\n  return labels.toSorted();\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "item10",
+              "item2",
+              "item1"
+            ]
+          ],
+          "expected": [
+            "item1",
+            "item2",
+            "item10"
+          ],
+          "name": "digit runs compare as numbers"
+        },
+        {
+          "args": [
+            [
+              "v1.10",
+              "v1.2",
+              "v1.9"
+            ]
+          ],
+          "expected": [
+            "v1.2",
+            "v1.9",
+            "v1.10"
+          ],
+          "name": "version-ish strings"
+        },
+        {
+          "args": [
+            [
+              "file100",
+              "file20",
+              "file3"
+            ]
+          ],
+          "expected": [
+            "file3",
+            "file20",
+            "file100"
+          ],
+          "name": "mixed digit widths"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty list"
+        },
+        {
+          "args": [
+            [
+              "pear",
+              "apple"
+            ]
+          ],
+          "expected": [
+            "apple",
+            "pear"
+          ],
+          "name": "plain words stay alphabetical"
+        }
+      ],
+      "title": "Natural sort for humans"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Flatten a nested array by exactly one level: `[[1, 2], [3]]` becomes `[1, 2, 3]`. Non-array elements pass through untouched.\n\nSignature: `solve(values: (number | number[])[]): number[]`",
+      "difficulty": "novice",
+      "explanation": "`flat()` with no argument flattens exactly one level — the depth parameter defaults to `1`, not `Infinity`, which surprises people expecting a full collapse. Array elements are spread into the result, non-array elements are copied over as-is, and empty inner arrays contribute nothing. Two bonus behaviors worth knowing: `flat` always returns a *new* array (the input is never mutated), and it drops holes from sparse arrays, so `arr.flat()` doubles as a densifier.",
+      "id": "flatten-one-level",
+      "methods": [
+        "flat"
+      ],
+      "order": 1,
+      "solution": "export function solve(values: (number | number[])[]): number[] {\n  return values.flat();\n}\n",
+      "starterCode": "export function solve(values: (number | number[])[]): number[] {\n  // One method call removes exactly one layer of brackets — no loop needed.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3
+              ]
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "flattens one level"
+        },
+        {
+          "args": [
+            [
+              1,
+              [
+                2,
+                3
+              ],
+              4
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "name": "non-array elements pass through"
+        },
+        {
+          "args": [
+            [
+              [],
+              [
+                1
+              ],
+              []
+            ]
+          ],
+          "expected": [
+            1
+          ],
+          "name": "empty inner arrays vanish"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty outer array"
+        }
+      ],
+      "title": "Flatten one level"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Fully flatten an arbitrarily nested array of numbers — any depth, one flat list out.\n\nSignature: `solve(values: Nested): number[]` where `type Nested = (Nested | number)[]`\n\nConstraint: a single method call — no recursion, no loops.",
+      "difficulty": "intermediate",
+      "explanation": "The depth argument of `flat` caps how many levels collapse per call: `flat(1)` peels one layer, `flat(2)` two, and `flat(Infinity)` keeps going until no arrays remain — the idiom for nesting whose depth you do not know in advance. Before ES2019 this took hand-written recursion or repeated `concat` passes; now the engine walks the structure for you. Each call still returns a fresh array, so even a full deep flatten never touches the input. The one thing `flat(Infinity)` cannot express is *conditional* flattening — for that you graduate to `flatMap`.",
+      "id": "deep-flatten",
+      "methods": [
+        "flat"
+      ],
+      "order": 2,
+      "solution": "type Nested = (Nested | number)[];\n\nexport function solve(values: Nested): number[] {\n  return values.flat(Infinity) as number[];\n}\n",
+      "starterCode": "type Nested = (Nested | number)[];\n\nexport function solve(values: Nested): number[] {\n  // flat() only peels one layer by default — how do you tell it to keep going?\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                1,
+                [
+                  2
+                ]
+              ],
+              [
+                3
+              ]
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "two levels deep"
+        },
+        {
+          "args": [
+            [
+              [
+                1
+              ],
+              [
+                2,
+                [
+                  3,
+                  [
+                    4,
+                    [
+                      5
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "name": "five levels deep"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "already flat"
+        },
+        {
+          "args": [
+            [
+              [],
+              [
+                []
+              ],
+              [
+                [
+                  []
+                ]
+              ]
+            ]
+          ],
+          "expected": [],
+          "name": "nothing but empty arrays"
+        }
+      ],
+      "title": "Deep flatten"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Merge three arrays into one new array, in order, without mutating any of the inputs.\n\nSignature: `solve(first: number[], second: number[], third: number[]): number[]`",
+      "difficulty": "novice",
+      "explanation": "`concat` builds a brand-new array from the receiver plus every argument — none of the inputs are touched, which is what separates it from `push(...items)`. Its spreading rule is worth memorizing: an ARRAY argument is spread one level deep (its elements are appended, not the array itself), while a non-array argument is appended as-is — `[1].concat([2, 3], 4)` yields `[1, 2, 3, 4]`. One level only, though: nested arrays inside an argument stay nested. Modern spread syntax `[...a, ...b, ...c]` is equivalent here, but `concat` predates it and reads better in method chains.",
+      "id": "merge-three-arrays",
+      "methods": [
+        "concat"
+      ],
+      "order": 3,
+      "solution": "export function solve(first: number[], second: number[], third: number[]): number[] {\n  return first.concat(second, third);\n}\n",
+      "starterCode": "export function solve(first: number[], second: number[], third: number[]): number[] {\n  // push() would mutate the first array — find the method that copies instead.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              3
+            ],
+            [
+              4,
+              5
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "name": "merges three arrays"
+        },
+        {
+          "args": [
+            [
+              1
+            ],
+            [],
+            [
+              2
+            ]
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "empty middle array"
+        },
+        {
+          "args": [
+            [],
+            [],
+            []
+          ],
+          "expected": [],
+          "name": "all empty"
+        },
+        {
+          "args": [
+            [
+              1,
+              1
+            ],
+            [
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          "expected": [
+            1,
+            1,
+            1,
+            2,
+            1
+          ],
+          "name": "preserves order and duplicates"
+        }
+      ],
+      "title": "Merge three arrays"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Each sentence is a space-separated string. Split every sentence into its words and return one flat list of words, in order.\n\nSignature: `solve(sentences: string[]): string[]`\n\nConstraint: one pass — no separate `map` step followed by a flatten.",
+      "difficulty": "intermediate",
+      "explanation": "`flatMap` is `map` followed by `flat(1)` fused into a single pass: the callback returns an array per element, and those arrays are stitched together without ever materializing the intermediate array-of-arrays. `sentences.map((s) => s.split(' ')).flat()` walks the data twice and allocates the nested structure just to throw it away; `sentences.flatMap((s) => s.split(' '))` does the same job in one traversal. Note the depth is fixed at exactly one — a callback returning `[[1]]` contributes `[1]`, still wrapped. There is no `flatMap(Infinity)`.",
+      "id": "sentences-to-words",
+      "methods": [
+        "flatMap"
+      ],
+      "order": 4,
+      "solution": "export function solve(sentences: string[]): string[] {\n  return sentences.flatMap((sentence) => sentence.split(' '));\n}\n",
+      "starterCode": "export function solve(sentences: string[]): string[] {\n  // split(' ') gives an array per sentence — which method flattens while it maps?\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a b",
+              "c"
+            ]
+          ],
+          "expected": [
+            "a",
+            "b",
+            "c"
+          ],
+          "name": "splits two sentences"
+        },
+        {
+          "args": [
+            [
+              "the quick fox",
+              "jumps high"
+            ]
+          ],
+          "expected": [
+            "the",
+            "quick",
+            "fox",
+            "jumps",
+            "high"
+          ],
+          "name": "multi-word sentences"
+        },
+        {
+          "args": [
+            [
+              "solo"
+            ]
+          ],
+          "expected": [
+            "solo"
+          ],
+          "name": "single-word sentences pass through"
+        },
+        {
+          "args": [
+            [
+              "a b",
+              "b a"
+            ]
+          ],
+          "expected": [
+            "a",
+            "b",
+            "b",
+            "a"
+          ],
+          "name": "keeps duplicate words"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty sentence list"
+        }
+      ],
+      "title": "Sentences to words"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Parse a list of strings, keeping only the entries that are valid integers (an optional minus sign followed by digits only) — converted to numbers. Entries like `\"3.5\"`, `\"\"`, or `\"x\"` are dropped.\n\nSignature: `solve(entries: string[]): number[]`\n\nConstraint: a single `flatMap` pass — return `[]` from the callback to drop an entry.",
+      "difficulty": "advanced",
+      "explanation": "The callback of `flatMap` decides how many elements each input contributes: return `[]` and the entry contributes nothing (a filter), return `[value]` and it contributes one transformed element (a map), return a longer array and it expands. That asymmetry is why `flatMap` can express filter-and-map in one traversal where `filter(...).map(...)` needs two — and unlike `map`, the dropped entries never appear in the output as `undefined` placeholders. The validity test matters too: `Number(\"\")` is `0` and `Number(\"3.5\")` is a perfectly fine number, so the solution anchors a regex (`/^-?[0-9]+$/`) around the whole string instead of trusting coercion.",
+      "id": "parse-valid-integers",
+      "methods": [
+        "flatMap"
+      ],
+      "order": 5,
+      "solution": "export function solve(entries: string[]): number[] {\n  return entries.flatMap((entry) => (/^-?[0-9]+$/.test(entry) ? [Number(entry)] : []));\n}\n",
+      "starterCode": "export function solve(entries: string[]): number[] {\n  // Return [entry as number] to keep, [] to drop — one method does both at once.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "12",
+              "x",
+              "7"
+            ]
+          ],
+          "expected": [
+            12,
+            7
+          ],
+          "name": "keeps integers, drops junk"
+        },
+        {
+          "args": [
+            [
+              "3.5",
+              "",
+              "8"
+            ]
+          ],
+          "expected": [
+            8
+          ],
+          "name": "drops decimals and empty strings"
+        },
+        {
+          "args": [
+            [
+              "-4",
+              "-",
+              "5"
+            ]
+          ],
+          "expected": [
+            -4,
+            5
+          ],
+          "name": "negative integers survive"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": [],
+          "name": "nothing valid"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty input"
+        }
+      ],
+      "title": "Parse the valid integers"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Run-length decode: expand `[{ ch: \"a\", n: 3 }, { ch: \"b\", n: 1 }]` into `[\"a\", \"a\", \"a\", \"b\"]`. A run with `n: 0` contributes nothing.\n\nSignature: `solve(runs: { ch: string; n: number }[]): string[]`",
+      "difficulty": "expert",
+      "explanation": "Each run expands independently — `new Array(run.n)` allocates `n` slots and `fill(run.ch)` writes the character into every one, converting the holes into real elements (`map` would skip them, `fill` does not). `flatMap` then splices each expansion into the result in order. The `n: 0` case falls out for free: `Array(0).fill(x)` is `[]`, and a callback returning an empty array contributes zero elements — the same drop idiom used for filtering, now emerging naturally from the data. This expand-by-count shape is the mirror image of run-length *encoding*, which compresses with `reduce`.",
+      "id": "run-length-decode",
+      "methods": [
+        "flatMap",
+        "fill"
+      ],
+      "order": 6,
+      "solution": "interface Run {\n  ch: string;\n  n: number;\n}\n\nexport function solve(runs: Run[]): string[] {\n  return runs.flatMap((run) => new Array<string>(run.n).fill(run.ch));\n}\n",
+      "starterCode": "interface Run {\n  ch: string;\n  n: number;\n}\n\nexport function solve(runs: Run[]): string[] {\n  // Expand each run to n copies (Array(n) alone gives holes!), then flatten the expansions.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "ch": "a",
+                "n": 3
+              },
+              {
+                "ch": "b",
+                "n": 1
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "a",
+            "a",
+            "b"
+          ],
+          "name": "decodes runs"
+        },
+        {
+          "args": [
+            [
+              {
+                "ch": "a",
+                "n": 2
+              },
+              {
+                "ch": "x",
+                "n": 0
+              },
+              {
+                "ch": "b",
+                "n": 1
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "a",
+            "b"
+          ],
+          "name": "zero-length run vanishes"
+        },
+        {
+          "args": [
+            [
+              {
+                "ch": "z",
+                "n": 4
+              }
+            ]
+          ],
+          "expected": [
+            "z",
+            "z",
+            "z",
+            "z"
+          ],
+          "name": "single run"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty run list"
+        },
+        {
+          "args": [
+            [
+              {
+                "ch": "a",
+                "n": 0
+              },
+              {
+                "ch": "b",
+                "n": 0
+              }
+            ]
+          ],
+          "expected": [],
+          "name": "all runs empty"
+        }
+      ],
+      "title": "Run-length decode"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a copy of `values` with the element at `index` replaced by `replacement`, leaving the input untouched. Negative indices count back from the end: `-1` targets the last element.\n\nSignature: `solve(values: number[], index: number, replacement: number): number[]`",
+      "difficulty": "novice",
+      "explanation": "`with(index, value)` is the immutable cousin of `values[index] = value`: it returns a brand-new array with exactly one slot changed and never touches the original. It improves on bracket assignment in two ways. First, it understands negative indices — `with(-1, v)` replaces the last element, mirroring `at(-1)`, where `values[-1] = v` would silently create a string-keyed property instead. Second, an out-of-range index throws a `RangeError`, whereas an out-of-range bracket write silently grows the array with holes. One expression, one changed slot, no side effects.",
+      "id": "replace-at-index",
+      "methods": [
+        "with"
+      ],
+      "order": 1,
+      "solution": "export function solve(values: number[], index: number, replacement: number): number[] {\n  return values.with(index, replacement);\n}\n",
+      "starterCode": "export function solve(values: number[], index: number, replacement: number): number[] {\n  // values[index] = replacement mutates — one ES2023 method copies instead.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            1,
+            9
+          ],
+          "expected": [
+            1,
+            9,
+            3
+          ],
+          "name": "replaces in the middle"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            -1,
+            7
+          ],
+          "expected": [
+            1,
+            2,
+            7
+          ],
+          "name": "negative index replaces the last element"
+        },
+        {
+          "args": [
+            [
+              5,
+              6
+            ],
+            0,
+            0
+          ],
+          "expected": [
+            0,
+            6
+          ],
+          "name": "replaces the first element"
+        },
+        {
+          "args": [
+            [
+              4
+            ],
+            0,
+            8
+          ],
+          "expected": [
+            8
+          ],
+          "name": "single-element array"
+        }
+      ],
+      "title": "Replace at an index"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a two-element tuple: the reversed copy first, then the ORIGINAL array — `solve([1, 2, 3])` → `[[3, 2, 1], [1, 2, 3]]`.\n\nSignature: `solve(values: number[]): [number[], number[]]`\n\nTrap: `reverse()` reverses in place, so `[values.reverse(), values]` returns the same reversed array twice.",
+      "difficulty": "novice",
+      "explanation": "`reverse()` mutates: it flips the array in place and returns *the same array*, so `[values.reverse(), values]` is two references to one reversed object — the original ordering is gone. `toReversed()` is its change-by-copy twin: the receiver keeps its order and a new reversed array comes back. The tuple in this challenge is the proof — the tests can see both the copy and the untouched source at once, so an in-place `reverse` fails every non-palindrome case. ES2023 added a copying twin for each mutating pair: `toReversed`/`reverse`, `toSorted`/`sort`, `toSpliced`/`splice`.",
+      "id": "reverse-keep-original",
+      "methods": [
+        "toReversed"
+      ],
+      "order": 2,
+      "solution": "export function solve(values: number[]): [number[], number[]] {\n  return [values.toReversed(), values];\n}\n",
+      "starterCode": "export function solve(values: number[]): [number[], number[]] {\n  // Careful: reverse() flips values itself — the 'original' would come back reversed too.\n  return [[], []];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            [
+              3,
+              2,
+              1
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "name": "reverses a copy and keeps the original"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            [
+              2,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "name": "two elements"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              1
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              1
+            ],
+            [
+              1,
+              2,
+              1
+            ]
+          ],
+          "name": "palindrome still yields two arrays"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [
+            [],
+            []
+          ],
+          "name": "empty array"
+        },
+        {
+          "args": [
+            [
+              7
+            ]
+          ],
+          "expected": [
+            [
+              7
+            ],
+            [
+              7
+            ]
+          ],
+          "name": "single element"
+        }
+      ],
+      "title": "Reverse, keep the original"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Two edits, zero mutations: first remove `removeCount` elements starting at index `removeFrom`, then insert `value` at position `insertAt` in the shortened result.\n\nSignature: `solve(values: number[], insertAt: number, value: number, removeFrom: number, removeCount: number): number[]`",
+      "difficulty": "intermediate",
+      "explanation": "`toSpliced(start, deleteCount, ...items)` mirrors `splice` argument-for-argument but returns a new array instead of mutating the receiver and returning the removed elements. That difference makes it chainable: `values.toSpliced(removeFrom, removeCount).toSpliced(insertAt, 0, value)` performs the removal, then inserts into the *result* — each call produces a fresh array, so the input survives both steps. A `deleteCount` of `0` turns `toSpliced` into pure insertion, and omitting items turns it into pure deletion — one method covers the whole insert/remove/replace family.",
+      "id": "insert-and-remove",
+      "methods": [
+        "toSpliced"
+      ],
+      "order": 3,
+      "solution": "export function solve(\n  values: number[],\n  insertAt: number,\n  value: number,\n  removeFrom: number,\n  removeCount: number,\n): number[] {\n  return values.toSpliced(removeFrom, removeCount).toSpliced(insertAt, 0, value);\n}\n",
+      "starterCode": "export function solve(\n  values: number[],\n  insertAt: number,\n  value: number,\n  removeFrom: number,\n  removeCount: number,\n): number[] {\n  // splice() mutates and returns the REMOVED items — its to-prefixed twin chains cleanly.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            0,
+            9,
+            1,
+            2
+          ],
+          "expected": [
+            9,
+            1,
+            4
+          ],
+          "name": "removes a range then inserts"
+        },
+        {
+          "args": [
+            [
+              10,
+              20,
+              30
+            ],
+            1,
+            15,
+            2,
+            1
+          ],
+          "expected": [
+            10,
+            15,
+            20
+          ],
+          "name": "inserts into the middle"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            2,
+            3,
+            0,
+            0
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "pure insert when removeCount is zero"
+        },
+        {
+          "args": [
+            [
+              5,
+              6,
+              7
+            ],
+            0,
+            1,
+            0,
+            3
+          ],
+          "expected": [
+            1
+          ],
+          "name": "remove everything then insert"
+        },
+        {
+          "args": [
+            [],
+            0,
+            42,
+            0,
+            0
+          ],
+          "expected": [
+            42
+          ],
+          "name": "empty input"
+        }
+      ],
+      "title": "Insert and remove, immutably"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Move the element at index `from` so it ends up at index `to` of the returned array — both directions, no mutation. Example: `solve([1, 2, 3, 4], 0, 2)` → `[2, 3, 1, 4]`.\n\nSignature: `solve(values: number[], from: number, to: number): number[]`\n\nTrap: the order of the two edits decides whether your indices still mean what you think they mean.",
+      "difficulty": "intermediate",
+      "explanation": "Two `toSpliced` calls: `toSpliced(from, 1)` deletes the element, then `toSpliced(to, 0, moved)` inserts it back. The trick is the index shift — removing first slides every later element one slot left, and that is exactly what makes the raw `to` correct: the shortened array *is* the final array minus the moved element, so inserting at position `to` lands it at index `to` of the result, forward and backward alike. Try the opposite order and the shift works against you: inserting first moves the original occupant of `from` when `to <= from`, so the follow-up removal deletes the wrong element. Remove first, insert second — and grab `values[from]` before either call.",
+      "id": "move-item",
+      "methods": [
+        "toSpliced"
+      ],
+      "order": 4,
+      "solution": "export function solve(values: number[], from: number, to: number): number[] {\n  const moved = values[from];\n  return values.toSpliced(from, 1).toSpliced(to, 0, moved);\n}\n",
+      "starterCode": "export function solve(values: number[], from: number, to: number): number[] {\n  // Remove at from, insert at to — but in which order do the indices stay honest?\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            0,
+            2
+          ],
+          "expected": [
+            2,
+            3,
+            1,
+            4
+          ],
+          "name": "moves forward"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            3,
+            1
+          ],
+          "expected": [
+            1,
+            4,
+            2,
+            3
+          ],
+          "name": "moves backward"
+        },
+        {
+          "args": [
+            [
+              7,
+              8,
+              9
+            ],
+            1,
+            1
+          ],
+          "expected": [
+            7,
+            8,
+            9
+          ],
+          "name": "same index is a no-op"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            0,
+            2
+          ],
+          "expected": [
+            2,
+            3,
+            1
+          ],
+          "name": "first to last"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            1,
+            0
+          ],
+          "expected": [
+            2,
+            1
+          ],
+          "name": "swaps a pair"
+        }
+      ],
+      "title": "Move an item"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a new todo list where the todo at `index` is marked `done: true` — without mutating the original array OR the original todo object.\n\nSignature: `solve(todos: { done: boolean; id: number }[], index: number): { done: boolean; id: number }[]`\n\nTrap: `with` copies the array, not the objects inside it — replacing a slot with a *mutated original* still corrupts the input.",
+      "difficulty": "advanced",
+      "explanation": "`with(index, ...)` copies the array — and only the array. Every slot of the copy points at the exact same objects as the source, because all the change-by-copy methods are shallow. That sharing is fine, even desirable, for the todos you are not changing: they are identical, so copying them would be pure waste. The one slot being REPLACED is different — mutating `todos[index].done` would reach through the shared reference into the caller’s data, so that slot needs a fresh object: `todos.with(index, { ...todos[index], done: true })` spreads the old todo into a new literal. The same shape works with `map` — `todos.map((todo, i) => (i === index ? { ...todo, done: true } : todo))` — which makes the rule visible: untouched elements returned by reference, the changed one built fresh.",
+      "id": "complete-todo",
+      "methods": [
+        "with",
+        "map"
+      ],
+      "order": 5,
+      "solution": "interface Todo {\n  done: boolean;\n  id: number;\n}\n\nexport function solve(todos: Todo[], index: number): Todo[] {\n  return todos.with(index, { ...todos[index], done: true });\n}\n",
+      "starterCode": "interface Todo {\n  done: boolean;\n  id: number;\n}\n\nexport function solve(todos: Todo[], index: number): Todo[] {\n  // with() swaps the SLOT — but the replacement must be a fresh object, not a mutated original.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "done": false,
+                "id": 1
+              },
+              {
+                "done": false,
+                "id": 2
+              },
+              {
+                "done": false,
+                "id": 3
+              }
+            ],
+            1
+          ],
+          "expected": [
+            {
+              "done": false,
+              "id": 1
+            },
+            {
+              "done": true,
+              "id": 2
+            },
+            {
+              "done": false,
+              "id": 3
+            }
+          ],
+          "name": "marks the middle todo done"
+        },
+        {
+          "args": [
+            [
+              {
+                "done": false,
+                "id": 1
+              },
+              {
+                "done": true,
+                "id": 2
+              }
+            ],
+            0
+          ],
+          "expected": [
+            {
+              "done": true,
+              "id": 1
+            },
+            {
+              "done": true,
+              "id": 2
+            }
+          ],
+          "name": "marks the first todo"
+        },
+        {
+          "args": [
+            [
+              {
+                "done": true,
+                "id": 1
+              }
+            ],
+            0
+          ],
+          "expected": [
+            {
+              "done": true,
+              "id": 1
+            }
+          ],
+          "name": "already done stays done"
+        },
+        {
+          "args": [
+            [
+              {
+                "done": false,
+                "id": 1
+              },
+              {
+                "done": false,
+                "id": 2
+              }
+            ],
+            1
+          ],
+          "expected": [
+            {
+              "done": false,
+              "id": 1
+            },
+            {
+              "done": true,
+              "id": 2
+            }
+          ],
+          "name": "marks the last todo"
+        }
+      ],
+      "title": "Complete a todo, shallowly"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Apply a script of edits to `values`, in order, immutably: `set` replaces the element at `index` with `value`, `insert` places `value` at `index`, and `remove` deletes the element at `index`. Each op sees the result of the previous one; an empty script returns the input unchanged.\n\nSignature: `solve(values: number[], ops: EditOp[]): number[]` where `EditOp` is `{ index: number; type: \"set\" | \"insert\"; value: number }` or `{ index: number; type: \"remove\" }`.",
+      "difficulty": "expert",
+      "explanation": "`reduce` threads the evolving array through the script: the accumulator starts as the input and each op maps it to a new array — `with(op.index, op.value)` for a `set`, `toSpliced(op.index, 0, op.value)` for an `insert`, `toSpliced(op.index, 1)` for a `remove`. Because every step returns a fresh array, no intermediate state is ever mutated, yet each op naturally sees the indices of the world the previous op produced — which is why the sample script’s `remove` at index 2 deletes the `9` it just set at index 1 and then shifted by inserting at 0. The empty-script case costs nothing: with no ops the callback never runs and `reduce` hands back the initial value directly. This fold-over-operations shape is event sourcing in miniature: state as a pure function of an initial value plus a list of events.",
+      "id": "apply-edit-script",
+      "methods": [
+        "reduce",
+        "with",
+        "toSpliced"
+      ],
+      "order": 6,
+      "solution": "type EditOp =\n  | { index: number; type: 'insert'; value: number }\n  | { index: number; type: 'remove' }\n  | { index: number; type: 'set'; value: number };\n\nexport function solve(values: number[], ops: EditOp[]): number[] {\n  return ops.reduce((current, op) => {\n    if (op.type === 'set') {\n      return current.with(op.index, op.value);\n    }\n    if (op.type === 'insert') {\n      return current.toSpliced(op.index, 0, op.value);\n    }\n    return current.toSpliced(op.index, 1);\n  }, values);\n}\n",
+      "starterCode": "type EditOp =\n  | { index: number; type: 'insert'; value: number }\n  | { index: number; type: 'remove' }\n  | { index: number; type: 'set'; value: number };\n\nexport function solve(values: number[], ops: EditOp[]): number[] {\n  // Fold the ops over values: with() handles set, toSpliced() handles insert and remove.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              {
+                "index": 1,
+                "type": "set",
+                "value": 9
+              },
+              {
+                "index": 0,
+                "type": "insert",
+                "value": 5
+              },
+              {
+                "index": 2,
+                "type": "remove"
+              }
+            ]
+          ],
+          "expected": [
+            5,
+            1,
+            3
+          ],
+          "name": "applies set, insert, and remove in order"
+        },
+        {
+          "args": [
+            [
+              4,
+              5,
+              6
+            ],
+            []
+          ],
+          "expected": [
+            4,
+            5,
+            6
+          ],
+          "name": "empty script returns the input unchanged"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              {
+                "index": 0,
+                "type": "set",
+                "value": 7
+              }
+            ]
+          ],
+          "expected": [
+            7,
+            2
+          ],
+          "name": "set only"
+        },
+        {
+          "args": [
+            [],
+            [
+              {
+                "index": 0,
+                "type": "insert",
+                "value": 1
+              },
+              {
+                "index": 0,
+                "type": "insert",
+                "value": 2
+              },
+              {
+                "index": 2,
+                "type": "insert",
+                "value": 3
+              }
+            ]
+          ],
+          "expected": [
+            2,
+            1,
+            3
+          ],
+          "name": "inserts build on each other"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              {
+                "index": 0,
+                "type": "remove"
+              },
+              {
+                "index": 2,
+                "type": "set",
+                "value": 0
+              }
+            ]
+          ],
+          "expected": [
+            2,
+            3,
+            0
+          ],
+          "name": "remove shifts the indices later ops see"
+        }
+      ],
+      "title": "Apply an edit script"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Group an array of expense objects by their `category` property, returning an object whose keys are category names and whose values are arrays of the matching expenses (in input order).\n\nSignature: `solve(expenses: { category: string; amount: number }[]): Record<string, { category: string; amount: number }[]>`\n\nTrap: `Object.groupBy` is a *static* method — `Object.groupBy(items, keyFn)`, not `items.groupBy(...)`.",
+      "difficulty": "novice",
+      "explanation": "`Object.groupBy` (ES2024) lives on the `Object` constructor, not on `Array.prototype` — you call `Object.groupBy(expenses, (expense) => expense.category)`, never `expenses.groupBy(...)`. It walks the array once, calls the key function on each element, and pushes the element onto the array stored under that key, so items keep their input order inside each group. The result is a null-prototype object (no inherited `toString` or `hasOwnProperty`), which is why the polyfill uses `Object.create(null)`; structurally it still compares equal to a plain object literal with the same keys.",
+      "id": "group-expenses-by-category",
+      "methods": [
+        "Object.groupBy"
+      ],
+      "order": 1,
+      "solution": "interface Expense {\n  amount: number;\n  category: string;\n}\n\nexport function solve(expenses: Expense[]): Record<string, Expense[]> {\n  return Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n}\n",
+      "starterCode": "interface Expense {\n  amount: number;\n  category: string;\n}\n\nexport function solve(expenses: Expense[]): Record<string, Expense[]> {\n  // Object.groupBy is a STATIC method: Object.groupBy(items, keyFn) — not expenses.groupBy(...).\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "amount": 12,
+                "category": "food"
+              },
+              {
+                "amount": 50,
+                "category": "travel"
+              },
+              {
+                "amount": 8,
+                "category": "food"
+              }
+            ]
+          ],
+          "expected": {
+            "food": [
+              {
+                "amount": 12,
+                "category": "food"
+              },
+              {
+                "amount": 8,
+                "category": "food"
+              }
+            ],
+            "travel": [
+              {
+                "amount": 50,
+                "category": "travel"
+              }
+            ]
+          },
+          "name": "groups two categories"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 3,
+                "category": "coffee"
+              },
+              {
+                "amount": 4,
+                "category": "coffee"
+              }
+            ]
+          ],
+          "expected": {
+            "coffee": [
+              {
+                "amount": 3,
+                "category": "coffee"
+              },
+              {
+                "amount": 4,
+                "category": "coffee"
+              }
+            ]
+          },
+          "name": "single category keeps input order"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "empty expense list"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "a"
+              },
+              {
+                "amount": 2,
+                "category": "b"
+              },
+              {
+                "amount": 3,
+                "category": "c"
+              }
+            ]
+          ],
+          "expected": {
+            "a": [
+              {
+                "amount": 1,
+                "category": "a"
+              }
+            ],
+            "b": [
+              {
+                "amount": 2,
+                "category": "b"
+              }
+            ],
+            "c": [
+              {
+                "amount": 3,
+                "category": "c"
+              }
+            ]
+          },
+          "name": "three categories with one expense each"
+        }
+      ],
+      "title": "Group expenses by category"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Group prices into bands: `budget` for prices below 20, `mid` for 20 up to 99.99, and `premium` for 100 and above. Bands with no prices must not appear as keys at all.\n\nSignature: `solve(prices: number[]): Record<string, number[]>`\n\nThe key does not have to exist on the items — the callback can *compute* it.",
+      "difficulty": "intermediate",
+      "explanation": "The key function passed to `Object.groupBy` is not limited to reading a property — it can derive any string from the element, so a chain of comparisons like `price < 20 ? \"budget\" : ...` turns a continuous range of numbers into a handful of named buckets. A group key only comes into existence when some element produces it, which is why an all-budget input yields `{ budget: [...] }` with no empty `mid` or `premium` keys — check with `key in result` or `?? []` before consuming a band that might be absent.",
+      "id": "price-bands",
+      "methods": [
+        "Object.groupBy"
+      ],
+      "order": 2,
+      "solution": "export function solve(prices: number[]): Record<string, number[]> {\n  return Object.groupBy(prices, (price) => {\n    if (price < 20) {\n      return 'budget';\n    }\n    return price >= 100 ? 'premium' : 'mid';\n  }) as Record<string, number[]>;\n}\n",
+      "starterCode": "export function solve(prices: number[]): Record<string, number[]> {\n  // The groupBy callback can RETURN any string — compute 'budget' | 'mid' | 'premium' from the number.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              5,
+              20,
+              100,
+              19.99,
+              99.99,
+              150
+            ]
+          ],
+          "expected": {
+            "budget": [
+              5,
+              19.99
+            ],
+            "mid": [
+              20,
+              99.99
+            ],
+            "premium": [
+              100,
+              150
+            ]
+          },
+          "name": "all three bands"
+        },
+        {
+          "args": [
+            [
+              19.99,
+              20,
+              99.99,
+              100
+            ]
+          ],
+          "expected": {
+            "budget": [
+              19.99
+            ],
+            "mid": [
+              20,
+              99.99
+            ],
+            "premium": [
+              100
+            ]
+          },
+          "name": "boundary values land in the right band"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": {
+            "budget": [
+              1,
+              2
+            ]
+          },
+          "name": "missing bands are absent, not empty"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "empty price list"
+        }
+      ],
+      "title": "Price bands with computed keys"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Split exam results into two groups keyed by their boolean `passed` property, returning a `Map` whose keys are the actual booleans `true` and `false` — not the strings `\"true\"` and `\"false\"`.\n\nSignature: `solve(results: { name: string; passed: boolean }[]): Map<boolean, { name: string; passed: boolean }[]>`\n\nA group only exists if at least one result produced its key.",
+      "difficulty": "intermediate",
+      "explanation": "Object keys can only be strings or symbols, so `Object.groupBy` would coerce the boolean `true` into the property name `\"true\"` — and once coerced, `true` and `\"true\"` collide and the original type is gone. `Map.groupBy` performs the same single-pass bucketing but stores keys in a `Map` using SameValueZero equality, so booleans, numbers, dates, and even object references survive as keys unchanged. Reach for `Map.groupBy` whenever the grouping key is not naturally a string; the lookup afterwards is `result.get(true)` rather than `result[\"true\"]`.",
+      "id": "pass-fail-roster",
+      "methods": [
+        "Map.groupBy"
+      ],
+      "order": 3,
+      "solution": "interface ExamResult {\n  name: string;\n  passed: boolean;\n}\n\nexport function solve(results: ExamResult[]): Map<boolean, ExamResult[]> {\n  return Map.groupBy(results, (result) => result.passed);\n}\n",
+      "starterCode": "interface ExamResult {\n  name: string;\n  passed: boolean;\n}\n\nexport function solve(results: ExamResult[]): Map<boolean, ExamResult[]> {\n  // Object.groupBy would turn true into the string 'true' — which groupBy keeps booleans intact?\n  return new Map();\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "passed": true
+              },
+              {
+                "name": "Grace",
+                "passed": false
+              },
+              {
+                "name": "Alan",
+                "passed": true
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                true,
+                [
+                  {
+                    "name": "Ada",
+                    "passed": true
+                  },
+                  {
+                    "name": "Alan",
+                    "passed": true
+                  }
+                ]
+              ],
+              [
+                false,
+                [
+                  {
+                    "name": "Grace",
+                    "passed": false
+                  }
+                ]
+              ]
+            ]
+          },
+          "name": "mixed pass and fail"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "passed": true
+              },
+              {
+                "name": "Alan",
+                "passed": true
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                true,
+                [
+                  {
+                    "name": "Ada",
+                    "passed": true
+                  },
+                  {
+                    "name": "Alan",
+                    "passed": true
+                  }
+                ]
+              ]
+            ]
+          },
+          "name": "everyone passed — no false key"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Grace",
+                "passed": false
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                false,
+                [
+                  {
+                    "name": "Grace",
+                    "passed": false
+                  }
+                ]
+              ]
+            ]
+          },
+          "name": "everyone failed — no true key"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {
+            "$t": "map",
+            "v": []
+          },
+          "name": "empty roster"
+        }
+      ],
+      "title": "Pass/fail roster as a Map"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Total the `amount` spent per `category` and return one `{ category, total }` object per category, sorted ascending by category name so the output is deterministic.\n\nSignature: `solve(expenses: { category: string; amount: number }[]): { category: string; total: number }[]`\n\nThis is the group-then-aggregate pipeline: bucket first, then fold each bucket down to one number.",
+      "difficulty": "advanced",
+      "explanation": "Grouping and aggregating are separate steps, and keeping them separate keeps each trivial: `Object.groupBy` buckets the expenses by category, `Object.entries` turns the resulting object back into an iterable of `[category, items]` pairs, and `map` collapses each bucket into `{ category, total }` with a `reduce` over the amounts. The final `sort` matters because object key order follows insertion order of the input, which is an accident of the data — sorting by name makes the output stable no matter how the expenses arrived. This groupBy → entries → map pipeline is the idiomatic replacement for a hand-rolled accumulator object.",
+      "id": "total-per-category",
+      "methods": [
+        "Object.groupBy",
+        "map"
+      ],
+      "order": 4,
+      "solution": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  return Object.entries(groups)\n    .map(([category, items]) => ({\n      category,\n      total: items.reduce((sum, item) => sum + item.amount, 0),\n    }))\n    .sort((a, b) => a.category.localeCompare(b.category));\n}\n",
+      "starterCode": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  // Pipeline: Object.groupBy → Object.entries → map each [category, items] pair → sort by name.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "amount": 12,
+                "category": "food"
+              },
+              {
+                "amount": 50,
+                "category": "travel"
+              },
+              {
+                "amount": 8,
+                "category": "food"
+              },
+              {
+                "amount": 5,
+                "category": "office"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "category": "food",
+              "total": 20
+            },
+            {
+              "category": "office",
+              "total": 5
+            },
+            {
+              "category": "travel",
+              "total": 50
+            }
+          ],
+          "name": "totals per category, sorted by name"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "food"
+              },
+              {
+                "amount": 2,
+                "category": "food"
+              },
+              {
+                "amount": 3,
+                "category": "food"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "category": "food",
+              "total": 6
+            }
+          ],
+          "name": "single category sums all amounts"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "zoo"
+              },
+              {
+                "amount": 2,
+                "category": "apple"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "category": "apple",
+              "total": 2
+            },
+            {
+              "category": "zoo",
+              "total": 1
+            }
+          ],
+          "name": "input order does not dictate output order"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty expense list"
+        }
+      ],
+      "title": "Total per category"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Index an array of items by their unique `id`: build a `Map` from each id to the item itself, so lookups become `O(1)`. If two items share an id, the *later* one wins.\n\nSignature: `solve(items: { id: number; name: string }[]): Map<number, { id: number; name: string }>`\n\nThis is keyBy (one value per key), not groupBy (an array per key).",
+      "difficulty": "advanced",
+      "explanation": "The `Map` constructor accepts any iterable of `[key, value]` pairs, so `items.map((item) => [item.id, item])` followed by `new Map(...)` builds the whole index in one expression. Contrast the two shapes: groupBy is 1:many — every key holds an *array* of members — while keyBy is 1:1, each key holding a single item, which is what you want when ids are unique and you need constant-time lookup instead of a linear `find` per access. Because `Map.prototype.set` overwrites existing keys, feeding duplicate ids means the last pair processed silently replaces the earlier one — later-duplicate-wins — so keyBy also doubles as “latest record per id” when applied to an append-only log.",
+      "id": "index-items-by-id",
+      "methods": [
+        "map"
+      ],
+      "order": 5,
+      "solution": "interface Item {\n  id: number;\n  name: string;\n}\n\nexport function solve(items: Item[]): Map<number, Item> {\n  return new Map(items.map((item): [number, Item] => [item.id, item]));\n}\n",
+      "starterCode": "interface Item {\n  id: number;\n  name: string;\n}\n\nexport function solve(items: Item[]): Map<number, Item> {\n  // new Map(...) accepts an iterable of [key, value] pairs — map each item into one.\n  return new Map();\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "alpha"
+              },
+              {
+                "id": 2,
+                "name": "beta"
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                1,
+                {
+                  "id": 1,
+                  "name": "alpha"
+                }
+              ],
+              [
+                2,
+                {
+                  "id": 2,
+                  "name": "beta"
+                }
+              ]
+            ]
+          },
+          "name": "indexes each item by id"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "old"
+              },
+              {
+                "id": 1,
+                "name": "new"
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                1,
+                {
+                  "id": 1,
+                  "name": "new"
+                }
+              ]
+            ]
+          },
+          "name": "later duplicate wins"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 7,
+                "name": "solo"
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                7,
+                {
+                  "id": 7,
+                  "name": "solo"
+                }
+              ]
+            ]
+          },
+          "name": "single item"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {
+            "$t": "map",
+            "v": []
+          },
+          "name": "empty list"
+        }
+      ],
+      "title": "Index by unique id"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Count orders per region *and* per status: return a `Map` keyed by region whose values are inner `Map`s from status to how many orders have that status in that region.\n\nSignature: `solve(orders: { region: string; status: string }[]): Map<string, Map<string, number>>`\n\nOne groupBy gives you the outer level; the inner level is a second fold over each group.",
+      "difficulty": "expert",
+      "explanation": "A single `Map.groupBy` call only buckets one level deep, so the two-level shape comes from composing it with a second fold: group the orders by region, then `reduce` each region group into a `Map` of status counts, using `counts.get(status) ?? 0` as the running tally (`get` returns `undefined` for missing keys, and `??` turns that into the zero base case). Spreading the outer groups through `new Map([...byRegion].map(...))` rebuilds the outer `Map` with each group replaced by its aggregate. The pattern generalizes: level one is `Map.groupBy`, and every deeper level is either another groupBy (to keep the raw items) or a fold (to aggregate them away).",
+      "id": "orders-by-region-and-status",
+      "methods": [
+        "Map.groupBy",
+        "reduce"
+      ],
+      "order": 6,
+      "solution": "interface Order {\n  region: string;\n  status: string;\n}\n\nexport function solve(orders: Order[]): Map<string, Map<string, number>> {\n  const byRegion = Map.groupBy(orders, (order) => order.region);\n  return new Map(\n    [...byRegion].map(([region, group]): [string, Map<string, number>] => [\n      region,\n      group.reduce(\n        (counts, order) => counts.set(order.status, (counts.get(order.status) ?? 0) + 1),\n        new Map<string, number>(),\n      ),\n    ]),\n  );\n}\n",
+      "starterCode": "interface Order {\n  region: string;\n  status: string;\n}\n\nexport function solve(orders: Order[]): Map<string, Map<string, number>> {\n  // Map.groupBy by region first, then reduce each group into a Map of status → count.\n  return new Map();\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "region": "east",
+                "status": "shipped"
+              },
+              {
+                "region": "east",
+                "status": "pending"
+              },
+              {
+                "region": "west",
+                "status": "shipped"
+              },
+              {
+                "region": "east",
+                "status": "shipped"
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                "east",
+                {
+                  "$t": "map",
+                  "v": [
+                    [
+                      "shipped",
+                      2
+                    ],
+                    [
+                      "pending",
+                      1
+                    ]
+                  ]
+                }
+              ],
+              [
+                "west",
+                {
+                  "$t": "map",
+                  "v": [
+                    [
+                      "shipped",
+                      1
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          "name": "counts per region and status"
+        },
+        {
+          "args": [
+            [
+              {
+                "region": "north",
+                "status": "pending"
+              },
+              {
+                "region": "north",
+                "status": "pending"
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                "north",
+                {
+                  "$t": "map",
+                  "v": [
+                    [
+                      "pending",
+                      2
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          "name": "single region accumulates counts"
+        },
+        {
+          "args": [
+            [
+              {
+                "region": "a",
+                "status": "x"
+              },
+              {
+                "region": "b",
+                "status": "y"
+              }
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                "a",
+                {
+                  "$t": "map",
+                  "v": [
+                    [
+                      "x",
+                      1
+                    ]
+                  ]
+                }
+              ],
+              [
+                "b",
+                {
+                  "$t": "map",
+                  "v": [
+                    [
+                      "y",
+                      1
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          "name": "one order per bucket"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {
+            "$t": "map",
+            "v": []
+          },
+          "name": "no orders"
+        }
+      ],
+      "title": "Orders by region, then status"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Split an array into consecutive chunks of `size` elements; the last chunk may be shorter when the length does not divide evenly. A `size` larger than the array yields one chunk containing everything.\n\nSignature: `solve(xs: number[], size: number): number[][]`\n\nConstraint: build the result declaratively — no `push` inside a loop.",
+      "difficulty": "intermediate",
+      "explanation": "The chunk count is `Math.ceil(xs.length / size)` — the ceiling is what grants the final partial chunk its slot — so `Array.from({ length: Math.ceil(xs.length / size) }, (_, i) => xs.slice(i * size, i * size + size))` materializes every chunk in one expression: chunk `i` starts at index `i * size`, and `slice` clamps an end index past the array to the actual length instead of throwing or padding, which is exactly why the last chunk comes out short and an oversized `size` returns the whole array as a single chunk. An empty array produces a length of `0`, so no chunks are created at all.",
+      "id": "chunk-into-groups",
+      "methods": [
+        "Array.from",
+        "slice"
+      ],
+      "order": 1,
+      "solution": "export function solve(xs: number[], size: number): number[][] {\n  return Array.from({ length: Math.ceil(xs.length / size) }, (_, index) =>\n    xs.slice(index * size, index * size + size),\n  );\n}\n",
+      "starterCode": "export function solve(xs: number[], size: number): number[][] {\n  // How many chunks? Math.ceil(xs.length / size). Chunk i is xs.slice(i * size, i * size + size).\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            2
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              4
+            ]
+          ],
+          "name": "even split"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            2
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              5
+            ]
+          ],
+          "name": "short last chunk"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            5
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ]
+          ],
+          "name": "size larger than the array"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            1
+          ],
+          "expected": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ]
+          ],
+          "name": "size one wraps every element"
+        },
+        {
+          "args": [
+            [],
+            3
+          ],
+          "expected": [],
+          "name": "empty array has no chunks"
+        }
+      ],
+      "title": "Chunk into groups"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Remove duplicate primitives from an array while preserving first-seen order: keep each value the first time it appears and drop every later repeat.\n\nSignature: `solve(xs: (number | string)[]): (number | string)[]`\n\nThere are two classic idioms for this — know both, and know which one scales.",
+      "difficulty": "intermediate",
+      "explanation": "Idiom one: `xs.filter((x, i) => xs.indexOf(x) === i)` keeps an element only when its index equals the index of its *first* occurrence — `indexOf` always finds the earliest match, so every later duplicate fails the test and first-seen order is preserved automatically. Idiom two: `[...new Set(xs)]`, because a `Set` refuses repeats and remembers insertion order, so spreading it back out yields the same answer. The difference is cost: the `Set` version is O(n) — one hash lookup per element — while `filter` plus `indexOf` rescans the array from the front for every element, making it O(n²). Fine for a dozen items, painful for a hundred thousand.",
+      "id": "unique-in-order",
+      "methods": [
+        "filter",
+        "indexOf"
+      ],
+      "order": 2,
+      "solution": "export function solve(xs: (number | string)[]): (number | string)[] {\n  return xs.filter((value, index) => xs.indexOf(value) === index);\n}\n",
+      "starterCode": "export function solve(xs: (number | string)[]): (number | string)[] {\n  // A value is a KEEPER when its index equals the index of its first occurrence.\n  return xs;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              3,
+              1,
+              3,
+              2,
+              1
+            ]
+          ],
+          "expected": [
+            3,
+            1,
+            2
+          ],
+          "name": "removes later duplicates"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "already unique stays intact"
+        },
+        {
+          "args": [
+            [
+              "b",
+              "a",
+              "b",
+              "c",
+              "a"
+            ]
+          ],
+          "expected": [
+            "b",
+            "a",
+            "c"
+          ],
+          "name": "strings keep first-seen order"
+        },
+        {
+          "args": [
+            [
+              7,
+              7,
+              7
+            ]
+          ],
+          "expected": [
+            7
+          ],
+          "name": "all duplicates collapse to one"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "Unique, in order"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Deduplicate an array of user objects by their `id` property, keeping the *first* occurrence of each id and preserving the original order.\n\nSignature: `solve(users: { id: number; name: string }[]): { id: number; name: string }[]`\n\nTrap: `indexOf` cannot help here — objects with equal contents are still different references.",
+      "difficulty": "advanced",
+      "explanation": "Reference equality makes the primitive idioms useless for objects — `indexOf` and `Set` both compare identities, and two `{ id: 1 }` literals are different identities. The fix is to track *keys you have already accepted* in a `Set` that lives outside the callback: inside `filter`, reject the element when `seen.has(user.id)`, otherwise `seen.add(user.id)` and keep it. Because `filter` visits elements left to right, the first holder of each id is the one that survives. The tempting one-liner `new Map(xs.map((x) => [x.id, x]))` dedupes too, but backwards: `Map.prototype.set` overwrites on repeat keys, so it keeps the *last* occurrence — a silently different answer whenever duplicates disagree.",
+      "id": "unique-by-key",
+      "methods": [
+        "filter"
+      ],
+      "order": 3,
+      "solution": "interface User {\n  id: number;\n  name: string;\n}\n\nexport function solve(users: User[]): User[] {\n  const seen = new Set<number>();\n  return users.filter((user) => {\n    if (seen.has(user.id)) {\n      return false;\n    }\n    seen.add(user.id);\n    return true;\n  });\n}\n",
+      "starterCode": "interface User {\n  id: number;\n  name: string;\n}\n\nexport function solve(users: User[]): User[] {\n  // Keep a Set of ids you have already accepted; filter rejects any id the Set has seen.\n  return users;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "first"
+              },
+              {
+                "id": 2,
+                "name": "other"
+              },
+              {
+                "id": 1,
+                "name": "second"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "id": 1,
+              "name": "first"
+            },
+            {
+              "id": 2,
+              "name": "other"
+            }
+          ],
+          "name": "keeps the first occurrence"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "a"
+              },
+              {
+                "id": 1,
+                "name": "b"
+              },
+              {
+                "id": 2,
+                "name": "c"
+              },
+              {
+                "id": 2,
+                "name": "d"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "id": 1,
+              "name": "a"
+            },
+            {
+              "id": 2,
+              "name": "c"
+            }
+          ],
+          "name": "multiple duplicate groups"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 5,
+                "name": "solo"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "id": 5,
+              "name": "solo"
+            }
+          ],
+          "name": "no duplicates passes through"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty list"
+        }
+      ],
+      "title": "Unique by key, first wins"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Return every contiguous window of `k` elements: `solve([1, 2, 3, 4], 2)` → `[[1, 2], [2, 3], [3, 4]]`. When `k` is larger than the array there are no complete windows, so return `[]`.\n\nSignature: `solve(xs: number[], k: number): number[][]`\n\nWindows overlap; chunks do not. Do not confuse the two.",
+      "difficulty": "advanced",
+      "explanation": "Chunks partition — each element belongs to exactly one chunk and starts jump by `size` — while windows overlap: each window starts just one index after the previous, so consecutive windows share `k - 1` elements. That means there are `xs.length - k + 1` complete windows, and window `i` is simply `xs.slice(i, i + k)`. Feeding that count to `Array.from` as `{ length: Math.max(0, xs.length - k + 1) }` with a map function per index generates them all declaratively, and the `Math.max(0, ...)` clamp is what handles the degenerate case: when `k` exceeds the length the count goes negative, and clamping it to zero yields `[]` instead of a negative-length crash.",
+      "id": "sliding-windows",
+      "methods": [
+        "Array.from",
+        "slice",
+        "map"
+      ],
+      "order": 4,
+      "solution": "export function solve(xs: number[], k: number): number[][] {\n  return Array.from({ length: Math.max(0, xs.length - k + 1) }, (_, index) => xs.slice(index, index + k));\n}\n",
+      "starterCode": "export function solve(xs: number[], k: number): number[][] {\n  // There are xs.length - k + 1 windows (clamp at zero); window i is xs.slice(i, i + k).\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            2
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              4
+            ]
+          ],
+          "name": "pairs overlap by one"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            3
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              2,
+              3,
+              4
+            ],
+            [
+              3,
+              4,
+              5
+            ]
+          ],
+          "name": "triples overlap by two"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            2
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ]
+          ],
+          "name": "window equal to the whole array"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            3
+          ],
+          "expected": [],
+          "name": "k larger than the array"
+        },
+        {
+          "args": [
+            [],
+            2
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "Sliding windows"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Transpose a rectangular matrix: rows become columns, so `solve([[1, 2, 3], [4, 5, 6]])` → `[[1, 4], [2, 5], [3, 6]]`. An empty matrix transposes to `[]`.\n\nSignature: `solve(matrix: number[][]): number[][]`\n\nTrap: the naive `matrix[0].map(...)` explodes on an empty matrix — guard it.",
+      "difficulty": "expert",
+      "explanation": "The transpose has one row per *column* of the input, so iterate the first row to drive the output: `matrix[0].map((_, col) => matrix.map((row) => row[col]))`. The outer map runs once per column index and ignores the element itself — only the index matters — while the inner map walks every row plucking the value at that column, assembling the new row. This index-driven double map is the general recipe for any “regroup by position” transform. The empty-matrix guard is mandatory: with no rows there is no `matrix[0]`, and calling `.map` on `undefined` throws — an early `return []` handles the case where there are no rows, and therefore no columns either.",
+      "id": "transpose-matrix",
+      "methods": [
+        "map"
+      ],
+      "order": 5,
+      "solution": "export function solve(matrix: number[][]): number[][] {\n  if (matrix.length === 0) {\n    return [];\n  }\n  return matrix[0].map((_, column) => matrix.map((row) => row[column]));\n}\n",
+      "starterCode": "export function solve(matrix: number[][]): number[][] {\n  // Output row c collects matrix[r][c] for every r — drive both loops with map over indices.\n  return matrix;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                4,
+                5,
+                6
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              4
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "name": "2x3 becomes 3x2"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "name": "square matrix flips across the diagonal"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2,
+                3
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ]
+          ],
+          "name": "single row becomes a column"
+        },
+        {
+          "args": [
+            [
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                3
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "name": "single column becomes a row"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty matrix"
+        }
+      ],
+      "title": "Transpose a matrix"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Rebuild `Array.prototype.flat` from scratch: flatten `xs` by exactly `depth` levels using recursion — calling the native `flat` or `flatMap` is forbidden. A `depth` of `0` returns the array unchanged.\n\nSignature: `solve(xs: unknown[], depth: number): unknown[]`\n\nHint: `concat` splices array arguments in one level — that is your single level of flattening.",
+      "difficulty": "expert",
+      "explanation": "The whole trick rests on one behavior of `concat`: given an array argument it splices the *elements* in rather than nesting the array — exactly one level of flattening. So `reduce` walks the input, and for each element `Array.isArray` decides the branch: non-arrays are appended untouched (wrapped in `[item]` so `concat` cannot misread them), while nested arrays are first flattened `depth - 1` levels by the recursive call, after which `concat` removes the final level. The recursion bottoms out when `depth` reaches `0`, returning a shallow copy — which is also why `flat(0)` leaves the array unchanged. This is precisely how the native method is specified: recurse with a decremented depth, splice one level per call.",
+      "id": "build-your-own-flat",
+      "methods": [
+        "reduce",
+        "concat"
+      ],
+      "order": 6,
+      "solution": "export function solve(xs: unknown[], depth: number): unknown[] {\n  if (depth <= 0) {\n    return xs.slice();\n  }\n  return xs.reduce<unknown[]>(\n    (acc, item) => acc.concat(Array.isArray(item) ? solve(item, depth - 1) : [item]),\n    [],\n  );\n}\n",
+      "starterCode": "export function solve(xs: unknown[], depth: number): unknown[] {\n  // concat splices arrays in one level; recurse with depth - 1 on nested arrays, stop at depth 0.\n  return xs;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              [
+                2,
+                3
+              ],
+              [
+                4,
+                [
+                  5
+                ]
+              ]
+            ],
+            1
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            [
+              5
+            ]
+          ],
+          "name": "depth one flattens a single level"
+        },
+        {
+          "args": [
+            [
+              1,
+              [
+                2,
+                [
+                  3
+                ]
+              ]
+            ],
+            0
+          ],
+          "expected": [
+            1,
+            [
+              2,
+              [
+                3
+              ]
+            ]
+          ],
+          "name": "depth zero returns the array unchanged"
+        },
+        {
+          "args": [
+            [
+              1,
+              [
+                2,
+                [
+                  3,
+                  [
+                    4
+                  ]
+                ]
+              ]
+            ],
+            2
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            [
+              4
+            ]
+          ],
+          "name": "depth two reaches nested nesting"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            5
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "already flat is unaffected by big depths"
+        },
+        {
+          "args": [
+            [],
+            1
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "Build your own flat"
     }
   ],
   "submissions": []
