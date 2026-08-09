@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Submission } from '@/data/types';
+import type { Submission, UnsavedSubmission } from '@/data/types';
 
 import { useChallenges, useSaveSubmission, useSubmissions } from '@/api/hooks';
 
@@ -15,6 +15,13 @@ const submission: Submission = {
   id: 'range-of-numbers',
   status: 'passed',
   updatedAt: '2026-08-08T12:00:00.000Z',
+};
+
+const draft: UnsavedSubmission = {
+  challengeId: submission.challengeId,
+  code: submission.code,
+  status: submission.status,
+  updatedAt: submission.updatedAt,
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -50,9 +57,10 @@ describe('query hooks', () => {
   it('useSaveSubmission invalidates the submissions query on success', async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       if (init?.method === 'PUT') {
+        expect(String(input)).toBe(`/api/submissions/${submission.id}`);
         return Promise.resolve(jsonResponse(submission));
       }
-      expect(String(input)).toBe('/api/submissions');
+      expect(String(input)).toMatch(/^\/api\/submissions(\?challengeId=range-of-numbers)?$/);
       return Promise.resolve(jsonResponse([submission]));
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -65,7 +73,7 @@ describe('query hooks', () => {
 
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const saveHook = renderHook(() => useSaveSubmission(), { wrapper });
-    saveHook.result.current.mutate(submission);
+    saveHook.result.current.mutate(draft);
     await waitFor(() => {
       expect(saveHook.result.current.isSuccess).toBe(true);
     });

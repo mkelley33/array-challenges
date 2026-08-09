@@ -1,4 +1,4 @@
-import type { Category, Challenge, Submission } from '@/data/types';
+import type { Category, Challenge, Submission, UnsavedSubmission } from '@/data/types';
 
 const API_BASE = '/api';
 
@@ -22,28 +22,43 @@ export function fetchSubmissions(): Promise<Submission[]> {
   return requestJson<Submission[]>('/submissions');
 }
 
-/**
- * Upserts a submission. JSON Server has no native upsert, so this PUTs to the
- * submission's id (which equals its challengeId) and falls back to POST when
- * the resource does not exist yet.
- */
-export async function saveSubmission(submission: Submission): Promise<Submission> {
-  const body = JSON.stringify(submission);
-  const headers = { 'Content-Type': 'application/json' };
-  const putResponse = await fetch(`${API_BASE}/submissions/${submission.id}`, { body, headers, method: 'PUT' });
-  if (putResponse.ok) {
-    return (await putResponse.json()) as Submission;
-  }
-  if (putResponse.status !== 404) {
-    throw new Error(`PUT /submissions/${submission.id} failed with status ${putResponse.status}`);
-  }
-  return requestJson<Submission>('/submissions', { body, headers, method: 'POST' });
+function fetchSubmissionsForChallenge(challengeId: string): Promise<Submission[]> {
+  return requestJson<Submission[]>(`/submissions?challengeId=${encodeURIComponent(challengeId)}`);
 }
 
-/** Deletes a submission; a missing submission already satisfies the goal, so 404 counts as success. */
-export async function clearSubmission(challengeId: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/submissions/${challengeId}`, { method: 'DELETE' });
+/** Deletes one stored row by its server id; 404 means it is already gone, which satisfies the goal. */
+async function deleteSubmissionRow(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/submissions/${id}`, { method: 'DELETE' });
   if (!response.ok && response.status !== 404) {
-    throw new Error(`DELETE /submissions/${challengeId} failed with status ${response.status}`);
+    throw new Error(`DELETE /submissions/${id} failed with status ${response.status}`);
   }
+}
+
+/**
+ * Upserts the submission for a challenge. json-server assigns row ids itself
+ * (a client-supplied id on POST is ignored), so rows are found by
+ * `challengeId`: an existing row is updated via PUT to its server id — also
+ * deleting any duplicate rows earlier versions of this client left behind —
+ * and a first save is created via POST.
+ */
+export async function saveSubmission(submission: UnsavedSubmission): Promise<Submission> {
+  const existing = await fetchSubmissionsForChallenge(submission.challengeId);
+  const headers = { 'Content-Type': 'application/json' };
+  const [current, ...duplicates] = existing;
+  if (current === undefined) {
+    return requestJson<Submission>('/submissions', { body: JSON.stringify(submission), headers, method: 'POST' });
+  }
+  const updated = await requestJson<Submission>(`/submissions/${current.id}`, {
+    body: JSON.stringify({ ...submission, id: current.id }),
+    headers,
+    method: 'PUT',
+  });
+  await Promise.all(duplicates.map((row) => deleteSubmissionRow(row.id)));
+  return updated;
+}
+
+/** Deletes every stored submission for the challenge; having none stored already satisfies the goal. */
+export async function clearSubmission(challengeId: string): Promise<void> {
+  const rows = await fetchSubmissionsForChallenge(challengeId);
+  await Promise.all(rows.map((row) => deleteSubmissionRow(row.id)));
 }

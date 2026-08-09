@@ -36,7 +36,10 @@ function stubApi(existing: Submission[]): RecordedCall[] {
       const method = init?.method ?? 'GET';
       calls.push({ body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined, method, url });
       if (method === 'GET') {
-        return Promise.resolve(new Response(JSON.stringify(existing), { status: 200 }));
+        const challengeId = new URLSearchParams(url.split('?')[1] ?? '').get('challengeId');
+        const rows =
+          challengeId === null ? existing : existing.filter((submission) => submission.challengeId === challengeId);
+        return Promise.resolve(new Response(JSON.stringify(rows), { status: 200 }));
       }
       if (method === 'DELETE') {
         return Promise.resolve(new Response(null, { status: 200 }));
@@ -97,7 +100,7 @@ describe('ChallengeWorkspace', () => {
     });
     await waitFor(() => {
       const save = calls.find((call) => call.method === 'POST');
-      expect(save?.body).toMatchObject({ challengeId: 'double-it', id: 'double-it', status: 'failed' });
+      expect(save?.body).toMatchObject({ challengeId: 'double-it', status: 'failed' });
     });
   });
 
