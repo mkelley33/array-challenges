@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* json-server rewrites db.json on every submission save; without this exclusion
+   Tailwind's content scanner counts it as a source and force-reloads the page. */
+@source not '../db.json';
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

@@ -199,7 +199,7 @@ export function ChallengeWorkspace({ challenge, executor }: ChallengeWorkspacePr
       challenge={challenge}
       executor={defaultExecutor}
       initialSource={existing?.code ?? challenge.starterCode}
-      key={`${challenge.id}:${existing?.updatedAt ?? 'starter'}`}
+      key={challenge.id}
     />
   );
 }
