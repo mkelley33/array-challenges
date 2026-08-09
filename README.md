@@ -44,7 +44,7 @@ Open <http://localhost:5173>, pick a category, and start solving. Your progress 
 | `pnpm build`       | Type-checks and produces a production build in `dist/`                  |
 | `pnpm preview`     | Serves the production build locally                                     |
 | `pnpm db:generate` | Regenerates `db.json` from the authored catalog (preserves submissions) |
-| `pnpm db:serve`    | Runs JSON Server alone                                                  |
+| `pnpm db:serve`    | Runs JSON Server alone (no file watching — restart it after `pnpm db:generate`) |
 
 ## How it works
 
