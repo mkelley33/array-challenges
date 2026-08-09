@@ -36,6 +36,13 @@ export interface Submission {
   updatedAt: string;
 }
 
+/**
+ * A submission the client wants stored. The `id` is server-assigned on
+ * creation (json-server ignores client-supplied ids on POST), so callers
+ * never provide one — `challengeId` is the logical key.
+ */
+export type UnsavedSubmission = Omit<Submission, 'id'>;
+
 export interface DbFile {
   categories: Category[];
   challenges: Challenge[];

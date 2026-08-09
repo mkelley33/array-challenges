@@ -2,7 +2,7 @@ import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { Category, Challenge, Submission } from '@/data/types';
+import type { Category, Challenge, Submission, UnsavedSubmission } from '@/data/types';
 
 import { clearSubmission, fetchCategories, fetchChallenges, fetchSubmissions, saveSubmission } from '@/api/client';
 
@@ -25,7 +25,7 @@ export function useSubmissions(): UseQueryResult<Submission[]> {
   return useQuery({ queryFn: fetchSubmissions, queryKey: queryKeys.submissions });
 }
 
-export function useSaveSubmission(): UseMutationResult<Submission, Error, Submission> {
+export function useSaveSubmission(): UseMutationResult<Submission, Error, UnsavedSubmission> {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: saveSubmission,

@@ -60,7 +60,6 @@ function WorkspaceInner({
       {
         challengeId: challenge.id,
         code: source,
-        id: challenge.id,
         status: passed ? 'passed' : 'failed',
         updatedAt: new Date().toISOString(),
       },

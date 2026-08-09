@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Submission } from '@/data/types';
+import type { Submission, UnsavedSubmission } from '@/data/types';
 
 import { clearSubmission, fetchCategories, fetchChallenges, fetchSubmissions, saveSubmission } from '@/api/client';
 
@@ -30,12 +30,71 @@ function stubFetch(responder: (url: string, init?: RequestInit) => { body?: unkn
   return calls;
 }
 
-const submission: Submission = {
+/**
+ * Stateful stub mirroring json-server 1.0.0-beta semantics, verified against
+ * the real server: POST ignores any client id and assigns its own, PUT and
+ * DELETE address rows only by that server id (404 otherwise), and GET
+ * supports `?challengeId=` filtering.
+ */
+function stubJsonServer(rows: Submission[]): RecordedCall[] {
+  let nextId = 1;
+  const calls: RecordedCall[] = [];
+  vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = init?.method ?? 'GET';
+    const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as Record<string, unknown>) : undefined;
+    calls.push({ body, method, url });
+
+    const respond = (status: number, payload?: unknown): Promise<Response> =>
+      Promise.resolve(
+        new Response(payload === undefined ? null : JSON.stringify(payload), {
+          headers: { 'Content-Type': 'application/json' },
+          status,
+        }),
+      );
+
+    if (method === 'GET') {
+      const challengeId = new URLSearchParams(url.split('?')[1] ?? '').get('challengeId');
+      return respond(200, challengeId === null ? rows : rows.filter((row) => row.challengeId === challengeId));
+    }
+    if (method === 'POST') {
+      const created = { ...body, id: `srv-${nextId}` } as Submission;
+      nextId += 1;
+      rows.push(created);
+      return respond(201, created);
+    }
+    const rowId = url.slice(url.lastIndexOf('/') + 1);
+    const index = rows.findIndex((row) => row.id === rowId);
+    if (index === -1) {
+      return respond(404);
+    }
+    if (method === 'PUT') {
+      const updated = { ...body, id: rowId } as Submission;
+      rows[index] = updated;
+      return respond(200, updated);
+    }
+    const [removed] = rows.splice(index, 1);
+    return respond(200, removed);
+  });
+  return calls;
+}
+
+function makeRow(id: string, overrides: Partial<Submission> = {}): Submission {
+  return {
+    challengeId: 'range-of-numbers',
+    code: 'export function solve(): number[] { return []; }',
+    id,
+    status: 'failed',
+    updatedAt: '2026-08-08T12:00:00.000Z',
+    ...overrides,
+  };
+}
+
+const draft: UnsavedSubmission = {
   challengeId: 'range-of-numbers',
-  code: 'export function solve(): number[] { return []; }',
-  id: 'range-of-numbers',
+  code: 'export function solve(): number[] { return [1]; }',
   status: 'failed',
-  updatedAt: '2026-08-08T12:00:00.000Z',
+  updatedAt: '2026-08-08T13:00:00.000Z',
 };
 
 afterEach(() => {
@@ -59,37 +118,62 @@ describe('fetch helpers', () => {
 });
 
 describe('saveSubmission upsert', () => {
-  it('updates via PUT when the submission already exists', async () => {
-    const calls = stubFetch(() => ({ body: submission, status: 200 }));
-    const saved = await saveSubmission(submission);
-    expect(calls).toHaveLength(1);
-    expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/submissions/range-of-numbers' });
-    expect(saved).toEqual(submission);
-  });
-
-  it('falls back to POST when the PUT target does not exist', async () => {
-    const calls = stubFetch((_url, init) =>
-      init?.method === 'PUT' ? { status: 404 } : { body: submission, status: 201 },
-    );
-    const saved = await saveSubmission(submission);
+  it('creates via POST when no submission exists for the challenge', async () => {
+    const rows: Submission[] = [];
+    const calls = stubJsonServer(rows);
+    const saved = await saveSubmission(draft);
     expect(calls.map((call) => [call.method, call.url])).toEqual([
-      ['PUT', '/api/submissions/range-of-numbers'],
+      ['GET', '/api/submissions?challengeId=range-of-numbers'],
       ['POST', '/api/submissions'],
     ]);
-    expect(calls[1]?.body).toEqual(submission);
-    expect(saved).toEqual(submission);
+    expect(saved).toEqual({ ...draft, id: 'srv-1' });
+    expect(rows).toHaveLength(1);
+  });
+
+  it('updates the existing row via PUT to its server-assigned id', async () => {
+    const rows = [makeRow('srv-9')];
+    const calls = stubJsonServer(rows);
+    const saved = await saveSubmission(draft);
+    expect(calls.map((call) => [call.method, call.url])).toEqual([
+      ['GET', '/api/submissions?challengeId=range-of-numbers'],
+      ['PUT', '/api/submissions/srv-9'],
+    ]);
+    expect(saved).toEqual({ ...draft, id: 'srv-9' });
+    expect(rows).toEqual([{ ...draft, id: 'srv-9' }]);
+  });
+
+  it('removes duplicate rows left for the challenge by earlier saves', async () => {
+    const rows = [makeRow('srv-1'), makeRow('srv-2'), makeRow('srv-3', { challengeId: 'other-challenge' })];
+    stubJsonServer(rows);
+    await saveSubmission(draft);
+    expect(rows).toEqual([
+      { ...draft, id: 'srv-1' },
+      makeRow('srv-3', { challengeId: 'other-challenge' }),
+    ]);
+  });
+
+  it('propagates a failed lookup instead of saving blind', async () => {
+    stubFetch(() => ({ status: 500 }));
+    await expect(saveSubmission(draft)).rejects.toThrow(/500/);
   });
 });
 
 describe('clearSubmission', () => {
-  it('deletes the submission by challenge id', async () => {
-    const calls = stubFetch(() => ({ status: 200 }));
+  it('deletes every row stored for the challenge', async () => {
+    const rows = [makeRow('srv-1'), makeRow('srv-2'), makeRow('srv-3', { challengeId: 'other-challenge' })];
+    const calls = stubJsonServer(rows);
     await clearSubmission('range-of-numbers');
-    expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/submissions/range-of-numbers' });
+    expect(calls.filter((call) => call.method === 'DELETE').map((call) => call.url)).toEqual([
+      '/api/submissions/srv-1',
+      '/api/submissions/srv-2',
+    ]);
+    expect(rows).toEqual([makeRow('srv-3', { challengeId: 'other-challenge' })]);
   });
 
-  it('treats deleting a missing submission as success', async () => {
-    stubFetch(() => ({ status: 404 }));
+  it('is a no-op when the challenge has no submission', async () => {
+    const rows: Submission[] = [];
+    const calls = stubJsonServer(rows);
     await expect(clearSubmission('ghost')).resolves.toBeUndefined();
+    expect(calls.filter((call) => call.method === 'DELETE')).toHaveLength(0);
   });
 });
