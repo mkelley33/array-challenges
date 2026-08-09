@@ -27,14 +27,15 @@ interface RecordedCall {
   url: string;
 }
 
-function stubApi(existing: Submission[]): RecordedCall[] {
+function stubApi(existing: Submission[], { persistSaves = false }: { persistSaves?: boolean } = {}): RecordedCall[] {
   const calls: RecordedCall[] = [];
   vi.stubGlobal(
     'fetch',
     vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const method = init?.method ?? 'GET';
-      calls.push({ body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined, method, url });
+      const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : undefined;
+      calls.push({ body, method, url });
       if (method === 'GET') {
         return Promise.resolve(new Response(JSON.stringify(existing), { status: 200 }));
       }
@@ -44,18 +45,28 @@ function stubApi(existing: Submission[]): RecordedCall[] {
       if (method === 'PUT' && existing.length === 0) {
         return Promise.resolve(new Response(null, { status: 404 }));
       }
+      if (persistSaves && (method === 'POST' || method === 'PUT')) {
+        const saved = body as Submission;
+        const index = existing.findIndex((submission) => submission.id === saved.id);
+        if (index === -1) {
+          existing.push(saved);
+        } else {
+          existing[index] = saved;
+        }
+      }
       return Promise.resolve(new Response(init?.body ?? null, { status: method === 'POST' ? 201 : 200 }));
     }),
   );
   return calls;
 }
 
-function renderWorkspace(): void {
+function renderWorkspace(): QueryClient {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   function Wrapper({ children }: { children: ReactNode }): ReactNode {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
   render(<ChallengeWorkspace challenge={challenge} executor={new DirectExecutor()} />, { wrapper: Wrapper });
+  return queryClient;
 }
 
 beforeEach(() => {
@@ -119,6 +130,25 @@ describe('ChallengeWorkspace', () => {
       const save = calls.find((call) => call.method === 'POST');
       expect(save?.body).toMatchObject({ status: 'passed' });
     });
+  });
+
+  it('keeps the failing results visible after the saved submission is refetched', async () => {
+    stubApi([], { persistSaves: true });
+    const user = userEvent.setup();
+    const queryClient = renderWorkspace();
+    await waitFor(() => {
+      expect(screen.getByLabelText('Code editor')).toHaveValue(challenge.starterCode);
+    });
+    await user.click(screen.getByRole('button', { name: /^run$/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/1 \/ 3 passing/i)).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      const submissions = queryClient.getQueryData<Submission[]>(['submissions']);
+      expect(submissions).toHaveLength(1);
+    });
+    expect(screen.getByText(/1 \/ 3 passing/i)).toBeInTheDocument();
+    expect(screen.queryByText('Run your code to see test results.')).not.toBeInTheDocument();
   });
 
   it('clears the submission and restores the starter code', async () => {
