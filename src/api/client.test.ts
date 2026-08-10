@@ -146,10 +146,7 @@ describe('saveSubmission upsert', () => {
     const rows = [makeRow('srv-1'), makeRow('srv-2'), makeRow('srv-3', { challengeId: 'other-challenge' })];
     stubJsonServer(rows);
     await saveSubmission(draft);
-    expect(rows).toEqual([
-      { ...draft, id: 'srv-1' },
-      makeRow('srv-3', { challengeId: 'other-challenge' }),
-    ]);
+    expect(rows).toEqual([{ ...draft, id: 'srv-1' }, makeRow('srv-3', { challengeId: 'other-challenge' })]);
   });
 
   it('propagates a failed lookup instead of saving blind', async () => {
