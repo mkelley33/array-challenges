@@ -7,6 +7,21 @@ TypeScript editor, instant test feedback, and a spoiler that explains a correct 
 The catalog targets **ES2024** (including `Array.fromAsync`, `toSorted`, `toReversed`, `toSpliced`, `with`,
 `findLast`) and installs polyfills for ES2025+ proposals where needed (`Object.groupBy`, `Map.groupBy`).
 
+## Run it locally
+
+**This is a clone-and-run project.** There is no hosted version and nothing to deploy — clone the repo and
+run it on your own machine.
+
+There are no accounts and no sign-in, and the only server involved is the local JSON Server that `pnpm dev`
+starts for you. Everything stays on your machine: your solutions are saved to `db.json` inside the repo, and
+your settings and revealed spoilers live in the browser's `localStorage`. Nothing is uploaded anywhere — which
+also means your progress does not follow you to another machine or another browser profile.
+
+One caveat on "local": the Vite app binds to loopback, but JSON Server listens on every network interface, so
+anyone on the same network can reach the API on port 3001 and read or change your submissions. It ignores its
+own `--host` flag, so there is no setting to narrow it. Nothing sensitive lives in `db.json`, but prefer not
+to leave `pnpm dev` running on a network you do not trust.
+
 ## Prerequisites
 
 - **Node.js 24** (see `.nvmrc`)
@@ -19,17 +34,18 @@ corepack enable
 ## Quickstart
 
 ```sh
+git clone git@github.com:mkelley33/array-challenges.git
+cd array-challenges
 pnpm install
 pnpm dev
 ```
 
-`pnpm dev` starts two processes:
+`pnpm dev` regenerates `db.json` from the authored catalog, then starts two local processes:
 
 - **JSON Server** on `http://localhost:3001` — serves the challenge catalog and stores your submissions in `db.json`
 - **Vite** on `http://localhost:5173` — the app, with `/api` proxied to JSON Server
 
-Open <http://localhost:5173>, pick a category, and start solving. Your progress is saved to `db.json`
-(submissions) and `localStorage` (settings, revealed spoilers), so it survives restarts.
+Open <http://localhost:5173>, pick a category, and start solving. Your progress survives restarts.
 
 ## Scripts
 
