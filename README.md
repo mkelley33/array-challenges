@@ -44,6 +44,7 @@ Open <http://localhost:5173>, pick a category, and start solving. Your progress 
 | `pnpm build`       | Type-checks and produces a production build in `dist/`                          |
 | `pnpm preview`     | Serves the production build locally                                             |
 | `pnpm db:generate` | Regenerates `db.json` from the authored catalog (preserves submissions)         |
+| `pnpm db:reset`    | Same regeneration, but clears every saved submission to start over              |
 | `pnpm db:serve`    | Runs JSON Server alone (no file watching — restart it after `pnpm db:generate`) |
 
 ## Editing challenges
@@ -52,6 +53,22 @@ Open <http://localhost:5173>, pick a category, and start solving. Your progress 
 serves the current catalog. Edit a challenge while the dev server is running and the app raises a
 standing warning naming the file — restart `pnpm dev` to load it, since the API deliberately does
 not watch the database file.
+
+## Starting over
+
+`pnpm db:reset` rebuilds `db.json` from the current catalog and drops every saved submission, so
+every challenge goes back to its starter code. Use it after changing challenge definitions, or
+whenever you want a clean run at the whole set.
+
+Stop the API server first (or restart it right after): it holds the database in memory and would
+otherwise write the old submissions back over the fresh file.
+
+```bash
+pnpm db:reset && pnpm dev
+```
+
+Revealed solutions live in the browser, not in `db.json`, so clear them separately from the
+console on the app's page — `localStorage.removeItem('array-challenges-spoilers')` — then reload.
 
 ## How it works
 
