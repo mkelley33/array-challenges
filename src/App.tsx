@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { useChallenges } from '@/api/hooks';
 import { AppShell } from '@/components/app-shell';
 import { Dashboard } from '@/components/dashboard';
+import { useCatalogStaleNotice } from '@/lib/use-catalog-stale-notice';
 import { useApplyTheme, useEffectiveTheme } from '@/lib/use-theme';
 import { useUiStore } from '@/stores/ui-store';
 
@@ -46,6 +47,7 @@ function CurrentView(): React.JSX.Element {
 
 function ThemedApp(): React.JSX.Element {
   useApplyTheme();
+  useCatalogStaleNotice();
   const effectiveTheme = useEffectiveTheme();
 
   return (
