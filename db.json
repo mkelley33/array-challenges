@@ -13128,6 +13128,93 @@
     },
     {
       "categoryId": "flattening-and-composing",
+      "description": "Merge three arrays into one new array, in order, without mutating any of the inputs.\n\nSignature: `solve(first: number[], second: number[], third: number[]): number[]`",
+      "difficulty": "novice",
+      "explanation": "`concat` builds a brand-new array from the receiver plus every argument — none of the inputs are touched, which is what separates it from `push(...items)`. Its spreading rule is worth memorizing: an ARRAY argument is spread one level deep (its elements are appended, not the array itself), while a non-array argument is appended as-is — `[1].concat([2, 3], 4)` yields `[1, 2, 3, 4]`. One level only, though: nested arrays inside an argument stay nested. Modern spread syntax `[...a, ...b, ...c]` is equivalent here, but `concat` predates it and reads better in method chains.",
+      "id": "merge-three-arrays",
+      "methods": [
+        "concat"
+      ],
+      "order": 2,
+      "solution": "export function solve(first: number[], second: number[], third: number[]): number[] {\n  return first.concat(second, third);\n}\n",
+      "starterCode": "export function solve(first: number[], second: number[], third: number[]): number[] {\n  // push() would mutate the first array — find the method that copies instead.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              3
+            ],
+            [
+              4,
+              5
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "name": "merges three arrays"
+        },
+        {
+          "args": [
+            [
+              1
+            ],
+            [],
+            [
+              2
+            ]
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "empty middle array"
+        },
+        {
+          "args": [
+            [],
+            [],
+            []
+          ],
+          "expected": [],
+          "name": "all empty"
+        },
+        {
+          "args": [
+            [
+              1,
+              1
+            ],
+            [
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          "expected": [
+            1,
+            1,
+            1,
+            2,
+            1
+          ],
+          "name": "preserves order and duplicates"
+        }
+      ],
+      "title": "Merge three arrays"
+    },
+    {
+      "categoryId": "flattening-and-composing",
       "description": "Fully flatten an arbitrarily nested array of numbers — any depth, one flat list out.\n\nSignature: `solve(values: Nested): number[]` where `type Nested = (Nested | number)[]`\n\nConstraint: a single method call — no recursion, no loops.",
       "difficulty": "intermediate",
       "explanation": "The depth argument of `flat` caps how many levels collapse per call: `flat(1)` peels one layer, `flat(2)` two, and `flat(Infinity)` keeps going until no arrays remain — the idiom for nesting whose depth you do not know in advance. Before ES2019 this took hand-written recursion or repeated `concat` passes; now the engine walks the structure for you. Each call still returns a fresh array, so even a full deep flatten never touches the input. The one thing `flat(Infinity)` cannot express is *conditional* flattening — for that you graduate to `flatMap`.",
@@ -13135,7 +13222,7 @@
       "methods": [
         "flat"
       ],
-      "order": 2,
+      "order": 3,
       "solution": "type Nested = (Nested | number)[];\n\nexport function solve(values: Nested): number[] {\n  return values.flat(Infinity) as number[];\n}\n",
       "starterCode": "type Nested = (Nested | number)[];\n\nexport function solve(values: Nested): number[] {\n  // flat() only peels one layer by default — how do you tell it to keep going?\n  return [];\n}\n",
       "tests": [
@@ -13223,93 +13310,6 @@
         }
       ],
       "title": "Deep flatten"
-    },
-    {
-      "categoryId": "flattening-and-composing",
-      "description": "Merge three arrays into one new array, in order, without mutating any of the inputs.\n\nSignature: `solve(first: number[], second: number[], third: number[]): number[]`",
-      "difficulty": "novice",
-      "explanation": "`concat` builds a brand-new array from the receiver plus every argument — none of the inputs are touched, which is what separates it from `push(...items)`. Its spreading rule is worth memorizing: an ARRAY argument is spread one level deep (its elements are appended, not the array itself), while a non-array argument is appended as-is — `[1].concat([2, 3], 4)` yields `[1, 2, 3, 4]`. One level only, though: nested arrays inside an argument stay nested. Modern spread syntax `[...a, ...b, ...c]` is equivalent here, but `concat` predates it and reads better in method chains.",
-      "id": "merge-three-arrays",
-      "methods": [
-        "concat"
-      ],
-      "order": 3,
-      "solution": "export function solve(first: number[], second: number[], third: number[]): number[] {\n  return first.concat(second, third);\n}\n",
-      "starterCode": "export function solve(first: number[], second: number[], third: number[]): number[] {\n  // push() would mutate the first array — find the method that copies instead.\n  return [];\n}\n",
-      "tests": [
-        {
-          "args": [
-            [
-              1,
-              2
-            ],
-            [
-              3
-            ],
-            [
-              4,
-              5
-            ]
-          ],
-          "expected": [
-            1,
-            2,
-            3,
-            4,
-            5
-          ],
-          "name": "merges three arrays"
-        },
-        {
-          "args": [
-            [
-              1
-            ],
-            [],
-            [
-              2
-            ]
-          ],
-          "expected": [
-            1,
-            2
-          ],
-          "name": "empty middle array"
-        },
-        {
-          "args": [
-            [],
-            [],
-            []
-          ],
-          "expected": [],
-          "name": "all empty"
-        },
-        {
-          "args": [
-            [
-              1,
-              1
-            ],
-            [
-              1
-            ],
-            [
-              2,
-              1
-            ]
-          ],
-          "expected": [
-            1,
-            1,
-            1,
-            2,
-            1
-          ],
-          "name": "preserves order and duplicates"
-        }
-      ],
-      "title": "Merge three arrays"
     },
     {
       "categoryId": "flattening-and-composing",
@@ -13428,7 +13428,7 @@
           "expected": [
             8
           ],
-          "name": "drops decimals and empty strings"
+          "name": "drops decimals and empty strings (trap)"
         },
         {
           "args": [
@@ -13467,8 +13467,8 @@
     },
     {
       "categoryId": "flattening-and-composing",
-      "description": "Run-length decode: expand `[{ ch: \"a\", n: 3 }, { ch: \"b\", n: 1 }]` into `[\"a\", \"a\", \"a\", \"b\"]`. A run with `n: 0` contributes nothing.\n\nSignature: `solve(runs: { ch: string; n: number }[]): string[]`",
-      "difficulty": "expert",
+      "description": "Run-length decode: expand `[{ ch: \"a\", n: 3 }, { ch: \"b\", n: 1 }]` into `[\"a\", \"a\", \"a\", \"b\"]`. A run with `n: 0` contributes nothing.\n\nSignature: `solve(runs: { ch: string; n: number }[]): string[]`\n\nTrap: `new Array(n)` has `n` holes, not `n` elements — and a hole is invisible to `map`.",
+      "difficulty": "advanced",
       "explanation": "Each run expands independently — `new Array(run.n)` allocates `n` slots and `fill(run.ch)` writes the character into every one, converting the holes into real elements (`map` would skip them, `fill` does not). `flatMap` then splices each expansion into the result in order. The `n: 0` case falls out for free: `Array(0).fill(x)` is `[]`, and a callback returning an empty array contributes zero elements — the same drop idiom used for filtering, now emerging naturally from the data. This expand-by-count shape is the mirror image of run-length *encoding*, which compresses with `reduce`.",
       "id": "run-length-decode",
       "methods": [
@@ -13498,7 +13498,7 @@
             "a",
             "b"
           ],
-          "name": "decodes runs"
+          "name": "decodes runs (trap)"
         },
         {
           "args": [
@@ -13539,7 +13539,7 @@
             "z",
             "z"
           ],
-          "name": "single run"
+          "name": "single run (trap)"
         },
         {
           "args": [
@@ -13565,7 +13565,1601 @@
           "name": "all runs empty"
         }
       ],
-      "title": "Run-length decode"
+      "title": "Run-length decode",
+      "trap": "interface Run {\n  ch: string;\n  n: number;\n}\n\nexport function solve(runs: Run[]): string[] {\n  return runs.flatMap((run) => new Array<string>(run.n).map(() => run.ch));\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Flatten `entries` by exactly one level and record where each value came from. A real array spreads into one result per element with `fromGroup: true`; anything else — a string, a number, or an array-like record such as `{ 0: \"a\", 1: \"b\", length: 2 }` (plain data, not an array) — stays one value with `fromGroup: false`.\n\nSignature: `solve(entries: unknown[]): { fromGroup: boolean; value: unknown }[]`\n\nUse `flatMap`, and decide \"is this an array?\" with the one test that cannot be fooled.",
+      "difficulty": "advanced",
+      "explanation": "`flatMap` lets each entry decide how many results it contributes and what they look like, which is exactly what a provenance-tagged flatten needs — plain `flat()` would splice the groups in but forget which values came from one. The decision itself is the lesson. `Array.isArray` is the only reliable test for \"is this a real array\": it inspects the object's internal array-ness, so a plain record with a `length` and numeric keys — the shape of `arguments`, a `NodeList`, or a legacy API payload — is correctly refused. The tempting duck-type, `typeof entry === \"object\" && \"length\" in entry`, accepts that record and spreads it as if it were a group, and the looser `entry.length !== undefined` also shreds every string into characters. `flat` uses the same `Array.isArray` rule internally, which is why it never spreads strings or array-likes either.",
+      "id": "spread-only-real-arrays",
+      "methods": [
+        "flatMap",
+        "Array.isArray"
+      ],
+      "order": 7,
+      "solution": "interface Tagged {\n  fromGroup: boolean;\n  value: unknown;\n}\n\nexport function solve(entries: unknown[]): Tagged[] {\n  return entries.flatMap((entry): Tagged[] => {\n    if (!Array.isArray(entry)) {\n      return [{ fromGroup: false, value: entry }];\n    }\n    const group: unknown[] = entry;\n    return group.map((value) => ({ fromGroup: true, value }));\n  });\n}\n",
+      "starterCode": "interface Tagged {\n  fromGroup: boolean;\n  value: unknown;\n}\n\nexport function solve(entries: unknown[]): Tagged[] {\n  // Spread only real arrays — a string and a { length } record both look array-ish and are not.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                "a",
+                "b"
+              ],
+              "c"
+            ]
+          ],
+          "expected": [
+            {
+              "fromGroup": true,
+              "value": "a"
+            },
+            {
+              "fromGroup": true,
+              "value": "b"
+            },
+            {
+              "fromGroup": false,
+              "value": "c"
+            }
+          ],
+          "name": "arrays spread, strings stay whole"
+        },
+        {
+          "args": [
+            [
+              {
+                "0": "a",
+                "1": "b",
+                "length": 2
+              },
+              "c"
+            ]
+          ],
+          "expected": [
+            {
+              "fromGroup": false,
+              "value": {
+                "0": "a",
+                "1": "b",
+                "length": 2
+              }
+            },
+            {
+              "fromGroup": false,
+              "value": "c"
+            }
+          ],
+          "name": "an array-like record is one value, not a group (trap)"
+        },
+        {
+          "args": [
+            [
+              "ab",
+              [
+                "c"
+              ]
+            ]
+          ],
+          "expected": [
+            {
+              "fromGroup": false,
+              "value": "ab"
+            },
+            {
+              "fromGroup": true,
+              "value": "c"
+            }
+          ],
+          "name": "a string is never spread into characters"
+        },
+        {
+          "args": [
+            [
+              [
+                [
+                  "x"
+                ],
+                "y"
+              ]
+            ]
+          ],
+          "expected": [
+            {
+              "fromGroup": true,
+              "value": [
+                "x"
+              ]
+            },
+            {
+              "fromGroup": true,
+              "value": "y"
+            }
+          ],
+          "name": "only one level is spread"
+        },
+        {
+          "args": [
+            [
+              [],
+              "a",
+              []
+            ]
+          ],
+          "expected": [
+            {
+              "fromGroup": false,
+              "value": "a"
+            }
+          ],
+          "name": "an empty group contributes nothing"
+        },
+        {
+          "args": [
+            [
+              1,
+              null,
+              [
+                2
+              ]
+            ]
+          ],
+          "expected": [
+            {
+              "fromGroup": false,
+              "value": 1
+            },
+            {
+              "fromGroup": false,
+              "value": null
+            },
+            {
+              "fromGroup": true,
+              "value": 2
+            }
+          ],
+          "name": "numbers and null are plain values"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty input"
+        }
+      ],
+      "title": "Only real arrays spread",
+      "trap": "interface Tagged {\n  fromGroup: boolean;\n  value: unknown;\n}\n\nexport function solve(entries: unknown[]): Tagged[] {\n  return entries.flatMap((entry): Tagged[] => {\n    if (typeof entry === 'object' && entry !== null && 'length' in entry) {\n      return Array.from(entry as ArrayLike<unknown>, (value) => ({ fromGroup: true, value }));\n    }\n    return [{ fromGroup: false, value: entry }];\n  });\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "A workbook is a list of sheets, each sheet a list of rows, each row a list of `[label, amount]` pairs. Return every pair in the workbook in reading order, with the pairs themselves left intact.\n\nSignature: `solve(workbook: [string, number][][][]): [string, number][]`\n\n`flat` takes a depth — pick it deliberately, because both \"too shallow\" and \"all the way\" are wrong here.",
+      "difficulty": "advanced",
+      "explanation": "`flat` peels exactly as many layers as its depth argument says — one by default — and the right number is a property of the data, not a matter of taste. Sheets contain rows and rows contain pairs, so two layers separate the workbook from the pairs: `flat(2)`. The default `flat()` stops one layer short and hands back rows still wrapped in their sheets. The opposite reflex, `flat(Infinity)`, reads as \"just flatten it\" and is the more damaging mistake: it cannot tell a structural layer from a data one, so it keeps going through the pairs and returns `[\"a\", 1, \"b\", 2]` — labels and amounts scattered into a single list, the association lost. Whenever the leaves are themselves arrays (tuples, coordinates, RGB triples), reach for a counted depth and leave `Infinity` for structures whose leaves are guaranteed to be scalars.",
+      "id": "flatten-to-the-pairs",
+      "methods": [
+        "flat"
+      ],
+      "order": 8,
+      "solution": "type Pair = [string, number];\n\nexport function solve(workbook: Pair[][][]): Pair[] {\n  return workbook.flat(2);\n}\n",
+      "starterCode": "type Pair = [string, number];\n\nexport function solve(workbook: Pair[][][]): Pair[] {\n  // Sheets → rows → pairs is two layers of brackets to remove; the pair is a third you must keep.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                [
+                  [
+                    "a",
+                    1
+                  ],
+                  [
+                    "b",
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "c",
+                    3
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              1
+            ],
+            [
+              "b",
+              2
+            ],
+            [
+              "c",
+              3
+            ]
+          ],
+          "name": "two sheets flatten to a pair list (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                [
+                  [
+                    "a",
+                    1
+                  ]
+                ],
+                [
+                  [
+                    "b",
+                    2
+                  ],
+                  [
+                    "c",
+                    3
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              1
+            ],
+            [
+              "b",
+              2
+            ],
+            [
+              "c",
+              3
+            ]
+          ],
+          "name": "a sheet with several rows"
+        },
+        {
+          "args": [
+            [
+              [],
+              [
+                []
+              ],
+              [
+                [
+                  [
+                    "z",
+                    0
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              "z",
+              0
+            ]
+          ],
+          "name": "empty sheets and rows vanish"
+        },
+        {
+          "args": [
+            [
+              [
+                [
+                  [
+                    "only",
+                    9
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              "only",
+              9
+            ]
+          ],
+          "name": "single pair stays a pair (trap)"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty workbook"
+        }
+      ],
+      "title": "Count the layers",
+      "trap": "type Pair = [string, number];\n\nexport function solve(workbook: Pair[][][]): Pair[] {\n  return workbook.flat(Infinity) as Pair[];\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Build the `[name, email]` pair for every person who has an email — one pair per person, people without an email dropped — in a single `flatMap` pass.\n\nSignature: `solve(people: { email?: string; name: string }[]): [string, string][]`\n\nTrap: the callback must return a *list of pairs*, and a pair is itself a list.",
+      "difficulty": "advanced",
+      "explanation": "`flatMap` always removes exactly one layer from whatever the callback returns, so the callback's return value must be *a list of the things you want in the output*. When the thing you want is itself an array — a `[name, email]` pair — returning the pair directly is the classic mistake: `flatMap` reads it as the list of results and splices `name` and `email` in as two separate strings, giving `[\"Ada\", \"ada@x\", \"Cy\", \"cy@x\"]` with the pairing destroyed. Wrapping it, `[[person.name, person.email]]`, says \"one result, and that result is a pair\". The empty `[]` for people without an email is the drop idiom that makes `flatMap` a filter and a map in one traversal. Rule of thumb: the outer brackets belong to `flatMap`; count how many the output element needs and add those inside.",
+      "id": "pairs-survive-flatmap",
+      "methods": [
+        "flatMap"
+      ],
+      "order": 9,
+      "solution": "interface Person {\n  email?: string;\n  name: string;\n}\n\nexport function solve(people: Person[]): [string, string][] {\n  return people.flatMap((person): [string, string][] =>\n    person.email === undefined ? [] : [[person.name, person.email]],\n  );\n}\n",
+      "starterCode": "interface Person {\n  email?: string;\n  name: string;\n}\n\nexport function solve(people: Person[]): [string, string][] {\n  // flatMap strips one layer of brackets from what you return — a pair needs one more around it.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "email": "ada@x",
+                "name": "Ada"
+              },
+              {
+                "name": "Bo"
+              },
+              {
+                "email": "cy@x",
+                "name": "Cy"
+              }
+            ]
+          ],
+          "expected": [
+            [
+              "Ada",
+              "ada@x"
+            ],
+            [
+              "Cy",
+              "cy@x"
+            ]
+          ],
+          "name": "mixed list keeps pairs as pairs (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "email": "a@x",
+                "name": "A"
+              },
+              {
+                "email": "b@x",
+                "name": "B"
+              }
+            ]
+          ],
+          "expected": [
+            [
+              "A",
+              "a@x"
+            ],
+            [
+              "B",
+              "b@x"
+            ]
+          ],
+          "name": "everyone has an email"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "A"
+              },
+              {
+                "name": "B"
+              }
+            ]
+          ],
+          "expected": [],
+          "name": "nobody has an email"
+        },
+        {
+          "args": [
+            [
+              {
+                "email": "solo@x",
+                "name": "Solo"
+              }
+            ]
+          ],
+          "expected": [
+            [
+              "Solo",
+              "solo@x"
+            ]
+          ],
+          "name": "single person becomes a single pair (trap)"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty list"
+        }
+      ],
+      "title": "Keep the pair a pair",
+      "trap": "interface Person {\n  email?: string;\n  name: string;\n}\n\nexport function solve(people: Person[]): [string, string][] {\n  return people.flatMap((person) => (person.email === undefined ? [] : [person.name, person.email])) as [\n    string,\n    string,\n  ][];\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Insert `separator` between consecutive elements of `items` — between, never after the last one: `solve([\"a\", \"b\", \"c\"], \"-\")` → `[\"a\", \"-\", \"b\", \"-\", \"c\"]`.\n\nSignature: `solve(items: string[], separator: string): string[]`\n\nUse one `flatMap` pass; its callback receives the index as its second argument.",
+      "difficulty": "advanced",
+      "explanation": "The callback of `flatMap` receives `(element, index, array)`, and the index is what turns a uniform expansion into a positional one. Every element except the last contributes two results, `[item, separator]`; the last contributes only `[item]`, so `index < items.length - 1` is the whole decision. Dropping the index and returning `[item, separator]` for everyone plants a trailing separator after the final element — `[\"a\", \"-\", \"b\", \"-\", \"c\", \"-\"]`. The usual patch, `slice(0, -1)`, does work, but it is a second pass over the data that exists only to undo what the first pass should never have done. `join` cannot help either: it produces a string, not an array. Positional `flatMap` is the shape for any \"between, not after\" rule — thousands separators, breadcrumb chevrons, comma-separated JSX.",
+      "id": "intersperse-separator",
+      "methods": [
+        "flatMap"
+      ],
+      "order": 10,
+      "solution": "export function solve(items: string[], separator: string): string[] {\n  return items.flatMap((item, index) => (index < items.length - 1 ? [item, separator] : [item]));\n}\n",
+      "starterCode": "export function solve(items: string[], separator: string): string[] {\n  // Every element but the last contributes two results — the callback's second argument tells you which is last.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c"
+            ],
+            "-"
+          ],
+          "expected": [
+            "a",
+            "-",
+            "b",
+            "-",
+            "c"
+          ],
+          "name": "three items, two separators (trap)"
+        },
+        {
+          "args": [
+            [
+              "solo"
+            ],
+            ","
+          ],
+          "expected": [
+            "solo"
+          ],
+          "name": "single item gets no separator (trap)"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "y"
+            ],
+            " "
+          ],
+          "expected": [
+            "x",
+            " ",
+            "y"
+          ],
+          "name": "two items"
+        },
+        {
+          "args": [
+            [
+              "-",
+              "a"
+            ],
+            "-"
+          ],
+          "expected": [
+            "-",
+            "-",
+            "a"
+          ],
+          "name": "separator that equals an item"
+        },
+        {
+          "args": [
+            [],
+            "-"
+          ],
+          "expected": [],
+          "name": "empty list stays empty"
+        }
+      ],
+      "title": "Between, not after",
+      "trap": "export function solve(items: string[], separator: string): string[] {\n  return items.flatMap((item) => [item, separator]);\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Add `newcomers` to the end of `roster`, skipping anyone already on it, and return `[extended, roster]` — the second element is the roster you were given, which must still be in its original state.\n\nSignature: `solve(roster: string[], newcomers: string[]): [string[], string[]]`\n\n`concat` builds the extended list without touching the original; `push` is the trap.",
+      "difficulty": "advanced",
+      "explanation": "`concat` never writes to its receiver: it allocates a new array, copies the receiver's elements, then appends each argument — spreading arrays one level, appending anything else as-is — and returns that fresh array. That is what makes `roster.concat(newcomers.filter(...))` safe to hand back next to the original. The trap is not `push` itself but the belief that `const extended = roster` made a copy. It did not; both names point at one array, so `extended.push(...)` grows the roster you were given, and the second tuple element comes back already extended — the test sees `[[\"ada\", \"bob\", \"cy\"], [\"ada\", \"bob\", \"cy\"]]`. `filter` with `includes` supplies the \"skip anyone already present\" rule before `concat` ever runs; on large rosters swap `includes` for a `Set` lookup, but the copying discipline is the lesson here.",
+      "id": "extend-roster-intact",
+      "methods": [
+        "concat",
+        "filter"
+      ],
+      "order": 11,
+      "solution": "export function solve(roster: string[], newcomers: string[]): [string[], string[]] {\n  const extended = roster.concat(newcomers.filter((name) => !roster.includes(name)));\n  return [extended, roster];\n}\n",
+      "starterCode": "export function solve(roster: string[], newcomers: string[]): [string[], string[]] {\n  // Assigning an array to a new name does not copy it — build the extended list with concat.\n  return [roster, roster];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "ada",
+              "bob"
+            ],
+            [
+              "cy"
+            ]
+          ],
+          "expected": [
+            [
+              "ada",
+              "bob",
+              "cy"
+            ],
+            [
+              "ada",
+              "bob"
+            ]
+          ],
+          "name": "new names are appended, original untouched (trap)"
+        },
+        {
+          "args": [
+            [
+              "ada",
+              "bob"
+            ],
+            [
+              "bob",
+              "di"
+            ]
+          ],
+          "expected": [
+            [
+              "ada",
+              "bob",
+              "di"
+            ],
+            [
+              "ada",
+              "bob"
+            ]
+          ],
+          "name": "names already present are skipped (trap)"
+        },
+        {
+          "args": [
+            [
+              "ada"
+            ],
+            [
+              "ada"
+            ]
+          ],
+          "expected": [
+            [
+              "ada"
+            ],
+            [
+              "ada"
+            ]
+          ],
+          "name": "nothing new leaves both lists equal"
+        },
+        {
+          "args": [
+            [],
+            [
+              "x",
+              "y"
+            ]
+          ],
+          "expected": [
+            [
+              "x",
+              "y"
+            ],
+            []
+          ],
+          "name": "empty roster takes everyone (trap)"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b"
+            ],
+            []
+          ],
+          "expected": [
+            [
+              "a",
+              "b"
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "name": "no newcomers"
+        }
+      ],
+      "title": "Extend, do not push",
+      "trap": "export function solve(roster: string[], newcomers: string[]): [string[], string[]] {\n  const extended = roster;\n  extended.push(...newcomers.filter((name) => !roster.includes(name)));\n  return [extended, roster];\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Interleave two lists — first element of `a`, first of `b`, second of `a`, second of `b`, and so on. When one list runs out, the rest of the other follows in order.\n\nSignature: `solve(a: number[], b: number[]): number[]`\n\nExample: `solve([1, 2, 3], [10])` → `[1, 10, 2, 3]`. Drive the walk by the *longer* length and let `flatMap` emit one or two values per step.",
+      "difficulty": "expert",
+      "explanation": "Neither input can drive the walk on its own — whichever you iterate, the other one's tail is unreachable — so the walk is driven by a synthetic index list: `Array.from({ length: Math.max(a.length, b.length) }, ...)` yields one step per position in the longer list. Each step looks up both lists with `at(index)`, which returns `undefined` past the end instead of throwing, and `filter` with the `value is number` guard drops those gaps while keeping legitimate `0`s (a `filter(Boolean)` would eat them). `flatMap` then emits one or two values per step, which is exactly the elastic output `map` cannot express. The tempting `a.flatMap((x, i) => [x, b[i]])` fails in both directions: when `a` is longer it interleaves `undefined`s, and when `b` is longer it never sees `b`'s tail at all.",
+      "id": "interleave-uneven-lists",
+      "methods": [
+        "flatMap",
+        "Array.from",
+        "filter"
+      ],
+      "order": 12,
+      "solution": "export function solve(a: number[], b: number[]): number[] {\n  const steps = Math.max(a.length, b.length);\n  return Array.from({ length: steps }, (_, index) => [a.at(index), b.at(index)]).flatMap((pair) =>\n    pair.filter((value): value is number => value !== undefined),\n  );\n}\n",
+      "starterCode": "export function solve(a: number[], b: number[]): number[] {\n  // Walk max(a.length, b.length) steps; each step contributes whichever of a[i], b[i] exist.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              10,
+              20,
+              30
+            ]
+          ],
+          "expected": [
+            1,
+            10,
+            2,
+            20,
+            3,
+            30
+          ],
+          "name": "equal lengths alternate strictly"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              10
+            ]
+          ],
+          "expected": [
+            1,
+            10,
+            2,
+            3
+          ],
+          "name": "a longer than b (trap)"
+        },
+        {
+          "args": [
+            [
+              1
+            ],
+            [
+              10,
+              20,
+              30
+            ]
+          ],
+          "expected": [
+            1,
+            10,
+            20,
+            30
+          ],
+          "name": "b longer than a (trap)"
+        },
+        {
+          "args": [
+            [
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "expected": [
+            0,
+            0,
+            0
+          ],
+          "name": "zero is a real value, not a gap"
+        },
+        {
+          "args": [
+            [],
+            [
+              7,
+              8
+            ]
+          ],
+          "expected": [
+            7,
+            8
+          ],
+          "name": "empty a yields b"
+        },
+        {
+          "args": [
+            [],
+            []
+          ],
+          "expected": [],
+          "name": "both empty"
+        }
+      ],
+      "title": "Interleave two lists",
+      "trap": "export function solve(a: number[], b: number[]): number[] {\n  return a.flatMap((value, index) => [value, b[index]]);\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Return the cartesian product of `lists`: every combination that takes one element from each list, in order — the first list varies slowest. `solve([[1, 2], [\"a\", \"b\"]])` → `[[1, \"a\"], [1, \"b\"], [2, \"a\"], [2, \"b\"]]`.\n\nSignature: `solve(lists: (number | string)[][]): (number | string)[][]`\n\nNo lists at all yields `[[]]` (one empty combination); any empty list yields `[]`. Fold the lists, extending every combination so far with `flatMap`.",
+      "difficulty": "expert",
+      "explanation": "The product grows one list at a time, and `reduce` is the loop that carries the partial combinations forward. For each incoming list, `flatMap` visits every combination built so far and `map` extends it by every item of the new list; because `flatMap` splices those extensions in, the accumulator stays a flat list of combinations rather than nesting one level deeper per step. The seed is the whole subtlety: it must be `[[]]` — one combination containing nothing — because that is the identity of \"extend every combination\". Seeding with `[]` looks harmless and is fatal: there is nothing to extend, so every step maps over nothing and the product of any input is `[]`. The identity also explains the edge cases for free: no lists returns the seed itself, and any empty list produces zero extensions, collapsing everything after it.",
+      "id": "cartesian-product",
+      "methods": [
+        "reduce",
+        "flatMap",
+        "map"
+      ],
+      "order": 13,
+      "solution": "type Item = number | string;\n\nexport function solve(lists: Item[][]): Item[][] {\n  return lists.reduce<Item[][]>(\n    (combos, list) => combos.flatMap((combo) => list.map((item) => [...combo, item])),\n    [[]],\n  );\n}\n",
+      "starterCode": "type Item = number | string;\n\nexport function solve(lists: Item[][]): Item[][] {\n  // Fold over lists: each step extends every combination so far by every item — mind the seed.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                "a",
+                "b"
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              "a"
+            ],
+            [
+              1,
+              "b"
+            ],
+            [
+              2,
+              "a"
+            ],
+            [
+              2,
+              "b"
+            ]
+          ],
+          "name": "two lists (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                "x"
+              ],
+              [
+                7,
+                8
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              "x",
+              7
+            ],
+            [
+              1,
+              "x",
+              8
+            ],
+            [
+              2,
+              "x",
+              7
+            ],
+            [
+              2,
+              "x",
+              8
+            ]
+          ],
+          "name": "three lists, first varies slowest"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2,
+                3
+              ]
+            ]
+          ],
+          "expected": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ]
+          ],
+          "name": "a single list wraps each element"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              []
+            ]
+          ],
+          "expected": [],
+          "name": "an empty list empties the product"
+        },
+        {
+          "args": [
+            [
+              [],
+              [
+                1
+              ]
+            ]
+          ],
+          "expected": [],
+          "name": "an empty list first also empties it"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [
+            []
+          ],
+          "name": "no lists yields one empty combination (trap)"
+        }
+      ],
+      "title": "Cartesian product",
+      "trap": "type Item = number | string;\n\nexport function solve(lists: Item[][]): Item[][] {\n  return lists.reduce<Item[][]>(\n    (combos, list) => combos.flatMap((combo) => list.map((item) => [...combo, item])),\n    [],\n  );\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Return every subset of `xs` (the power set), built so that each element either skips or joins every subset seen so far. For `[1, 2]` the order is `[[], [1], [2], [1, 2]]`: the subsets without the new element come first, then the same subsets with it appended.\n\nSignature: `solve(xs: number[]): number[][]`\n\nFold over `xs`, and use `concat` to glue the \"without\" half to the \"with\" half — without mutating either.",
+      "difficulty": "expert",
+      "explanation": "Each element doubles the collection: every subset built so far either stays as it is or gains the new element, and the two halves are joined with `concat`. Because `concat` spreads an array argument one level, `subsets.concat(subsets.map(...))` appends each new subset as its own element rather than nesting the whole batch — the one-level rule working for you. `reduce` carries the collection through, and the seed `[[]]` is the empty set's single subset, which is also why `solve([])` is `[[]]` and not `[]`. The \"with\" half must be built from *copies*: `[...subset, x]` allocates a fresh array per subset. Writing `subset.push(x); return subset` instead mutates the very arrays that make up the \"without\" half, so both halves end up sharing one object and every subset silently becomes the full set. Immutability here is not style — it is the difference between a power set and eight references to the same array.",
+      "id": "power-set-via-concat",
+      "methods": [
+        "reduce",
+        "concat",
+        "map"
+      ],
+      "order": 14,
+      "solution": "export function solve(xs: number[]): number[][] {\n  return xs.reduce<number[][]>((subsets, x) => subsets.concat(subsets.map((subset) => [...subset, x])), [[]]);\n}\n",
+      "starterCode": "export function solve(xs: number[]): number[][] {\n  // Start from [[]]; for each x, concat the subsets so far with a COPY of each one plus x.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            [],
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "name": "two elements (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            [],
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              3
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "name": "three elements, without-then-with ordering"
+        },
+        {
+          "args": [
+            [
+              5
+            ]
+          ],
+          "expected": [
+            [],
+            [
+              5
+            ]
+          ],
+          "name": "single element (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              1
+            ]
+          ],
+          "expected": [
+            [],
+            [
+              1
+            ],
+            [
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "duplicates are treated positionally"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [
+            []
+          ],
+          "name": "empty set has one subset"
+        }
+      ],
+      "title": "Power set, without and with",
+      "trap": "export function solve(xs: number[]): number[][] {\n  return xs.reduce<number[][]>(\n    (subsets, x) =>\n      subsets.concat(\n        subsets.map((subset) => {\n          subset.push(x);\n          return subset;\n        }),\n      ),\n    [[]],\n  );\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Flatten a tree into slash-separated paths in pre-order: each node's own path comes first, followed by the paths of its descendants, depth-first. `solve([{ children: [{ children: [], name: \"b\" }], name: \"a\" }, { children: [], name: \"c\" }])` → `[\"a\", \"a/b\", \"c\"]`.\n\nSignature: `solve(nodes: TreeNode[]): string[]` where `interface TreeNode { children: TreeNode[]; name: string }`\n\nA recursive `flatMap` — each node contributes itself plus its prefixed subtree.",
+      "difficulty": "expert",
+      "explanation": "A tree has no fixed depth, so no counted `flat(n)` can flatten it, and `flat(Infinity)` would destroy the node objects rather than read them. Recursion supplies the depth: `solve(node.children)` returns the subtree's paths, `map` prefixes each with the parent's name, and `flatMap` splices every node's contribution — its own name first, then the prefixed subtree — into one list. Order falls out of evaluation order: because the node's name is placed before the spread of its descendants, and siblings are visited left to right, the result is exactly a pre-order depth-first traversal, with `\"c\"` arriving only after all of `\"a\"`'s descendants. Leaves recurse into an empty `children` array, which `flatMap` turns into no contribution at all, so the recursion bottoms out without a special case. The same shape flattens comment threads, menus, and file systems.",
+      "id": "tree-to-paths",
+      "methods": [
+        "flatMap",
+        "map"
+      ],
+      "order": 15,
+      "solution": "interface TreeNode {\n  children: TreeNode[];\n  name: string;\n}\n\nexport function solve(nodes: TreeNode[]): string[] {\n  return nodes.flatMap((node) => [node.name, ...solve(node.children).map((path) => `${node.name}/${path}`)]);\n}\n",
+      "starterCode": "interface TreeNode {\n  children: TreeNode[];\n  name: string;\n}\n\nexport function solve(nodes: TreeNode[]): string[] {\n  // Each node contributes [its name, ...its children's paths prefixed with \"name/\"] — recurse for the children.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "children": [],
+                        "name": "c"
+                      }
+                    ],
+                    "name": "b"
+                  }
+                ],
+                "name": "a"
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "a/b",
+            "a/b/c"
+          ],
+          "name": "a nested chain"
+        },
+        {
+          "args": [
+            [
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "name": "b"
+                  }
+                ],
+                "name": "a"
+              },
+              {
+                "children": [],
+                "name": "c"
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "a/b",
+            "c"
+          ],
+          "name": "siblings come after descendants (pre-order)"
+        },
+        {
+          "args": [
+            [
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "name": "x"
+                  },
+                  {
+                    "children": [],
+                    "name": "y"
+                  }
+                ],
+                "name": "r"
+              }
+            ]
+          ],
+          "expected": [
+            "r",
+            "r/x",
+            "r/y"
+          ],
+          "name": "a wide node lists its children in order"
+        },
+        {
+          "args": [
+            [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "children": [],
+                        "name": "d"
+                      }
+                    ],
+                    "name": "b"
+                  },
+                  {
+                    "children": [],
+                    "name": "c"
+                  }
+                ],
+                "name": "a"
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "a/b",
+            "a/b/d",
+            "a/c"
+          ],
+          "name": "mixed depths keep depth-first order"
+        },
+        {
+          "args": [
+            [
+              {
+                "children": [],
+                "name": "a"
+              },
+              {
+                "children": [],
+                "name": "b"
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "b"
+          ],
+          "name": "leaves only"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty forest"
+        }
+      ],
+      "title": "Flatten a tree into paths"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Invert an index. `index` maps each tag to the ids of the posts carrying it; return the reverse map from post id to its tags, tags in the order the input listed them. `solve({ js: [1, 2], ts: [2] })` → `{ 1: [\"js\"], 2: [\"js\", \"ts\"] }`.\n\nSignature: `solve(index: Record<string, number[]>): Record<number, string[]>`\n\nTrap: a post with two tags produces two `[id, tag]` pairs, and `Object.fromEntries` keeps only one of them.",
+      "difficulty": "expert",
+      "explanation": "Inverting a one-to-many map is a three-step composition. `Object.entries` turns the record into `[tag, ids]` pairs; `flatMap` with an inner `map` explodes each pair into one `[id, tag]` pair per post — the flattening is essential, because a plain `map` would leave one nested list per tag. The last step is where the trap lives. `Object.fromEntries` is the reflex for \"pairs back into an object\", but it assigns keys in order and *overwrites* on repeats, so a post tagged both `js` and `ts` keeps only whichever tag came last. The reverse map is itself one-to-many, so the pairs must be *grouped*, not assigned: `reduce` appends each tag to the list already collected under its id, creating the list on first sight. The pairs arrive in input order, so the grouped tags preserve it. (`Object.groupBy` is the ES2024 shortcut for that final step.)",
+      "id": "invert-tag-index",
+      "methods": [
+        "flatMap",
+        "map",
+        "reduce",
+        "Object.entries"
+      ],
+      "order": 16,
+      "solution": "export function solve(index: Record<string, number[]>): Record<number, string[]> {\n  return Object.entries(index)\n    .flatMap(([tag, ids]) => ids.map((id): [number, string] => [id, tag]))\n    .reduce<Record<number, string[]>>((inverted, [id, tag]) => {\n      inverted[id] = [...(inverted[id] ?? []), tag];\n      return inverted;\n    }, {});\n}\n",
+      "starterCode": "export function solve(index: Record<string, number[]>): Record<number, string[]> {\n  // Explode the entries into [id, tag] pairs with flatMap, then GROUP the pairs by id — do not fromEntries them.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            {
+              "js": [
+                1,
+                2
+              ],
+              "ts": [
+                2
+              ]
+            }
+          ],
+          "expected": {
+            "1": [
+              "js"
+            ],
+            "2": [
+              "js",
+              "ts"
+            ]
+          },
+          "name": "a post with two tags keeps both (trap)"
+        },
+        {
+          "args": [
+            {
+              "x": [
+                9
+              ],
+              "y": [
+                9
+              ],
+              "z": [
+                9
+              ]
+            }
+          ],
+          "expected": {
+            "9": [
+              "x",
+              "y",
+              "z"
+            ]
+          },
+          "name": "three tags on one post (trap)"
+        },
+        {
+          "args": [
+            {
+              "zeta": [
+                1
+              ],
+              "alpha": [
+                1
+              ]
+            }
+          ],
+          "expected": {
+            "1": [
+              "zeta",
+              "alpha"
+            ]
+          },
+          "name": "tag order follows input order, not alphabetical"
+        },
+        {
+          "args": [
+            {
+              "a": [
+                1
+              ],
+              "b": [
+                2
+              ]
+            }
+          ],
+          "expected": {
+            "1": [
+              "a"
+            ],
+            "2": [
+              "b"
+            ]
+          },
+          "name": "tags with no shared posts"
+        },
+        {
+          "args": [
+            {
+              "a": [],
+              "b": [
+                3
+              ]
+            }
+          ],
+          "expected": {
+            "3": [
+              "b"
+            ]
+          },
+          "name": "a tag with no posts contributes nothing"
+        },
+        {
+          "args": [
+            {}
+          ],
+          "expected": {},
+          "name": "empty index"
+        }
+      ],
+      "title": "Invert a tag index",
+      "trap": "export function solve(index: Record<string, number[]>): Record<number, string[]> {\n  return Object.fromEntries(Object.entries(index).flatMap(([tag, ids]) => ids.map((id) => [id, [tag]])));\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Each entry carries its tags as one comma-separated string typed by humans: stray spaces, mixed case, and empty slots like `\"a,,b\"`. Return the distinct tags across all entries — trimmed, lower-cased, empties dropped — in first-seen order.\n\nSignature: `solve(entries: { tags: string }[]): string[]`\n\nTrap: normalise *before* you deduplicate, or `\"JS\"` and `\" js\"` survive as two tags.",
+      "difficulty": "expert",
+      "explanation": "Five small transformations, and the order of two of them decides correctness. `flatMap` with `split(\",\")` turns every entry's tag string into individual tags and merges them into one stream in one pass — the map-then-flatten that would otherwise need an intermediate array of arrays. `map` normalises each tag with `trim().toLowerCase()`, `filter` discards the empties that `\"a,,b\"` and trailing commas produce, and spreading a `Set` deduplicates while preserving first-seen order. The trap is tempting because it uses every one of those steps too: deduplicate first, then normalise. But a `Set` compares strings exactly, so `\"JS\"`, `\" js\"` and `\"js\"` are three members going in, and after normalisation they are three copies of `\"js\"` coming out. Any pipeline that dedupes must dedupe the *canonical* form, which means normalisation goes first. The same rule governs trimming emails, slugifying titles, and case-folding usernames.",
+      "id": "normalise-tag-strings",
+      "methods": [
+        "flatMap",
+        "split",
+        "map",
+        "filter"
+      ],
+      "order": 17,
+      "solution": "interface Entry {\n  tags: string;\n}\n\nexport function solve(entries: Entry[]): string[] {\n  const normalised = entries\n    .flatMap((entry) => entry.tags.split(','))\n    .map((tag) => tag.trim().toLowerCase())\n    .filter((tag) => tag !== '');\n  return [...new Set(normalised)];\n}\n",
+      "starterCode": "interface Entry {\n  tags: string;\n}\n\nexport function solve(entries: Entry[]): string[] {\n  // flatMap the split tags into one stream, normalise each, drop empties, THEN dedupe with a Set.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "tags": "JS, ts"
+              },
+              {
+                "tags": "js"
+              }
+            ]
+          ],
+          "expected": [
+            "js",
+            "ts"
+          ],
+          "name": "case and spacing variants collapse to one tag (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "tags": "a, a"
+              }
+            ]
+          ],
+          "expected": [
+            "a"
+          ],
+          "name": "a repeated tag with a leading space (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "tags": "b,a"
+              },
+              {
+                "tags": "a,c"
+              }
+            ]
+          ],
+          "expected": [
+            "b",
+            "a",
+            "c"
+          ],
+          "name": "first-seen order is kept"
+        },
+        {
+          "args": [
+            [
+              {
+                "tags": "a,,b,"
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "b"
+          ],
+          "name": "empty slots are dropped"
+        },
+        {
+          "args": [
+            [
+              {
+                "tags": "a, ,b"
+              }
+            ]
+          ],
+          "expected": [
+            "a",
+            "b"
+          ],
+          "name": "whitespace-only slot is dropped"
+        },
+        {
+          "args": [
+            [
+              {
+                "tags": ""
+              }
+            ]
+          ],
+          "expected": [],
+          "name": "empty tag string contributes nothing"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "no entries"
+        }
+      ],
+      "title": "Normalise, then dedupe",
+      "trap": "interface Entry {\n  tags: string;\n}\n\nexport function solve(entries: Entry[]): string[] {\n  const unique = [...new Set(entries.flatMap((entry) => entry.tags.split(',')))];\n  return unique.map((tag) => tag.trim().toLowerCase()).filter((tag) => tag !== '');\n}\n"
+    },
+    {
+      "categoryId": "flattening-and-composing",
+      "description": "Produce one row per order, joined to its customer as `{ customer: name, total }`: rows grouped by customer in `customers` order and, within a customer, in `orders` order. Customers with no orders produce no rows; orders whose `customerId` matches nobody are dropped.\n\nSignature: `solve(customers: { id: number; name: string }[], orders: { customerId: number; total: number }[]): { customer: string; total: number }[]`\n\nTrap: a customer can have many orders — `find` returns one.",
+      "difficulty": "expert",
+      "explanation": "A one-to-many join is `flatMap` over the \"one\" side: each customer contributes as many rows as they have orders — possibly none — and `flatMap` splices those variable-length contributions into one flat result, which is precisely what `map` cannot do without leaving a nested array per customer. Inside, `filter` selects the customer's orders and `map` shapes each into a row; nesting them keeps the output grouped by customer and ordered by the input lists. The trap is `find`: it reads naturally (\"find the customer's order\") and returns the *first* match, silently collapsing a customer with three orders to one row — no error, just missing revenue. Unmatched orders never surface because no customer's `filter` claims them, and unmatched customers contribute `[]`. This nested scan is O(customers × orders); for large tables, group the orders once with `Map.groupBy(orders, (o) => o.customerId)` and look each customer up in O(1).",
+      "id": "join-orders-to-customers",
+      "methods": [
+        "flatMap",
+        "filter",
+        "map"
+      ],
+      "order": 18,
+      "solution": "interface Customer {\n  id: number;\n  name: string;\n}\n\ninterface Order {\n  customerId: number;\n  total: number;\n}\n\ninterface Row {\n  customer: string;\n  total: number;\n}\n\nexport function solve(customers: Customer[], orders: Order[]): Row[] {\n  return customers.flatMap((customer) =>\n    orders\n      .filter((order) => order.customerId === customer.id)\n      .map((order) => ({ customer: customer.name, total: order.total })),\n  );\n}\n",
+      "starterCode": "interface Customer {\n  id: number;\n  name: string;\n}\n\ninterface Order {\n  customerId: number;\n  total: number;\n}\n\ninterface Row {\n  customer: string;\n  total: number;\n}\n\nexport function solve(customers: Customer[], orders: Order[]): Row[] {\n  // flatMap over customers; inside, filter that customer's orders and map each to a row.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "Ada"
+              },
+              {
+                "id": 2,
+                "name": "Bo"
+              }
+            ],
+            [
+              {
+                "customerId": 1,
+                "total": 10
+              },
+              {
+                "customerId": 2,
+                "total": 5
+              },
+              {
+                "customerId": 1,
+                "total": 7
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "customer": "Ada",
+              "total": 10
+            },
+            {
+              "customer": "Ada",
+              "total": 7
+            },
+            {
+              "customer": "Bo",
+              "total": 5
+            }
+          ],
+          "name": "a customer with two orders yields two rows (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "Ada"
+              },
+              {
+                "id": 2,
+                "name": "Bo"
+              }
+            ],
+            [
+              {
+                "customerId": 2,
+                "total": 3
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "customer": "Bo",
+              "total": 3
+            }
+          ],
+          "name": "customers without orders produce no rows"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "Ada"
+              }
+            ],
+            [
+              {
+                "customerId": 9,
+                "total": 1
+              },
+              {
+                "customerId": 1,
+                "total": 2
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "customer": "Ada",
+              "total": 2
+            }
+          ],
+          "name": "orders for unknown customers are dropped"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 2,
+                "name": "Bo"
+              },
+              {
+                "id": 1,
+                "name": "Ada"
+              }
+            ],
+            [
+              {
+                "customerId": 1,
+                "total": 1
+              },
+              {
+                "customerId": 2,
+                "total": 2
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "customer": "Bo",
+              "total": 2
+            },
+            {
+              "customer": "Ada",
+              "total": 1
+            }
+          ],
+          "name": "rows follow customer order, not order order"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "Ada"
+              }
+            ],
+            []
+          ],
+          "expected": [],
+          "name": "no orders at all"
+        },
+        {
+          "args": [
+            [],
+            [
+              {
+                "customerId": 1,
+                "total": 1
+              }
+            ]
+          ],
+          "expected": [],
+          "name": "no customers"
+        }
+      ],
+      "title": "One-to-many join",
+      "trap": "interface Customer {\n  id: number;\n  name: string;\n}\n\ninterface Order {\n  customerId: number;\n  total: number;\n}\n\ninterface Row {\n  customer: string;\n  total: number;\n}\n\nexport function solve(customers: Customer[], orders: Order[]): Row[] {\n  return customers.flatMap((customer) => {\n    const order = orders.find((candidate) => candidate.customerId === customer.id);\n    return order === undefined ? [] : [{ customer: customer.name, total: order.total }];\n  });\n}\n"
     },
     {
       "categoryId": "immutable-updates",
