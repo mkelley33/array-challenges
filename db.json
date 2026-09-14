@@ -1304,7 +1304,7 @@
             ]
           ],
           "expected": false,
-          "name": "ragged rows fail"
+          "name": "ragged rows fail (trap)"
         },
         {
           "args": [
@@ -1347,8 +1347,8 @@
     {
       "categoryId": "iteration-basics",
       "description": "Return the index at which the running total of `amounts` first becomes strictly greater than `limit`, or `-1` if it never does.\n\nSignature: `solve(amounts: number[], limit: number): number`\n\nConstraint: iterate with `some` so the walk stops at the crossing point — no `for` loop, no `findIndex` over precomputed sums.",
-      "difficulty": "expert",
-      "explanation": "This is the “`some` as `break`” pattern. `some` stops iterating the moment its callback returns `true`, so a callback that updates the running total, records the index, and returns `true` at the crossing point behaves exactly like a loop with `break` — elements after the crossing are never visited, and the boolean `some` itself returns gets discarded because the answer was smuggled out through the captured `breakIndex` variable. `forEach` cannot do this: it offers no protocol to stop early (short of throwing an exception), and returning from its callback merely skips to the next element. Note the strictness details the tests pin down: hitting the limit exactly is not “exceeds”, and a running total can dip on negative amounts before finally crossing.",
+      "difficulty": "advanced",
+      "explanation": "This is the “`some` as `break`” pattern. `some` stops iterating the moment its callback returns `true`, so a callback that updates the running total, records the index, and returns `true` at the crossing point behaves exactly like a loop with `break`: elements after the crossing are never visited, and the boolean `some` returns is discarded because the answer left through the captured `breakIndex`. `forEach` is the trap. It has no protocol for stopping early — returning from its callback only skips to the next element — so the obvious `forEach` version keeps walking, and every later moment the total sits above the limit overwrites the index with a *later* one: `[40, 50, 30]` against `80` reports `2` instead of `1`. Two strictness details the tests pin down: reaching the limit exactly is not exceeding it, and negative amounts can pull the total back down before it finally crosses.",
       "id": "running-total-crossing",
       "methods": [
         "some"
@@ -1367,7 +1367,7 @@
             80
           ],
           "expected": 1,
-          "name": "crosses mid-array"
+          "name": "crosses mid-array (trap)"
         },
         {
           "args": [
@@ -1405,6 +1405,19 @@
         },
         {
           "args": [
+            [
+              60,
+              30,
+              -50,
+              60
+            ],
+            80
+          ],
+          "expected": 1,
+          "name": "a later crossing must not overwrite the first (trap)"
+        },
+        {
+          "args": [
             [],
             5
           ],
@@ -1412,7 +1425,1423 @@
           "name": "empty list never crosses"
         }
       ],
-      "title": "Where the total first exceeds"
+      "title": "Where the total first exceeds",
+      "trap": "export function solve(amounts: number[], limit: number): number {\n  let total = 0;\n  let crossing = -1;\n  amounts.forEach((amount, index) => {\n    total += amount;\n    if (total > limit) {\n      crossing = index;\n    }\n  });\n  return crossing;\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Seats are booked by position. Build a seating array with `new Array(length)`, assign each `[index, name]` pair into it, and return the indices that were never assigned — the holes — in ascending order. A seat explicitly assigned `undefined` is taken, not a hole.\n\nSignature: `solve(length: number, booked: [number, string | undefined][]): number[]`\n\nUse `keys()` to walk every index the array *has*, holes included — then decide which ones are holes.",
+      "difficulty": "advanced",
+      "explanation": "`new Array(length)` creates a *sparse* array: `length` slots and no elements. `forEach`, `map`, `filter`, and `Object.keys` all iterate own properties, so they never visit a hole — the tempting `forEach` version with `seat === undefined` reports nothing at all for seats `0`, `2`, and `4` booked out of five, because the holes at `1` and `3` are never handed to the callback. `keys()` is different: it iterates by `length`, yielding `0` through `length - 1` whether or not each slot exists. Spreading it gives every index, and the `in` operator (`index in seats`) tells a true hole apart from a slot holding an explicit `undefined`, which the `=== undefined` check cannot. The `forEach` that assigns the bookings is safe because the pairs array is dense; it is the sparse *result* that needs the index-driven walk.",
+      "id": "hole-indices-via-keys",
+      "methods": [
+        "keys",
+        "filter",
+        "forEach"
+      ],
+      "order": 7,
+      "solution": "export function solve(length: number, booked: [number, string | undefined][]): number[] {\n  const seats: (string | undefined)[] = new Array<string | undefined>(length);\n  booked.forEach(([index, name]) => {\n    seats[index] = name;\n  });\n  return [...seats.keys()].filter((index) => !(index in seats));\n}\n",
+      "starterCode": "export function solve(length: number, booked: [number, string | undefined][]): number[] {\n  // new Array(length) has holes — forEach never sees them; keys() walks every index by length.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            5,
+            [
+              [
+                0,
+                "Ada"
+              ],
+              [
+                2,
+                "Bob"
+              ],
+              [
+                4,
+                "Cy"
+              ]
+            ]
+          ],
+          "expected": [
+            1,
+            3
+          ],
+          "name": "holes between booked seats (trap)"
+        },
+        {
+          "args": [
+            3,
+            [
+              [
+                0,
+                "Ada"
+              ],
+              [
+                1,
+                {
+                  "$t": "undef"
+                }
+              ]
+            ]
+          ],
+          "expected": [
+            2
+          ],
+          "name": "explicit undefined is booked, not a hole (trap)"
+        },
+        {
+          "args": [
+            3,
+            [
+              [
+                0,
+                "Ada"
+              ],
+              [
+                1,
+                "Bob"
+              ],
+              [
+                2,
+                "Cy"
+              ]
+            ]
+          ],
+          "expected": [],
+          "name": "fully booked has no holes"
+        },
+        {
+          "args": [
+            4,
+            []
+          ],
+          "expected": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "name": "nothing booked leaves every seat a hole"
+        },
+        {
+          "args": [
+            3,
+            [
+              [
+                0,
+                "Ada"
+              ]
+            ]
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "trailing holes"
+        },
+        {
+          "args": [
+            0,
+            []
+          ],
+          "expected": [],
+          "name": "zero seats"
+        }
+      ],
+      "title": "Find the holes",
+      "trap": "export function solve(length: number, booked: [number, string | undefined][]): number[] {\n  const seats: (string | undefined)[] = new Array<string | undefined>(length);\n  booked.forEach(([index, name]) => {\n    seats[index] = name;\n  });\n  const holes: number[] = [];\n  seats.forEach((seat, index) => {\n    if (seat === undefined) {\n      holes.push(index);\n    }\n  });\n  return holes;\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Sort parcels into the bins listed in `bins`: return a record with one array of parcel ids per bin, in arrival order. Every listed bin appears even when empty; a parcel whose `bin` is not listed goes into `\"other\"`, which always appears too.\n\nSignature: `solve(parcels: { bin: string; id: number }[], bins: string[]): Record<string, number[]>`\n\nBuild the arrays with `push` inside a `forEach` — and mind what `push` returns.",
+      "difficulty": "advanced",
+      "explanation": "`push` appends in place and returns the array’s *new length*, not the array. `forEach` is the safe partner because it throws every callback return value away, so `(sorted[bin] ?? sorted.other).push(id)` inside a `forEach` does exactly one thing: mutate the right bin. The trap moves the same expression into a `reduce` with an arrow’s implicit return — `(sorted, { bin, id }) => (sorted[bin] ?? sorted.other).push(id)` — and the accumulator silently becomes the number `1` after the first parcel. The second parcel then reads `1[bin]`, gets `undefined`, and throws `TypeError: ... .push is not a function`; with a single parcel nothing throws and the function returns `1`. The bins are created up front from the `bins` list so empty ones survive, and the `??` fallback routes unknown bins to `\"other\"`. When you need the array back from a fold, return the accumulator explicitly — `push` will not do it for you.",
+      "id": "sort-into-bins",
+      "methods": [
+        "push",
+        "forEach"
+      ],
+      "order": 8,
+      "solution": "interface Parcel {\n  bin: string;\n  id: number;\n}\n\nexport function solve(parcels: Parcel[], bins: string[]): Record<string, number[]> {\n  const sorted: Record<string, number[]> = { other: [] };\n  bins.forEach((bin) => {\n    sorted[bin] = [];\n  });\n  parcels.forEach(({ bin, id }) => {\n    (sorted[bin] ?? sorted.other).push(id);\n  });\n  return sorted;\n}\n",
+      "starterCode": "interface Parcel {\n  bin: string;\n  id: number;\n}\n\nexport function solve(parcels: Parcel[], bins: string[]): Record<string, number[]> {\n  // Create every bin (plus other) first, then forEach the parcels and push each id into its bin.\n  return { other: [] };\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "bin": "a",
+                "id": 1
+              },
+              {
+                "bin": "b",
+                "id": 2
+              },
+              {
+                "bin": "a",
+                "id": 3
+              }
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": {
+            "a": [
+              1,
+              3
+            ],
+            "b": [
+              2
+            ],
+            "other": []
+          },
+          "name": "parcels land in their bins in arrival order (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "bin": "zz",
+                "id": 7
+              },
+              {
+                "bin": "a",
+                "id": 8
+              }
+            ],
+            [
+              "a"
+            ]
+          ],
+          "expected": {
+            "a": [
+              8
+            ],
+            "other": [
+              7
+            ]
+          },
+          "name": "unlisted bin goes to other (trap)"
+        },
+        {
+          "args": [
+            [],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": {
+            "a": [],
+            "b": [],
+            "other": []
+          },
+          "name": "empty listed bins still appear"
+        },
+        {
+          "args": [
+            [
+              {
+                "bin": "a",
+                "id": 1
+              }
+            ],
+            [
+              "a"
+            ]
+          ],
+          "expected": {
+            "a": [
+              1
+            ],
+            "other": []
+          },
+          "name": "single parcel"
+        },
+        {
+          "args": [
+            [
+              {
+                "bin": "x",
+                "id": 1
+              },
+              {
+                "bin": "y",
+                "id": 2
+              }
+            ],
+            []
+          ],
+          "expected": {
+            "other": [
+              1,
+              2
+            ]
+          },
+          "name": "no bins listed sends everything to other"
+        }
+      ],
+      "title": "push returns a length",
+      "trap": "interface Parcel {\n  bin: string;\n  id: number;\n}\n\nexport function solve(parcels: Parcel[], bins: string[]): Record<string, number[]> {\n  const empty: Record<string, number[]> = { other: [] };\n  bins.forEach((bin) => {\n    empty[bin] = [];\n  });\n  return parcels.reduce((sorted, { bin, id }) => (sorted[bin] ?? sorted.other).push(id), empty);\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Return the ids of orders whose parcels have *all* been delivered, in input order. An order with no parcels at all is not delivered — there is nothing to hand over yet.\n\nSignature: `solve(orders: { id: number; parcels: { delivered: boolean }[] }[]): number[]`\n\nUse `every` for the per-order check — and think about what it says when `parcels` is empty.",
+      "difficulty": "advanced",
+      "explanation": "`every` is the universal quantifier, and universal statements about nothing are true: `[].every(p)` returns `true` for any predicate, because no element exists to be a counterexample. That vacuous truth is correct logic and the wrong business answer here — an order with zero parcels would be reported as fully delivered. Neither `every` nor `filter` will add the “at least one” condition for you; it has to be stated, and `parcels.length > 0 && parcels.every(...)` states it in the order that also short-circuits cheapest. `filter` keeps the qualifying orders in input order and `map` projects the ids. Whenever a spec says “all of them”, ask whether it also silently means “and there are some” — `every` alone answers only the first half, and its dual `some` returns `false` on `[]` for the same reason.",
+      "id": "fully-delivered-orders",
+      "methods": [
+        "every",
+        "filter",
+        "map"
+      ],
+      "order": 9,
+      "solution": "interface Parcel {\n  delivered: boolean;\n}\n\ninterface Order {\n  id: number;\n  parcels: Parcel[];\n}\n\nexport function solve(orders: Order[]): number[] {\n  return orders\n    .filter(({ parcels }) => parcels.length > 0 && parcels.every((parcel) => parcel.delivered))\n    .map(({ id }) => id);\n}\n",
+      "starterCode": "interface Parcel {\n  delivered: boolean;\n}\n\ninterface Order {\n  id: number;\n  parcels: Parcel[];\n}\n\nexport function solve(orders: Order[]): number[] {\n  // filter the orders with every() — but every() on [] is true, so say 'at least one' yourself.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "parcels": []
+              },
+              {
+                "id": 2,
+                "parcels": [
+                  {
+                    "delivered": true
+                  }
+                ]
+              }
+            ]
+          ],
+          "expected": [
+            2
+          ],
+          "name": "order with no parcels is not delivered (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "parcels": [
+                  {
+                    "delivered": true
+                  },
+                  {
+                    "delivered": true
+                  }
+                ]
+              }
+            ]
+          ],
+          "expected": [
+            1
+          ],
+          "name": "all parcels delivered"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "parcels": [
+                  {
+                    "delivered": true
+                  },
+                  {
+                    "delivered": false
+                  }
+                ]
+              }
+            ]
+          ],
+          "expected": [],
+          "name": "one undelivered parcel blocks the order"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 5,
+                "parcels": [
+                  {
+                    "delivered": true
+                  }
+                ]
+              },
+              {
+                "id": 3,
+                "parcels": [
+                  {
+                    "delivered": false
+                  }
+                ]
+              },
+              {
+                "id": 9,
+                "parcels": [
+                  {
+                    "delivered": true
+                  }
+                ]
+              }
+            ]
+          ],
+          "expected": [
+            5,
+            9
+          ],
+          "name": "mixed orders keep input order"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "no orders"
+        }
+      ],
+      "title": "All delivered — of none?",
+      "trap": "interface Parcel {\n  delivered: boolean;\n}\n\ninterface Order {\n  id: number;\n  parcels: Parcel[];\n}\n\nexport function solve(orders: Order[]): number[] {\n  return orders.filter(({ parcels }) => parcels.every((parcel) => parcel.delivered)).map(({ id }) => id);\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Return the positions in `readings` whose value is strictly above `threshold`, as indices into the *original* array, ascending.\n\nSignature: `solve(readings: number[], threshold: number): number[]`\n\nUse `entries()` so each value carries its own index through the pipeline.",
+      "difficulty": "advanced",
+      "explanation": "`filter` returns a new, dense array, and every index-taking method after it — `map`’s second argument included — counts from zero in that *new* array. The trap reads correctly and reports `[0, 1]` for `[1, 9, 2, 8]` above `5`: the survivors are numbered by where they landed, not where they came from. `entries()` fixes this by attaching the index to the value before anything is dropped: it yields `[index, value]` pairs, spread into an array so `filter` and `map` can run over them. The pairs pass through `filter` intact, so the index each one carries is the original position, and the final `map` just picks it out. Note the destructuring — `([, value])` skips the first tuple slot in the predicate, and `([index])` takes only the first in the projection. The rule generalises: capture the index *before* any method that changes length.",
+      "id": "indices-above-threshold",
+      "methods": [
+        "entries",
+        "filter",
+        "map"
+      ],
+      "order": 10,
+      "solution": "export function solve(readings: number[], threshold: number): number[] {\n  return [...readings.entries()].filter(([, value]) => value > threshold).map(([index]) => index);\n}\n",
+      "starterCode": "export function solve(readings: number[], threshold: number): number[] {\n  // Attach the index with entries() BEFORE filtering — filter renumbers from zero.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              9,
+              2,
+              8
+            ],
+            5
+          ],
+          "expected": [
+            1,
+            3
+          ],
+          "name": "indices refer to the original positions (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            5
+          ],
+          "expected": [],
+          "name": "nothing above threshold"
+        },
+        {
+          "args": [
+            [
+              6,
+              7
+            ],
+            5
+          ],
+          "expected": [
+            0,
+            1
+          ],
+          "name": "everything above threshold"
+        },
+        {
+          "args": [
+            [
+              5,
+              6
+            ],
+            5
+          ],
+          "expected": [
+            1
+          ],
+          "name": "equal to threshold is not above (trap)"
+        },
+        {
+          "args": [
+            [],
+            0
+          ],
+          "expected": [],
+          "name": "empty readings"
+        }
+      ],
+      "title": "Indices that survive a filter",
+      "trap": "export function solve(readings: number[], threshold: number): number[] {\n  return readings.filter((value) => value > threshold).map((_value, index) => index);\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Return `true` when `xs` is strictly increasing — each element larger than the one before it — and `false` otherwise. An empty list and a single element are both strictly increasing.\n\nSignature: `solve(xs: number[]): boolean`\n\nUse `every` with its index argument to compare neighbours.",
+      "difficulty": "advanced",
+      "explanation": "`every` hands the callback the index as its second argument, and that is enough to compare each element with a neighbour without a loop. The direction of the comparison matters. Looking *ahead* — `x < xs[index + 1]` — runs off the end of the array on the last element, where `xs[index + 1]` is `undefined`; `4 < undefined` is `false`, so the trap rejects every non-empty list, including `[4]`. Looking *back* — `xs[index - 1] < x` — has the same edge at index `0`, which is why the callback short-circuits with `index === 0 ||` before the lookup happens. `every` stops at the first `false`, so a dip early in a long list is caught without visiting the rest, and on `[]` it returns `true`, the vacuous answer the spec asks for. Strict `<` is what rejects the repeated `2`; a `<=` would make this “non-decreasing”.",
+      "id": "strictly-increasing",
+      "methods": [
+        "every"
+      ],
+      "order": 11,
+      "solution": "export function solve(xs: number[]): boolean {\n  return xs.every((x, index) => index === 0 || xs[index - 1] < x);\n}\n",
+      "starterCode": "export function solve(xs: number[]): boolean {\n  // Compare each x with a neighbour via the index — and mind which end runs off the array.\n  return false;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              5,
+              9
+            ]
+          ],
+          "expected": true,
+          "name": "strictly increasing list (trap)"
+        },
+        {
+          "args": [
+            [
+              4
+            ]
+          ],
+          "expected": true,
+          "name": "single element is trivially increasing (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              2,
+              3
+            ]
+          ],
+          "expected": false,
+          "name": "a repeated value is not strictly increasing"
+        },
+        {
+          "args": [
+            [
+              1,
+              3,
+              2
+            ]
+          ],
+          "expected": false,
+          "name": "a dip fails"
+        },
+        {
+          "args": [
+            [
+              -3,
+              -1,
+              0
+            ]
+          ],
+          "expected": true,
+          "name": "negative values"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": true,
+          "name": "empty list"
+        }
+      ],
+      "title": "Strictly increasing?",
+      "trap": "export function solve(xs: number[]): boolean {\n  return xs.every((x, index) => x < xs[index + 1]);\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Pair `names` with `scores` position by position into a `Map`, stopping as soon as either list runs out; a name that repeats keeps its later score.\n\nSignature: `solve(names: string[], scores: number[]): Map<string, number>`\n\nDrive it with two `values()` iterators advanced by `next()` — no index arithmetic.",
+      "difficulty": "expert",
+      "explanation": "`values()` returns an iterator — an object whose `next()` yields `{ done, value }` one element at a time and remembers where it is. Holding two of them and calling `next()` on both in the same loop turn is *lockstep*: each turn consumes exactly one element from each side, and the loop condition `!name.done && !score.done` ends the pairing the moment either side is exhausted, with no lengths compared and no index in sight. That is what the index-based trap gets wrong: `names.map((name, i) => [name, scores[i]])` visits every name, so when names outnumber scores the tail is paired with `undefined` and the Map grows an entry the spec says should not exist. `Map.set` with a repeated key overwrites, which gives the “later wins” rule for free. The same two-iterator skeleton, with the condition flipped to `||` and a fill value, becomes `zipLongest`.",
+      "id": "lockstep-into-map",
+      "methods": [
+        "values"
+      ],
+      "order": 12,
+      "solution": "export function solve(names: string[], scores: number[]): Map<string, number> {\n  const paired = new Map<string, number>();\n  const nameIterator = names.values();\n  const scoreIterator = scores.values();\n  let name = nameIterator.next();\n  let score = scoreIterator.next();\n  while (!name.done && !score.done) {\n    paired.set(name.value, score.value);\n    name = nameIterator.next();\n    score = scoreIterator.next();\n  }\n  return paired;\n}\n",
+      "starterCode": "export function solve(names: string[], scores: number[]): Map<string, number> {\n  // One values() iterator per list; call next() on both each turn and stop when either is done.\n  return new Map();\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "ada",
+              "bob"
+            ],
+            [
+              90,
+              80
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                "ada",
+                90
+              ],
+              [
+                "bob",
+                80
+              ]
+            ]
+          },
+          "name": "equal lengths pair up"
+        },
+        {
+          "args": [
+            [
+              "ada",
+              "bob",
+              "cy"
+            ],
+            [
+              90
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                "ada",
+                90
+              ]
+            ]
+          },
+          "name": "more names than scores stops at the shorter (trap)"
+        },
+        {
+          "args": [
+            [
+              "ada"
+            ],
+            [
+              90,
+              80,
+              70
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                "ada",
+                90
+              ]
+            ]
+          },
+          "name": "more scores than names"
+        },
+        {
+          "args": [
+            [
+              "ada",
+              "ada"
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": [
+              [
+                "ada",
+                2
+              ]
+            ]
+          },
+          "name": "a repeated name keeps the later score"
+        },
+        {
+          "args": [
+            [],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": {
+            "$t": "map",
+            "v": []
+          },
+          "name": "no names"
+        },
+        {
+          "args": [
+            [],
+            []
+          ],
+          "expected": {
+            "$t": "map",
+            "v": []
+          },
+          "name": "both empty"
+        }
+      ],
+      "title": "Lockstep with two iterators",
+      "trap": "export function solve(names: string[], scores: number[]): Map<string, number> {\n  return new Map(names.map((name, index) => [name, scores[index]]));\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Merge two ascending number lists into one ascending list in a single pass, without sorting. Duplicates are kept.\n\nSignature: `solve(left: number[], right: number[]): number[]`\n\nHold one `values()` iterator per side and `push` whichever head is smaller, advancing only that side.",
+      "difficulty": "expert",
+      "explanation": "This is the merge step of merge sort, and it is O(n) because each side is consumed *exactly once*. Two `values()` iterators hold the current head of each list; the loop compares the heads, `push`es the smaller one, and calls `next()` only on the side it took from — the other head stays put and is compared again next turn. When one iterator reports `done`, the remainder of the other side is already sorted and is drained straight in. The `<=` keeps duplicates from both sides. The trap concatenates and sorts: `[...left, ...right].sort()` throws away the ordering you were given (O(n log n) instead of O(n)) and, worse, calls `sort` with no comparator, so `10` lands before `2` as strings. Manual `next()` is what makes “advance only one side” expressible; `forEach` and `map` cannot pause one list while the other catches up.",
+      "id": "merge-sorted-with-iterators",
+      "methods": [
+        "values",
+        "push"
+      ],
+      "order": 13,
+      "solution": "export function solve(left: number[], right: number[]): number[] {\n  const merged: number[] = [];\n  const leftIterator = left.values();\n  const rightIterator = right.values();\n  let l = leftIterator.next();\n  let r = rightIterator.next();\n  while (!l.done && !r.done) {\n    if (l.value <= r.value) {\n      merged.push(l.value);\n      l = leftIterator.next();\n    } else {\n      merged.push(r.value);\n      r = rightIterator.next();\n    }\n  }\n  while (!l.done) {\n    merged.push(l.value);\n    l = leftIterator.next();\n  }\n  while (!r.done) {\n    merged.push(r.value);\n    r = rightIterator.next();\n  }\n  return merged;\n}\n",
+      "starterCode": "export function solve(left: number[], right: number[]): number[] {\n  // Compare the two heads, push the smaller, and call next() only on the side you took from.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              10
+            ],
+            [
+              2,
+              9
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            9,
+            10
+          ],
+          "name": "interleaved values (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              2
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            2,
+            3
+          ],
+          "name": "one side runs out first"
+        },
+        {
+          "args": [
+            [],
+            [
+              4,
+              5
+            ]
+          ],
+          "expected": [
+            4,
+            5
+          ],
+          "name": "left empty"
+        },
+        {
+          "args": [
+            [
+              4,
+              5
+            ],
+            []
+          ],
+          "expected": [
+            4,
+            5
+          ],
+          "name": "right empty"
+        },
+        {
+          "args": [
+            [
+              7,
+              8
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            7,
+            8
+          ],
+          "name": "all of right before left"
+        },
+        {
+          "args": [
+            [
+              -5,
+              0
+            ],
+            [
+              -3
+            ]
+          ],
+          "expected": [
+            -5,
+            -3,
+            0
+          ],
+          "name": "negative values"
+        },
+        {
+          "args": [
+            [],
+            []
+          ],
+          "expected": [],
+          "name": "both empty"
+        }
+      ],
+      "title": "Merge two sorted lists",
+      "trap": "export function solve(left: number[], right: number[]): number[] {\n  return [...left, ...right].sort();\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Interleave several queues fairly: take the first item from each queue in turn, then the second from each, and so on, skipping queues that have run out, until every queue is empty.\n\nSignature: `solve(queues: string[][]): string[]`\n\nExample: `solve([[\"a1\", \"a2\", \"a3\"], [\"b1\"], [\"c1\", \"c2\"]])` → `[\"a1\", \"b1\", \"c1\", \"a2\", \"c2\", \"a3\"]`. Give every queue its own `values()` iterator.",
+      "difficulty": "expert",
+      "explanation": "Each queue gets its own `values()` iterator, and an iterator remembers its own position — which is exactly the state a round-robin needs, one cursor per queue. Every pass calls `next()` once on each live iterator; a `{ done: true }` result retires that iterator from the `active` list, while any other result `push`es its value. `map` creates the iterators, `forEach` runs a pass, and the loop repeats until `active` is empty, so the number of rounds is decided by the queues themselves rather than computed up front. The index-based trap computes the longest length and reads `queue[index]` from every queue each round, which yields `undefined` for queues that have already run out and pushes those into the result. Retiring iterators as they finish is the same idea as `zip` stopping at the shorter list — applied to *n* lists, and continuing rather than stopping.",
+      "id": "round-robin-merge",
+      "methods": [
+        "values",
+        "map",
+        "forEach",
+        "push"
+      ],
+      "order": 14,
+      "solution": "export function solve(queues: string[][]): string[] {\n  const merged: string[] = [];\n  let active: Iterator<string>[] = queues.map((queue) => queue.values());\n  while (active.length > 0) {\n    const stillActive: Iterator<string>[] = [];\n    active.forEach((iterator) => {\n      const step = iterator.next();\n      if (!step.done) {\n        merged.push(step.value);\n        stillActive.push(iterator);\n      }\n    });\n    active = stillActive;\n  }\n  return merged;\n}\n",
+      "starterCode": "export function solve(queues: string[][]): string[] {\n  // One iterator per queue; each round call next() on every live one and retire those that are done.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                "a1",
+                "a2",
+                "a3"
+              ],
+              [
+                "b1"
+              ],
+              [
+                "c1",
+                "c2"
+              ]
+            ]
+          ],
+          "expected": [
+            "a1",
+            "b1",
+            "c1",
+            "a2",
+            "c2",
+            "a3"
+          ],
+          "name": "queues of different lengths (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                "a1",
+                "a2"
+              ],
+              [
+                "b1",
+                "b2"
+              ]
+            ]
+          ],
+          "expected": [
+            "a1",
+            "b1",
+            "a2",
+            "b2"
+          ],
+          "name": "equal lengths interleave evenly"
+        },
+        {
+          "args": [
+            [
+              [],
+              [
+                "b1",
+                "b2"
+              ]
+            ]
+          ],
+          "expected": [
+            "b1",
+            "b2"
+          ],
+          "name": "an empty queue is skipped (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                "a1",
+                "a2",
+                "a3"
+              ]
+            ]
+          ],
+          "expected": [
+            "a1",
+            "a2",
+            "a3"
+          ],
+          "name": "single queue keeps its order"
+        },
+        {
+          "args": [
+            [
+              [],
+              []
+            ]
+          ],
+          "expected": [],
+          "name": "all queues empty"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "no queues"
+        }
+      ],
+      "title": "Round-robin merge",
+      "trap": "export function solve(queues: string[][]): string[] {\n  const rounds = Math.max(0, ...queues.map((queue) => queue.length));\n  const merged: string[] = [];\n  Array.from({ length: rounds }).forEach((_round, index) => {\n    queues.forEach((queue) => {\n      merged.push(queue[index]);\n    });\n  });\n  return merged;\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Find the first cell equal to `target`, scanning rows top to bottom and each row left to right, and return its `[row, column]` — or `null` when it is absent. Rows may have different lengths.\n\nSignature: `solve(grid: number[][], target: number): [number, number] | null`\n\nUse `entries()` to keep the row index attached while `some` stops the scan at the first hit.",
+      "difficulty": "expert",
+      "explanation": "Three methods split the work. `entries()` turns the grid into `[row, cells]` pairs so the row number rides along with its cells; `some` walks those pairs and stops at the first callback that returns `true`, which is the early exit a scan needs; and `indexOf` does the per-row search, returning the column or `-1`. The answer leaves through the captured `found`, exactly as in the “`some` as `break`” pattern. The trap flattens the grid and converts the flat index back with `Math.floor(index / width)` and `index % width` — arithmetic that is only valid when every row has the same width. On the ragged grid `[[1, 2, 3], [4], [5, 6]]`, `5` sits at flat index `4` and comes back as `[1, 1]`, a cell that does not exist; the real position is `[2, 0]`. Keeping the row index attached, rather than reconstructing it, makes ragged input a non-event.",
+      "id": "locate-in-grid",
+      "methods": [
+        "entries",
+        "some",
+        "indexOf"
+      ],
+      "order": 15,
+      "solution": "export function solve(grid: number[][], target: number): [number, number] | null {\n  let found: [number, number] | null = null;\n  [...grid.entries()].some(([row, cells]) => {\n    const column = cells.indexOf(target);\n    if (column === -1) {\n      return false;\n    }\n    found = [row, column];\n    return true;\n  });\n  return found;\n}\n",
+      "starterCode": "export function solve(grid: number[][], target: number): [number, number] | null {\n  // Spread grid.entries() so each row carries its index, then some() + indexOf to stop at the first hit.\n  return null;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                4
+              ],
+              [
+                5,
+                6
+              ]
+            ],
+            5
+          ],
+          "expected": [
+            2,
+            0
+          ],
+          "name": "ragged rows break flat-index arithmetic (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ]
+            ],
+            4
+          ],
+          "expected": [
+            1,
+            1
+          ],
+          "name": "rectangular grid"
+        },
+        {
+          "args": [
+            [
+              [
+                0,
+                7
+              ],
+              [
+                7,
+                0
+              ]
+            ],
+            7
+          ],
+          "expected": [
+            0,
+            1
+          ],
+          "name": "first occurrence in scan order wins"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ]
+            ],
+            9
+          ],
+          "expected": null,
+          "name": "missing target"
+        },
+        {
+          "args": [
+            [
+              [],
+              [
+                8
+              ]
+            ],
+            8
+          ],
+          "expected": [
+            1,
+            0
+          ],
+          "name": "empty rows are skipped (trap)"
+        },
+        {
+          "args": [
+            [],
+            1
+          ],
+          "expected": null,
+          "name": "empty grid"
+        }
+      ],
+      "title": "Locate a cell in a ragged grid",
+      "trap": "export function solve(grid: number[][], target: number): [number, number] | null {\n  const width = grid[0]?.length ?? 0;\n  const index = grid.flat().indexOf(target);\n  if (index === -1 || width === 0) {\n    return null;\n  }\n  return [Math.floor(index / width), index % width];\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Decide whether `needle` appears in `haystack` as a subsequence: every element of `needle`, in order, can be matched to a later and later position of `haystack`, with gaps allowed. Each element of `haystack` may be used at most once.\n\nSignature: `solve(needle: number[], haystack: number[]): boolean`\n\nExample: `solve([1, 3], [1, 2, 3])` → `true`; `solve([3, 1], [1, 2, 3])` → `false`. Let `every` consume a single `values()` iterator of the haystack across all of its calls.",
+      "difficulty": "expert",
+      "explanation": "The subsequence test is a two-pointer walk, and an iterator *is* a pointer that remembers where it stopped. Creating `haystack.values()` once, *outside* the `every` callback, means every call to the callback resumes scanning from wherever the previous call left off: it pulls `next()` until it meets the wanted value or the iterator reports `done`, and returns whether it found it. `every` supplies the early exit — the first needle element that cannot be found ends the search — and the iterator supplies the “later and later” constraint without any index bookkeeping. The trap, `needle.every((x) => haystack.includes(x))`, restarts from the beginning each time, so it accepts `[3, 1]` inside `[1, 2, 3]` and matches a single haystack `1` twice for `[1, 1]`. Creating the iterator *inside* the callback would be the same bug in disguise. An empty needle makes no demands, so `every` returns `true`.",
+      "id": "is-subsequence",
+      "methods": [
+        "every",
+        "values"
+      ],
+      "order": 16,
+      "solution": "export function solve(needle: number[], haystack: number[]): boolean {\n  const remaining = haystack.values();\n  return needle.every((wanted) => {\n    let step = remaining.next();\n    while (!step.done && step.value !== wanted) {\n      step = remaining.next();\n    }\n    return !step.done;\n  });\n}\n",
+      "starterCode": "export function solve(needle: number[], haystack: number[]): boolean {\n  // Create ONE haystack iterator outside every(); each callback keeps pulling next() from where the last stopped.\n  return false;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              3
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": true,
+          "name": "elements in order with gaps"
+        },
+        {
+          "args": [
+            [
+              3,
+              1
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": false,
+          "name": "order matters (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": false,
+          "name": "each haystack element matches once (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2,
+              1
+            ]
+          ],
+          "expected": true,
+          "name": "repeated needle values need repeated haystack values"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": false,
+          "name": "needle longer than haystack"
+        },
+        {
+          "args": [
+            [],
+            [
+              5
+            ]
+          ],
+          "expected": true,
+          "name": "empty needle is a subsequence of anything"
+        },
+        {
+          "args": [
+            [
+              4
+            ],
+            []
+          ],
+          "expected": false,
+          "name": "empty haystack with a non-empty needle"
+        }
+      ],
+      "title": "Subsequence via a shared iterator",
+      "trap": "export function solve(needle: number[], haystack: number[]): boolean {\n  return needle.every((wanted) => haystack.includes(wanted));\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Group consecutive equal values into runs, preserving order: `[1, 1, 2, 1]` → `[[1, 1], [2], [1]]`. A value that appears again after a different value starts a new run, not a merge into the earlier one.\n\nSignature: `solve(xs: number[]): number[][]`\n\nBuild the runs with `forEach` and `push`, checking the run in progress with `at(-1)`.",
+      "difficulty": "expert",
+      "explanation": "A run is defined by adjacency, so the only state the walk needs is “the run currently being extended”, and `at(-1)` reads it straight off the output: `runs.at(-1)` is the last run pushed, or `undefined` before the first. `forEach` visits each value once; if the current run exists and its first element equals the value, `push` extends that inner array in place, otherwise `push` opens a new run `[x]` on the outer one. Nothing is copied, so the whole walk is O(n). The trap groups by *value* instead of by *position* — a `Map` keyed on `x` — which is the right tool for “how many of each” and the wrong one here: the `1` that reappears after the `2` lands in the first group, and `[1, 1, 2, 1]` comes back as `[[1, 1, 1], [2]]`. Adjacency is lost the moment you index by value.",
+      "id": "consecutive-runs",
+      "methods": [
+        "forEach",
+        "push",
+        "at"
+      ],
+      "order": 17,
+      "solution": "export function solve(xs: number[]): number[][] {\n  const runs: number[][] = [];\n  xs.forEach((x) => {\n    const current = runs.at(-1);\n    if (current !== undefined && current[0] === x) {\n      current.push(x);\n    } else {\n      runs.push([x]);\n    }\n  });\n  return runs;\n}\n",
+      "starterCode": "export function solve(xs: number[]): number[][] {\n  // runs.at(-1) is the run in progress — extend it when x matches its first element, else push a new [x].\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              1,
+              2,
+              1
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              1
+            ],
+            [
+              2
+            ],
+            [
+              1
+            ]
+          ],
+          "name": "a value that returns starts a new run (trap)"
+        },
+        {
+          "args": [
+            [
+              3,
+              3,
+              3,
+              4,
+              5,
+              5
+            ]
+          ],
+          "expected": [
+            [
+              3,
+              3,
+              3
+            ],
+            [
+              4
+            ],
+            [
+              5,
+              5
+            ]
+          ],
+          "name": "runs of varying length"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ]
+          ],
+          "name": "all distinct"
+        },
+        {
+          "args": [
+            [
+              7,
+              7
+            ]
+          ],
+          "expected": [
+            [
+              7,
+              7
+            ]
+          ],
+          "name": "all equal"
+        },
+        {
+          "args": [
+            [
+              9
+            ]
+          ],
+          "expected": [
+            [
+              9
+            ]
+          ],
+          "name": "single element"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty input"
+        }
+      ],
+      "title": "Runs of equal neighbours",
+      "trap": "export function solve(xs: number[]): number[][] {\n  const groups = new Map<number, number[]>();\n  xs.forEach((x) => {\n    const group = groups.get(x);\n    if (group === undefined) {\n      groups.set(x, [x]);\n    } else {\n      group.push(x);\n    }\n  });\n  return [...groups.values()];\n}\n"
+    },
+    {
+      "categoryId": "iteration-basics",
+      "description": "Decide whether `grid` is a Latin square of size `n`: it has `n` rows of `n` cells, and every row *and* every column contains each of the numbers `1` through `n` exactly once. `n` is `grid.length`; an empty grid is not a Latin square.\n\nSignature: `solve(grid: number[][]): boolean`\n\nWrite one “is a permutation of 1..n” check and apply it with `every` to the rows and to the columns.",
+      "difficulty": "expert",
+      "explanation": "`every` does the work at three levels. The innermost `line.every` checks that every value sits in `1..n`; combined with `line.length === n` and `new Set(line).size === n` (no duplicates), that is a complete “is a permutation of `1..n`” test. The same predicate then runs over the rows with `grid.every(isPermutation)` and over the columns — which do not exist as arrays until `Array.from({ length: n }, (_, c) => grid.map((row) => row[c]))` builds them. The trap checks only the rows: `[[1, 2, 3], [1, 2, 3], [1, 2, 3]]` has three perfect rows and three broken columns, and passes. Writing the predicate once and reusing it is what keeps the two directions in sync; a ragged row fails the length check, and a short row leaves `undefined` in a column, which the range check rejects. The empty grid needs its own guard, because `[].every` would happily call it a Latin square.",
+      "id": "latin-square",
+      "methods": [
+        "every",
+        "map",
+        "Array.from"
+      ],
+      "order": 18,
+      "solution": "export function solve(grid: number[][]): boolean {\n  const n = grid.length;\n  if (n === 0) {\n    return false;\n  }\n  const isPermutation = (line: number[]): boolean =>\n    line.length === n &&\n    new Set(line).size === n &&\n    line.every((value) => Number.isInteger(value) && value >= 1 && value <= n);\n  const columns = Array.from({ length: n }, (_, column) => grid.map((row) => row[column]));\n  return grid.every(isPermutation) && columns.every(isPermutation);\n}\n",
+      "starterCode": "export function solve(grid: number[][]): boolean {\n  // One isPermutation(line) predicate; every() it over the rows AND over columns you build with Array.from.\n  return false;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                2,
+                3,
+                1
+              ],
+              [
+                3,
+                1,
+                2
+              ]
+            ]
+          ],
+          "expected": true,
+          "name": "valid 3x3 latin square"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                1,
+                2,
+                3
+              ]
+            ]
+          ],
+          "expected": false,
+          "name": "rows valid but columns repeat (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ]
+            ]
+          ],
+          "expected": false,
+          "name": "a repeated value in a row"
+        },
+        {
+          "args": [
+            [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0
+              ]
+            ]
+          ],
+          "expected": false,
+          "name": "values outside 1..n"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          ],
+          "expected": false,
+          "name": "not square"
+        },
+        {
+          "args": [
+            [
+              [
+                1
+              ]
+            ]
+          ],
+          "expected": true,
+          "name": "1x1 grid"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": false,
+          "name": "empty grid"
+        }
+      ],
+      "title": "Latin square",
+      "trap": "export function solve(grid: number[][]): boolean {\n  const n = grid.length;\n  return grid.every(\n    (row) => row.length === n && new Set(row).size === n && row.every((value) => value >= 1 && value <= n),\n  );\n}\n"
     },
     {
       "categoryId": "filtering-and-slicing",
