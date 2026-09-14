@@ -365,7 +365,8 @@
           "name": "faker: generated case 1"
         }
       ],
-      "title": "Squares, no holes"
+      "title": "Squares, no holes",
+      "trap": "export function solve(n: number): number[] {\n  return new Array<number>(n).map((_, index) => index * index);\n}\n"
     },
     {
       "categoryId": "creating-arrays",
@@ -900,7 +901,8 @@
           "name": "empty array"
         }
       ],
-      "title": "Every index of a value"
+      "title": "Every index of a value",
+      "trap": "export function solve(values: number[], target: number): number[] {\n  const position = values.indexOf(target);\n  return position === -1 ? [] : [position];\n}\n"
     },
     {
       "categoryId": "access-and-search",
@@ -1339,7 +1341,8 @@
           "name": "empty matrix has no signal"
         }
       ],
-      "title": "Validate the matrix"
+      "title": "Validate the matrix",
+      "trap": "export function solve(matrix: number[][]): boolean {\n  const width = matrix.length === 0 ? 0 : matrix[0].length;\n  const rectangular = matrix.some((row) => row.length === width);\n  const hasSignal = matrix.some((row) => row.some((cell) => cell !== 0));\n  return rectangular && hasSignal;\n}\n"
     },
     {
       "categoryId": "iteration-basics",
@@ -1884,7 +1887,8 @@
           "name": "empty scores"
         }
       ],
-      "title": "Partition in one pass"
+      "title": "Partition in one pass",
+      "trap": "export function solve(scores: number[], threshold: number): { fail: number[]; pass: number[] } {\n  return scores.reduce<{ fail: number[]; pass: number[] }>(\n    (groups, score) => {\n      if (score >= threshold) {\n        groups.pass.push(score);\n      } else {\n        groups.fail.push(score);\n      }\n    },\n    { fail: [], pass: [] },\n  );\n}\n"
     },
     {
       "categoryId": "filtering-and-slicing",
@@ -2386,7 +2390,8 @@
           "name": "pairs keep index alignment"
         }
       ],
-      "title": "Zip into pairs"
+      "title": "Zip into pairs",
+      "trap": "export function solve(left: string[], right: number[]): [string, number][] {\n  return left.map((item, index): [string, number] => [item, right[index]]);\n}\n"
     },
     {
       "categoryId": "mapping-and-transforming",
@@ -2702,7 +2707,7 @@
             []
           ],
           "expected": 0,
-          "name": "empty cart totals zero"
+          "name": "empty cart totals zero (trap)"
         },
         {
           "args": [
@@ -2725,13 +2730,14 @@
           "name": "negative adjustments subtract"
         }
       ],
-      "title": "The empty-cart TypeError"
+      "title": "The empty-cart TypeError",
+      "trap": "export function solve(amounts: number[]): number {\n  return amounts.reduce((total, amount) => total + amount);\n}\n"
     },
     {
       "categoryId": "reduce-and-folding",
       "description": "Turn a list of transactions into a running balance: each output element is the sum of all transactions up to and including that point.\n\nSignature: `solve(transactions: number[]): number[]`\n\nExample: `solve([100, -30, 50])` → `[100, 70, 120]`",
       "difficulty": "advanced",
-      "explanation": "This is a *scan* — a fold that keeps every intermediate accumulator instead of only the last one. Seeding `reduce` with an empty array, each step appends one new balance: `[...balances, (balances.at(-1) ?? 0) + transaction]`. The previous running total is simply the last element already collected, and `?? 0` covers the very first step when nothing has been collected yet. Note what makes this different from `map`: each output element depends on *all* previous inputs, which is exactly the dependency shape `reduce` exists to express. (Spreading rebuilds the array each step — fine for teaching; a `push` into the accumulator is the O(n) variant.)",
+      "explanation": "This is a *scan* — a fold that keeps every intermediate accumulator instead of only the last one. Seeding `reduce` with an empty array, each step appends one new balance: `[...balances, (balances.at(-1) ?? 0) + transaction]`. The previous running total is simply the last element already collected, and `?? 0` covers the very first step when nothing has been collected yet — without it the first balance is `undefined + transaction`, which is `NaN`, and every later balance inherits the poison. Note what makes this different from `map`: each output element depends on *all* previous inputs, which is exactly the dependency shape `reduce` exists to express. (Spreading rebuilds the array each step — fine for teaching; a `push` into the accumulator is the O(n) variant.)",
       "id": "running-balance",
       "methods": [
         "reduce"
@@ -2771,7 +2777,7 @@
           "expected": [
             25
           ],
-          "name": "single transaction is its own balance"
+          "name": "single transaction is its own balance (trap)"
         },
         {
           "args": [
@@ -2789,12 +2795,13 @@
           "name": "overdraft goes negative"
         }
       ],
-      "title": "Running balance (scan)"
+      "title": "Running balance (scan)",
+      "trap": "export function solve(transactions: number[]): number[] {\n  return transactions.reduce<number[]>(\n    (balances, transaction) => [...balances, balances[balances.length - 1] + transaction],\n    [],\n  );\n}\n"
     },
     {
       "categoryId": "reduce-and-folding",
       "description": "Build a nested object from a key path: wrap `value` inside one object per key, innermost key last.\n\nSignature: `solve(path: string[], value: number): unknown`\n\nExample: `solve([\"a\", \"b\", \"c\"], 42)` → `{ a: { b: { c: 42 } } }`. An empty path returns `value` itself.",
-      "difficulty": "expert",
+      "difficulty": "advanced",
       "explanation": "`reduceRight` folds from the *last* element toward the first — same contract as `reduce`, opposite direction. That direction is exactly what nesting needs: the innermost layer must be built first. Seeding with `value`, the first step wraps it in the last key (`{ c: 42 }`), the next step wraps that in `b`, and so on outward: `path.reduceRight((nested, key) => ({ [key]: nested }), value)`. Running plain `reduce` with the same callback would produce `{ a: 42 }` wrapped in `b`, then `c` — inside-out and wrong. The computed property `[key]` builds each layer, the parentheses around the object literal keep it from parsing as an arrow-function body, and an empty path never invokes the callback, so the seed passes through untouched.",
       "id": "nested-path-object",
       "methods": [
@@ -2820,7 +2827,7 @@
               }
             }
           },
-          "name": "three-level path"
+          "name": "three-level path (trap)"
         },
         {
           "args": [
@@ -2858,7 +2865,1098 @@
           "name": "two-level config path"
         }
       ],
-      "title": "Fold right into nesting"
+      "title": "Fold right into nesting",
+      "trap": "export function solve(path: string[], value: number): unknown {\n  return path.reduce<unknown>((nested, key) => ({ [key]: nested }), value);\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Find the smallest and largest value of `xs` in a single fold and return them as `{ max, min }`. An empty array returns `null`.\n\nSignature: `solve(xs: number[]): { max: number; min: number } | null`\n\nTrap: what do you seed the fold with? `0` is not a neutral starting point for a comparison.",
+      "difficulty": "advanced",
+      "explanation": "A fold that tracks two extremes at once needs a seed that *cannot win*: `-Infinity` for the running max and `Infinity` for the running min, so the first real element replaces both. Seeding with `{ max: 0, min: 0 }` looks harmless and silently corrupts the answer whenever every value sits on one side of zero — for `[3, 5, 1]` the min comes back as `0`, a number that never appeared in the input. The alternative seed is the first element itself, `xs[0]`, which is why the length guard has to come first: on an empty array there is no first element and `reduce` without a seed would throw. With the identity-element seed, `reduce` returns a fresh `{ max, min }` object per step, so the fold never mutates anything it did not create.",
+      "id": "min-max-one-pass",
+      "methods": [
+        "reduce"
+      ],
+      "order": 7,
+      "solution": "interface Extremes {\n  max: number;\n  min: number;\n}\n\nexport function solve(xs: number[]): Extremes | null {\n  if (xs.length === 0) {\n    return null;\n  }\n  return xs.reduce<Extremes>(\n    (extremes, x) => ({ max: Math.max(extremes.max, x), min: Math.min(extremes.min, x) }),\n    { max: -Infinity, min: Infinity },\n  );\n}\n",
+      "starterCode": "interface Extremes {\n  max: number;\n  min: number;\n}\n\nexport function solve(xs: number[]): Extremes | null {\n  // One fold, two running values — pick a seed that no real element can lose to.\n  return null;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              3,
+              5,
+              1
+            ]
+          ],
+          "expected": {
+            "max": 5,
+            "min": 1
+          },
+          "name": "all positive values (trap)"
+        },
+        {
+          "args": [
+            [
+              -4,
+              -9,
+              -2
+            ]
+          ],
+          "expected": {
+            "max": -2,
+            "min": -9
+          },
+          "name": "all negative values (trap)"
+        },
+        {
+          "args": [
+            [
+              7
+            ]
+          ],
+          "expected": {
+            "max": 7,
+            "min": 7
+          },
+          "name": "single value is both extremes"
+        },
+        {
+          "args": [
+            [
+              -1,
+              0,
+              1
+            ]
+          ],
+          "expected": {
+            "max": 1,
+            "min": -1
+          },
+          "name": "values straddling zero"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": null,
+          "name": "empty array yields null"
+        }
+      ],
+      "title": "Min and max, one fold",
+      "trap": "interface Extremes {\n  max: number;\n  min: number;\n}\n\nexport function solve(xs: number[]): Extremes | null {\n  if (xs.length === 0) {\n    return null;\n  }\n  return xs.reduce<Extremes>(\n    (extremes, x) => ({ max: Math.max(extremes.max, x), min: Math.min(extremes.min, x) }),\n    { max: 0, min: 0 },\n  );\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Average the readings of each sensor. Return a plain object mapping sensor name → mean value.\n\nSignature: `solve(readings: { sensor: string; value: number }[]): Record<string, number>`\n\nTrap: an average is not something you can update one reading at a time with `(average + value) / 2`.",
+      "difficulty": "advanced",
+      "explanation": "A mean needs two numbers to be maintained, not one. The tempting fold keeps a running average per sensor and blends each new reading in with `(average + value) / 2`, which weights the newest reading at 50% regardless of how many came before it: `[10, 20, 60]` averages to `30`, but the running blend produces `37.5`. The correct accumulator per sensor is `{ count, sum }`, which `reduce` can update exactly with no loss, and the division happens once at the end. `Object.fromEntries` then rebuilds the record from `Object.entries(totals)` mapped to `[sensor, sum / count]`. The general lesson: when a fold must produce a derived statistic, accumulate the *sufficient* raw quantities and derive the statistic afterwards.",
+      "id": "average-by-key",
+      "methods": [
+        "reduce",
+        "Object.fromEntries"
+      ],
+      "order": 8,
+      "solution": "interface Reading {\n  sensor: string;\n  value: number;\n}\n\ninterface Tally {\n  count: number;\n  sum: number;\n}\n\nexport function solve(readings: Reading[]): Record<string, number> {\n  const tallies = readings.reduce<Record<string, Tally>>((acc, { sensor, value }) => {\n    const current = acc[sensor] ?? { count: 0, sum: 0 };\n    acc[sensor] = { count: current.count + 1, sum: current.sum + value };\n    return acc;\n  }, {});\n  return Object.fromEntries(Object.entries(tallies).map(([sensor, { count, sum }]) => [sensor, sum / count]));\n}\n",
+      "starterCode": "interface Reading {\n  sensor: string;\n  value: number;\n}\n\nexport function solve(readings: Reading[]): Record<string, number> {\n  // Accumulate { count, sum } per sensor, then divide once at the end.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "sensor": "a",
+                "value": 10
+              },
+              {
+                "sensor": "a",
+                "value": 20
+              },
+              {
+                "sensor": "a",
+                "value": 60
+              }
+            ]
+          ],
+          "expected": {
+            "a": 30
+          },
+          "name": "three readings from one sensor (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "sensor": "a",
+                "value": 1
+              },
+              {
+                "sensor": "b",
+                "value": 10
+              },
+              {
+                "sensor": "a",
+                "value": 3
+              },
+              {
+                "sensor": "b",
+                "value": 30
+              }
+            ]
+          ],
+          "expected": {
+            "a": 2,
+            "b": 20
+          },
+          "name": "two sensors interleaved"
+        },
+        {
+          "args": [
+            [
+              {
+                "sensor": "x",
+                "value": 5
+              },
+              {
+                "sensor": "y",
+                "value": 7
+              }
+            ]
+          ],
+          "expected": {
+            "x": 5,
+            "y": 7
+          },
+          "name": "one reading per sensor is its own average"
+        },
+        {
+          "args": [
+            [
+              {
+                "sensor": "a",
+                "value": 1
+              },
+              {
+                "sensor": "a",
+                "value": 2
+              }
+            ]
+          ],
+          "expected": {
+            "a": 1.5
+          },
+          "name": "fractional average"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "no readings yields an empty record"
+        }
+      ],
+      "title": "Average per sensor",
+      "trap": "interface Reading {\n  sensor: string;\n  value: number;\n}\n\nexport function solve(readings: Reading[]): Record<string, number> {\n  return readings.reduce<Record<string, number>>((averages, { sensor, value }) => {\n    averages[sensor] = sensor in averages ? (averages[sensor] + value) / 2 : value;\n    return averages;\n  }, {});\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Return the length of the longest run of consecutive `true` values in `flags`.\n\nSignature: `solve(flags: boolean[]): number`\n\nExample: `solve([true, false, true, true, false])` → `2`. No `true` at all → `0`.",
+      "difficulty": "advanced",
+      "explanation": "Streak counting is a fold over a two-field accumulator: `current` (the run in progress) and `best` (the longest run finished so far). The trap is *when* `current` gets promoted into `best`. Doing it only when a `false` ends the run reads naturally and is wrong: a streak that reaches the end of the array is never closed by a `false`, so it is never counted — `[false, true, true]` reports `0`. The fix is to promote on every step: `best: Math.max(best, current)` after updating `current`, so the record is always current and the final accumulator needs no post-processing. `reduce` returns the whole accumulator object; the trailing `.best` picks out the answer.",
+      "id": "longest-true-streak",
+      "methods": [
+        "reduce"
+      ],
+      "order": 9,
+      "solution": "interface Streaks {\n  best: number;\n  current: number;\n}\n\nexport function solve(flags: boolean[]): number {\n  return flags.reduce<Streaks>(\n    (streaks, flag) => {\n      const current = flag ? streaks.current + 1 : 0;\n      return { best: Math.max(streaks.best, current), current };\n    },\n    { best: 0, current: 0 },\n  ).best;\n}\n",
+      "starterCode": "export function solve(flags: boolean[]): number {\n  // Track { best, current } — and decide carefully when current is allowed to become best.\n  return 0;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              false,
+              true,
+              true
+            ]
+          ],
+          "expected": 2,
+          "name": "streak that runs to the end (trap)"
+        },
+        {
+          "args": [
+            [
+              true,
+              false,
+              true,
+              true,
+              false
+            ]
+          ],
+          "expected": 2,
+          "name": "streak in the middle"
+        },
+        {
+          "args": [
+            [
+              true,
+              true,
+              true
+            ]
+          ],
+          "expected": 3,
+          "name": "every flag true (trap)"
+        },
+        {
+          "args": [
+            [
+              true,
+              true,
+              false,
+              true
+            ]
+          ],
+          "expected": 2,
+          "name": "longest streak comes first"
+        },
+        {
+          "args": [
+            [
+              false,
+              false
+            ]
+          ],
+          "expected": 0,
+          "name": "no true flags"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": 0,
+          "name": "empty input"
+        }
+      ],
+      "title": "Longest streak",
+      "trap": "interface Streaks {\n  best: number;\n  current: number;\n}\n\nexport function solve(flags: boolean[]): number {\n  return flags.reduce<Streaks>(\n    (streaks, flag) =>\n      flag\n        ? { best: streaks.best, current: streaks.current + 1 }\n        : { best: Math.max(streaks.best, streaks.current), current: 0 },\n    { best: 0, current: 0 },\n  ).best;\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Join names the way a person would write them: `\"Ada\"`, `\"Ada and Bob\"`, `\"Ada, Bob, and Cy\"`. An empty list produces an empty string.\n\nSignature: `solve(names: string[]): string`\n\nTrap: the separator depends on *where* you are in the list, and the fold must survive `[]`.",
+      "difficulty": "advanced",
+      "explanation": "The callback of `reduce` receives a third argument — the current index — and that is what makes position-aware joining possible: index `0` contributes the bare name, the last index contributes `\", and \"` (or `\" and \"` when there are exactly two names), and everything in between contributes `\", \"`. Two things go wrong in the obvious version. Seedless `reduce` throws on an empty list, so the fold must start from `\"\"` and special-case index `0` rather than relying on element 0 becoming the seed. And the two-name case has no Oxford comma — `\"Ada, and Bob\"` reads wrong — so the separator for the last position must look at `names.length`, not only at the index. `join` cannot express any of this, which is why this is a fold and not a join.",
+      "id": "human-readable-list",
+      "methods": [
+        "reduce"
+      ],
+      "order": 10,
+      "solution": "export function solve(names: string[]): string {\n  return names.reduce((sentence, name, index) => {\n    if (index === 0) {\n      return name;\n    }\n    const isLast = index === names.length - 1;\n    const separator = isLast ? (names.length === 2 ? ' and ' : ', and ') : ', ';\n    return sentence + separator + name;\n  }, '');\n}\n",
+      "starterCode": "export function solve(names: string[]): string {\n  // reduce's callback gets (accumulator, element, index) — use the index to pick the separator.\n  return '';\n}\n",
+      "tests": [
+        {
+          "args": [
+            []
+          ],
+          "expected": "",
+          "name": "empty list is an empty string (trap)"
+        },
+        {
+          "args": [
+            [
+              "Ada"
+            ]
+          ],
+          "expected": "Ada",
+          "name": "one name stands alone"
+        },
+        {
+          "args": [
+            [
+              "Ada",
+              "Bob"
+            ]
+          ],
+          "expected": "Ada and Bob",
+          "name": "two names use a bare and (trap)"
+        },
+        {
+          "args": [
+            [
+              "Ada",
+              "Bob",
+              "Cy"
+            ]
+          ],
+          "expected": "Ada, Bob, and Cy",
+          "name": "three names get an Oxford comma"
+        },
+        {
+          "args": [
+            [
+              "Ada",
+              "Bob",
+              "Cy",
+              "Di"
+            ]
+          ],
+          "expected": "Ada, Bob, Cy, and Di",
+          "name": "four names, still one and"
+        }
+      ],
+      "title": "a, b, and c",
+      "trap": "export function solve(names: string[]): string {\n  return names.reduce((sentence, name, index) => {\n    const separator = index === names.length - 1 ? ', and ' : ', ';\n    return sentence + separator + name;\n  });\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Interpret a list of operations, applied left to right, starting from `start`. `add` and `mul` use `arg`; `neg` negates the value; `clamp` caps the value at `arg`.\n\nSignature: `solve(start: number, ops: { arg?: number; op: 'add' | 'clamp' | 'mul' | 'neg' }[]): number`\n\nExample: `solve(1, [{ op: \"add\", arg: 2 }, { op: \"mul\", arg: 3 }])` → `9`. This is `pipe` with the functions written as data — the fold *is* the interpreter.",
+      "difficulty": "expert",
+      "explanation": "`pipe(f, g, h)(x)` is `h(g(f(x)))`, and a left fold computes exactly that: `reduce` carries the running value and applies each step in list order. Here the steps are data rather than functions, so a lookup table `Record<Op, (value, arg) => number>` turns each `op` string into its behaviour and the callback becomes one line: `apply[op](value, arg)`. Order is the whole point — `add 2` then `mul 3` from `1` is `9`, while the reverse order is `5` — and `reduce` guarantees it. `reduceRight` with the same callback would silently evaluate the pipeline backwards. An empty `ops` never invokes the callback, so the seed `start` passes through unchanged, which is the identity pipeline you would expect.",
+      "id": "apply-operation-pipeline",
+      "methods": [
+        "reduce"
+      ],
+      "order": 11,
+      "solution": "type Op = 'add' | 'clamp' | 'mul' | 'neg';\n\ninterface Operation {\n  arg?: number;\n  op: Op;\n}\n\nconst apply: Record<Op, (value: number, arg: number) => number> = {\n  add: (value, arg) => value + arg,\n  clamp: (value, arg) => Math.min(value, arg),\n  mul: (value, arg) => value * arg,\n  neg: (value) => -value,\n};\n\nexport function solve(start: number, ops: Operation[]): number {\n  return ops.reduce((value, { arg = 0, op }) => apply[op](value, arg), start);\n}\n",
+      "starterCode": "type Op = 'add' | 'clamp' | 'mul' | 'neg';\n\ninterface Operation {\n  arg?: number;\n  op: Op;\n}\n\nexport function solve(start: number, ops: Operation[]): number {\n  // Map each op name to a (value, arg) => number function, then fold the ops over start.\n  return start;\n}\n",
+      "tests": [
+        {
+          "args": [
+            1,
+            [
+              {
+                "arg": 2,
+                "op": "add"
+              },
+              {
+                "arg": 3,
+                "op": "mul"
+              }
+            ]
+          ],
+          "expected": 9,
+          "name": "add then multiply, in that order"
+        },
+        {
+          "args": [
+            5,
+            [
+              {
+                "op": "neg"
+              },
+              {
+                "arg": 10,
+                "op": "add"
+              }
+            ]
+          ],
+          "expected": 5,
+          "name": "negate in the middle of the pipeline"
+        },
+        {
+          "args": [
+            50,
+            [
+              {
+                "arg": 3,
+                "op": "mul"
+              },
+              {
+                "arg": 100,
+                "op": "clamp"
+              }
+            ]
+          ],
+          "expected": 100,
+          "name": "clamp caps a large value"
+        },
+        {
+          "args": [
+            3,
+            [
+              {
+                "arg": 10,
+                "op": "clamp"
+              },
+              {
+                "arg": 2,
+                "op": "mul"
+              }
+            ]
+          ],
+          "expected": 6,
+          "name": "clamp below the cap is a no-op"
+        },
+        {
+          "args": [
+            2,
+            [
+              {
+                "arg": 3,
+                "op": "add"
+              },
+              {
+                "op": "neg"
+              },
+              {
+                "arg": 4,
+                "op": "mul"
+              }
+            ]
+          ],
+          "expected": -20,
+          "name": "three operations chain"
+        },
+        {
+          "args": [
+            7,
+            []
+          ],
+          "expected": 7,
+          "name": "empty pipeline returns the start"
+        }
+      ],
+      "title": "Interpret a pipeline",
+      "trap": "type Op = 'add' | 'clamp' | 'mul' | 'neg';\n\ninterface Operation {\n  arg?: number;\n  op: Op;\n}\n\nconst apply: Record<Op, (value: number, arg: number) => number> = {\n  add: (value, arg) => value + arg,\n  clamp: (value, arg) => Math.min(value, arg),\n  mul: (value, arg) => value * arg,\n  neg: (value) => -value,\n};\n\nexport function solve(start: number, ops: Operation[]): number {\n  return ops.reduceRight((value, { arg = 0, op }) => apply[op](value, arg), start);\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Apply a list of steps written *outermost first*, the way mathematicians write `f(g(h(x)))`: the first step in `ops` is the last one applied.\n\nSignature: `solve(ops: { arg: number; op: 'add' | 'mul' }[], x: number): number`\n\nExample: `solve([{ op: \"mul\", arg: 2 }, { op: \"add\", arg: 3 }], 1)` is `mul2(add3(1))` → `8`.",
+      "difficulty": "expert",
+      "explanation": "`compose(f, g, h)(x)` is `f(g(h(x)))`: the *last* function listed runs first. That is a right fold, and `reduceRight` is the array method that performs one — it walks from the final element toward the first, threading the accumulator the same way `reduce` does. Seeded with `x`, the first step applies `h`, the next applies `g` to that result, and so on outward. Using plain `reduce` with an identical callback quietly turns compose into pipe: for `[mul 2, add 3]` and `x = 1` it computes `(1 * 2) + 3 = 5` instead of `(1 + 3) * 2 = 8`, and nothing throws to tell you. Whenever a spec says \"innermost first\" or \"applied in reverse\", reach for `reduceRight` before reaching for `reverse` — it expresses the intent without allocating a reversed copy.",
+      "id": "compose-outermost-first",
+      "methods": [
+        "reduceRight"
+      ],
+      "order": 12,
+      "solution": "interface Step {\n  arg: number;\n  op: 'add' | 'mul';\n}\n\nexport function solve(ops: Step[], x: number): number {\n  return ops.reduceRight((value, { arg, op }) => (op === 'add' ? value + arg : value * arg), x);\n}\n",
+      "starterCode": "interface Step {\n  arg: number;\n  op: 'add' | 'mul';\n}\n\nexport function solve(ops: Step[], x: number): number {\n  // The last step listed must run first — which fold direction gives you that for free?\n  return x;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "arg": 2,
+                "op": "mul"
+              },
+              {
+                "arg": 3,
+                "op": "add"
+              }
+            ],
+            1
+          ],
+          "expected": 8,
+          "name": "multiply outside, add inside (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "arg": 1,
+                "op": "add"
+              },
+              {
+                "arg": 10,
+                "op": "mul"
+              },
+              {
+                "arg": 2,
+                "op": "add"
+              }
+            ],
+            3
+          ],
+          "expected": 51,
+          "name": "three nested steps"
+        },
+        {
+          "args": [
+            [
+              {
+                "arg": 4,
+                "op": "mul"
+              }
+            ],
+            2
+          ],
+          "expected": 8,
+          "name": "single step"
+        },
+        {
+          "args": [
+            [],
+            9
+          ],
+          "expected": 9,
+          "name": "no steps is the identity"
+        },
+        {
+          "args": [
+            [
+              {
+                "arg": 5,
+                "op": "add"
+              },
+              {
+                "arg": 2,
+                "op": "mul"
+              }
+            ],
+            -3
+          ],
+          "expected": -1,
+          "name": "negative input"
+        }
+      ],
+      "title": "Compose, not pipe",
+      "trap": "interface Step {\n  arg: number;\n  op: 'add' | 'mul';\n}\n\nexport function solve(ops: Step[], x: number): number {\n  return ops.reduce((value, { arg, op }) => (op === 'add' ? value + arg : value * arg), x);\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Return the top `n` customers by total spend, highest first. Each customer may appear in many orders; ties are broken by customer name ascending.\n\nSignature: `solve(orders: { customer: string; total: number }[], n: number): { customer: string; total: number }[]`\n\nExample: Ada spends 60 then 30 and Cy spends 70 once — Ada (90) outranks Cy (70).",
+      "difficulty": "expert",
+      "explanation": "This is three transformations composed, and the order matters. First `reduce` folds the orders into a totals record keyed by customer, adding each `total` onto whatever that customer already has. Sorting the raw orders instead — the tempting shortcut — ranks single orders, so a customer with many small orders never surfaces. Second, `Object.entries` turns the record back into `[customer, total]` pairs and `map` reshapes them into result objects. Third, `toSorted` orders them with a two-key comparator: `b.total - a.total` for descending spend, and `||` falls through to `a.customer.localeCompare(b.customer)` only when that difference is `0`. `slice(0, n)` takes the leaders; it clamps quietly when `n` exceeds the customer count and returns `[]` for `n = 0`.",
+      "id": "top-customers",
+      "methods": [
+        "reduce",
+        "Object.entries",
+        "toSorted",
+        "slice"
+      ],
+      "order": 13,
+      "solution": "interface Order {\n  customer: string;\n  total: number;\n}\n\nexport function solve(orders: Order[], n: number): Order[] {\n  const totals = orders.reduce<Record<string, number>>((acc, { customer, total }) => {\n    acc[customer] = (acc[customer] ?? 0) + total;\n    return acc;\n  }, {});\n  return Object.entries(totals)\n    .map(([customer, total]) => ({ customer, total }))\n    .toSorted((a, b) => b.total - a.total || a.customer.localeCompare(b.customer))\n    .slice(0, n);\n}\n",
+      "starterCode": "interface Order {\n  customer: string;\n  total: number;\n}\n\nexport function solve(orders: Order[], n: number): Order[] {\n  // Fold totals per customer, turn the record back into objects, sort, then slice.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "customer": "Ada",
+                "total": 60
+              },
+              {
+                "customer": "Bob",
+                "total": 50
+              },
+              {
+                "customer": "Ada",
+                "total": 30
+              },
+              {
+                "customer": "Cy",
+                "total": 70
+              }
+            ],
+            2
+          ],
+          "expected": [
+            {
+              "customer": "Ada",
+              "total": 90
+            },
+            {
+              "customer": "Cy",
+              "total": 70
+            }
+          ],
+          "name": "a customer who only wins when summed (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "customer": "Zed",
+                "total": 10
+              },
+              {
+                "customer": "Amy",
+                "total": 10
+              },
+              {
+                "customer": "Bo",
+                "total": 5
+              }
+            ],
+            2
+          ],
+          "expected": [
+            {
+              "customer": "Amy",
+              "total": 10
+            },
+            {
+              "customer": "Zed",
+              "total": 10
+            }
+          ],
+          "name": "ties break alphabetically"
+        },
+        {
+          "args": [
+            [
+              {
+                "customer": "Ada",
+                "total": 1
+              },
+              {
+                "customer": "Bob",
+                "total": 2
+              }
+            ],
+            5
+          ],
+          "expected": [
+            {
+              "customer": "Bob",
+              "total": 2
+            },
+            {
+              "customer": "Ada",
+              "total": 1
+            }
+          ],
+          "name": "n larger than the customer count"
+        },
+        {
+          "args": [
+            [
+              {
+                "customer": "Ada",
+                "total": 1
+              }
+            ],
+            0
+          ],
+          "expected": [],
+          "name": "n of zero returns nothing"
+        },
+        {
+          "args": [
+            [],
+            3
+          ],
+          "expected": [],
+          "name": "no orders"
+        }
+      ],
+      "title": "Top n spenders",
+      "trap": "interface Order {\n  customer: string;\n  total: number;\n}\n\nexport function solve(orders: Order[], n: number): Order[] {\n  return orders.toSorted((a, b) => b.total - a.total || a.customer.localeCompare(b.customer)).slice(0, n);\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Decide whether the brackets in `s` are balanced: every `(`, `[`, `{` is closed by its matching partner in the right order. Characters that are not brackets are ignored.\n\nSignature: `solve(s: string): boolean`\n\nTrap: counting depth is not enough — `\"([)]\"` has depth zero at the end and is still wrong.",
+      "difficulty": "expert",
+      "explanation": "Balanced brackets need a *stack*, and a fold can carry one: the accumulator is the list of currently open brackets, or `null` once a mismatch has made the answer irrecoverable. Each opener appends itself (`[...open, char]`); each closer checks `open.at(-1)` against the matching opener and either pops it with `slice(0, -1)` or collapses the accumulator to `null`. The string is balanced only if the fold ends with a non-null, empty stack — `\"((\"` ends non-empty, `\")(\"` collapses on the first character. A single depth counter cannot see this: `\"([)]\"` increments twice and decrements twice, landing on zero and reporting balanced, because a counter forgets *which* bracket is open. `reduce` here is a small state machine, and `null` as a poison value lets it short-circuit without a `for` loop and without throwing.",
+      "id": "balanced-brackets",
+      "methods": [
+        "reduce",
+        "at",
+        "slice"
+      ],
+      "order": 14,
+      "solution": "const OPENERS = new Set(['(', '[', '{']);\nconst PARTNER: Record<string, string> = { ')': '(', ']': '[', '}': '{' };\n\nexport function solve(s: string): boolean {\n  const stack = [...s].reduce<null | string[]>((open, char) => {\n    if (open === null) {\n      return null;\n    }\n    if (OPENERS.has(char)) {\n      return [...open, char];\n    }\n    if (!(char in PARTNER)) {\n      return open;\n    }\n    return open.at(-1) === PARTNER[char] ? open.slice(0, -1) : null;\n  }, []);\n  return stack !== null && stack.length === 0;\n}\n",
+      "starterCode": "export function solve(s: string): boolean {\n  // The accumulator is a stack of open brackets — or null once a mismatch makes the answer final.\n  return false;\n}\n",
+      "tests": [
+        {
+          "args": [
+            "([)]"
+          ],
+          "expected": false,
+          "name": "interleaved pairs are not balanced (trap)"
+        },
+        {
+          "args": [
+            "{[()]}"
+          ],
+          "expected": true,
+          "name": "properly nested pairs"
+        },
+        {
+          "args": [
+            ")("
+          ],
+          "expected": false,
+          "name": "closer before opener (trap)"
+        },
+        {
+          "args": [
+            "(("
+          ],
+          "expected": false,
+          "name": "unclosed openers"
+        },
+        {
+          "args": [
+            "(a[b]c)"
+          ],
+          "expected": true,
+          "name": "letters between brackets are ignored"
+        },
+        {
+          "args": [
+            ""
+          ],
+          "expected": true,
+          "name": "empty string is balanced"
+        }
+      ],
+      "title": "Balanced brackets via a stack fold",
+      "trap": "export function solve(s: string): boolean {\n  const depth = [...s].reduce((count, char) => {\n    if ('([{'.includes(char)) {\n      return count + 1;\n    }\n    if (')]}'.includes(char)) {\n      return count - 1;\n    }\n    return count;\n  }, 0);\n  return depth === 0;\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Count how many `values` fall into each bucket defined by ascending `edges`: bucket `i` covers `[edges[i], edges[i + 1])` — closed on the left, open on the right. Values outside every bucket are dropped.\n\nSignature: `solve(values: number[], edges: number[]): number[]`\n\nExample: `solve([1, 5, 12], [0, 5, 10, 15])` → `[1, 1, 1]`. Do it without mutating the counts array.",
+      "difficulty": "expert",
+      "explanation": "Three methods share the work. `Array.from({ length: edges.length - 1 }, () => 0)` builds the zeroed counts — one fewer bucket than there are edges, clamped so a single edge yields no buckets at all. For each value, `findIndex` over the edges locates the bucket: the first `i` where `value >= edges[i]` *and* `value < edges[i + 1]`, with the guard `i < edges.length - 1` so the last edge is never treated as a bucket start. `-1` means the value sits outside every bucket and is skipped. `reduce` then threads the counts through, and `with(bucket, counts[bucket] + 1)` returns a fresh array each step rather than mutating. The half-open interval is the subtle part: writing `<=` on the upper bound double-counts a value that lands exactly on an inner edge and wrongly admits a value equal to the final edge.",
+      "id": "histogram-buckets",
+      "methods": [
+        "reduce",
+        "findIndex",
+        "Array.from",
+        "with"
+      ],
+      "order": 15,
+      "solution": "export function solve(values: number[], edges: number[]): number[] {\n  const empty = Array.from({ length: Math.max(0, edges.length - 1) }, () => 0);\n  return values.reduce((counts, value) => {\n    const bucket = edges.findIndex(\n      (edge, index) => index < edges.length - 1 && value >= edge && value < edges[index + 1],\n    );\n    return bucket === -1 ? counts : counts.with(bucket, counts[bucket] + 1);\n  }, empty);\n}\n",
+      "starterCode": "export function solve(values: number[], edges: number[]): number[] {\n  // Zeroed counts via Array.from, findIndex the bucket for each value, with() to bump it immutably.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              5,
+              12,
+              7,
+              3
+            ],
+            [
+              0,
+              5,
+              10,
+              15
+            ]
+          ],
+          "expected": [
+            2,
+            2,
+            1
+          ],
+          "name": "values spread across three buckets"
+        },
+        {
+          "args": [
+            [
+              5
+            ],
+            [
+              0,
+              5,
+              10
+            ]
+          ],
+          "expected": [
+            0,
+            1
+          ],
+          "name": "value on an inner edge goes to the upper bucket (trap)"
+        },
+        {
+          "args": [
+            [
+              -1,
+              2
+            ],
+            [
+              0,
+              10
+            ]
+          ],
+          "expected": [
+            1
+          ],
+          "name": "value below the first edge is dropped"
+        },
+        {
+          "args": [
+            [
+              10
+            ],
+            [
+              0,
+              10
+            ]
+          ],
+          "expected": [
+            0
+          ],
+          "name": "value equal to the last edge is dropped (trap)"
+        },
+        {
+          "args": [
+            [],
+            [
+              0,
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            0,
+            0
+          ],
+          "name": "no values leaves every bucket at zero"
+        },
+        {
+          "args": [
+            [
+              3
+            ],
+            [
+              3
+            ]
+          ],
+          "expected": [],
+          "name": "a single edge defines no buckets"
+        }
+      ],
+      "title": "Bucket the readings",
+      "trap": "export function solve(values: number[], edges: number[]): number[] {\n  const empty = Array.from({ length: Math.max(0, edges.length - 1) }, () => 0);\n  return values.reduce((counts, value) => {\n    const bucket = edges.findIndex(\n      (edge, index) => index < edges.length - 1 && value >= edge && value <= edges[index + 1],\n    );\n    return bucket === -1 ? counts : counts.with(bucket, counts[bucket] + 1);\n  }, empty);\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Replay an account log and return the final balance. `deposit` adds `amount`, `withdraw` subtracts it, and `undo` reverses the most recent event that has not itself been undone. An `undo` with nothing left to undo does nothing.\n\nSignature: `solve(events: { amount?: number; type: 'deposit' | 'undo' | 'withdraw' }[]): number`\n\nTrap: two `undo`s in a row must reverse two different events.",
+      "difficulty": "expert",
+      "explanation": "The balance alone is not enough state to replay this log — an `undo` needs to know what it is undoing, and a second `undo` needs to know that the first one already consumed the latest event. So the accumulator carries history: `{ applied, balance }`, where `applied` is the list of signed deltas still in effect. A deposit or withdrawal appends its delta and adjusts the balance; an `undo` reads the last delta with `at(-1)`, removes it with `slice(0, -1)`, and subtracts it back out. The naive reading — \"undo reverses the previous event in the list\" — breaks on `deposit, deposit, undo, undo`: the second `undo` sees an `undo` as its predecessor and has nothing to reverse, leaving `10` instead of `0`. `reduce` with a history-carrying accumulator is the general shape of every replay, event-sourcing, and undo-stack problem; `at` and `slice` keep the history immutable at each step.",
+      "id": "event-log-with-undo",
+      "methods": [
+        "reduce",
+        "slice",
+        "at"
+      ],
+      "order": 16,
+      "solution": "interface AccountEvent {\n  amount?: number;\n  type: 'deposit' | 'undo' | 'withdraw';\n}\n\ninterface Replay {\n  applied: number[];\n  balance: number;\n}\n\nexport function solve(events: AccountEvent[]): number {\n  const { balance } = events.reduce<Replay>(\n    (state, { amount = 0, type }) => {\n      if (type === 'undo') {\n        const last = state.applied.at(-1);\n        if (last === undefined) {\n          return state;\n        }\n        return { applied: state.applied.slice(0, -1), balance: state.balance - last };\n      }\n      const delta = type === 'deposit' ? amount : -amount;\n      return { applied: [...state.applied, delta], balance: state.balance + delta };\n    },\n    { applied: [], balance: 0 },\n  );\n  return balance;\n}\n",
+      "starterCode": "interface AccountEvent {\n  amount?: number;\n  type: 'deposit' | 'undo' | 'withdraw';\n}\n\nexport function solve(events: AccountEvent[]): number {\n  // The accumulator needs history, not just a balance — keep the deltas still in effect.\n  return 0;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "amount": 10,
+                "type": "deposit"
+              },
+              {
+                "amount": 3,
+                "type": "withdraw"
+              },
+              {
+                "type": "undo"
+              }
+            ]
+          ],
+          "expected": 10,
+          "name": "undo reverses the latest event"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 10,
+                "type": "deposit"
+              },
+              {
+                "amount": 5,
+                "type": "deposit"
+              },
+              {
+                "type": "undo"
+              },
+              {
+                "type": "undo"
+              }
+            ]
+          ],
+          "expected": 0,
+          "name": "two undos reverse two events (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "type": "undo"
+              },
+              {
+                "amount": 4,
+                "type": "deposit"
+              }
+            ]
+          ],
+          "expected": 4,
+          "name": "undo with nothing to undo is ignored"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 10,
+                "type": "deposit"
+              },
+              {
+                "amount": 4,
+                "type": "withdraw"
+              }
+            ]
+          ],
+          "expected": 6,
+          "name": "no undos at all"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 10,
+                "type": "deposit"
+              },
+              {
+                "amount": 4,
+                "type": "withdraw"
+              },
+              {
+                "type": "undo"
+              },
+              {
+                "amount": 1,
+                "type": "deposit"
+              },
+              {
+                "type": "undo"
+              }
+            ]
+          ],
+          "expected": 10,
+          "name": "new event after an undo becomes the next undo target"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": 0,
+          "name": "empty log"
+        }
+      ],
+      "title": "Replay an event log",
+      "trap": "interface AccountEvent {\n  amount?: number;\n  type: 'deposit' | 'undo' | 'withdraw';\n}\n\nexport function solve(events: AccountEvent[]): number {\n  return events.reduce((balance, event, index) => {\n    if (event.type === 'undo') {\n      const previous = events[index - 1];\n      if (previous === undefined || previous.type === 'undo') {\n        return balance;\n      }\n      const amount = previous.amount ?? 0;\n      return previous.type === 'deposit' ? balance - amount : balance + amount;\n    }\n    const amount = event.amount ?? 0;\n    return event.type === 'deposit' ? balance + amount : balance - amount;\n  }, 0);\n}\n"
+    },
+    {
+      "categoryId": "reduce-and-folding",
+      "description": "Given files with slash-separated paths, return the total size under every directory, keyed by the directory's full path. A file counts toward *each* of its ancestors; a file with no directory counts toward nothing.\n\nSignature: `solve(files: { path: string; size: number }[]): Record<string, number>`\n\nExample: `solve([{ path: \"a/b/c.txt\", size: 5 }])` → `{ a: 5, \"a/b\": 5 }`.",
+      "difficulty": "expert",
+      "explanation": "Two folds nest here. The outer `reduce` walks the files and threads one totals record through all of them. For each file, `split(\"/\")` breaks the path into segments and `slice(0, -1)` drops the filename, leaving only directory segments. The inner `reduce` walks those segments and, at each index, rebuilds the ancestor path with `segments.slice(0, index + 1).join(\"/\")` — `\"a\"`, then `\"a/b\"`, then `\"a/b/c\"` — adding the file size to each. Seeding the inner fold with the *outer* accumulator is what lets one expression update the shared record without a temporary. The tempting version credits only the immediate parent — `\"a/b\"` but not `\"a\"` — which makes every top-level directory report nothing but its direct children. A root-level file has no directory segments, so its inner fold never runs.",
+      "id": "directory-totals",
+      "methods": [
+        "reduce",
+        "split",
+        "slice",
+        "join"
+      ],
+      "order": 17,
+      "solution": "interface FileEntry {\n  path: string;\n  size: number;\n}\n\nexport function solve(files: FileEntry[]): Record<string, number> {\n  return files.reduce<Record<string, number>>((totals, { path, size }) => {\n    const segments = path.split('/');\n    return segments.slice(0, -1).reduce((acc, _segment, index) => {\n      const directory = segments.slice(0, index + 1).join('/');\n      acc[directory] = (acc[directory] ?? 0) + size;\n      return acc;\n    }, totals);\n  }, {});\n}\n",
+      "starterCode": "interface FileEntry {\n  path: string;\n  size: number;\n}\n\nexport function solve(files: FileEntry[]): Record<string, number> {\n  // Outer fold over files; inner fold over each path's directory prefixes, seeded with the outer accumulator.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "path": "a/x.txt",
+                "size": 3
+              },
+              {
+                "path": "a/y.txt",
+                "size": 4
+              }
+            ]
+          ],
+          "expected": {
+            "a": 7
+          },
+          "name": "two files in one directory sum"
+        },
+        {
+          "args": [
+            [
+              {
+                "path": "a/b/c.txt",
+                "size": 5
+              }
+            ]
+          ],
+          "expected": {
+            "a": 5,
+            "a/b": 5
+          },
+          "name": "nested paths credit every ancestor (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "path": "readme.md",
+                "size": 9
+              }
+            ]
+          ],
+          "expected": {},
+          "name": "root-level file has no directory"
+        },
+        {
+          "args": [
+            [
+              {
+                "path": "a/x",
+                "size": 1
+              },
+              {
+                "path": "b/y",
+                "size": 2
+              }
+            ]
+          ],
+          "expected": {
+            "a": 1,
+            "b": 2
+          },
+          "name": "sibling directories stay separate"
+        },
+        {
+          "args": [
+            [
+              {
+                "path": "a/b/x",
+                "size": 1
+              },
+              {
+                "path": "a/y",
+                "size": 2
+              },
+              {
+                "path": "a/b/c/z",
+                "size": 4
+              }
+            ]
+          ],
+          "expected": {
+            "a": 7,
+            "a/b": 5,
+            "a/b/c": 4
+          },
+          "name": "mixed depths accumulate upward"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "no files"
+        }
+      ],
+      "title": "Cumulative directory sizes",
+      "trap": "interface FileEntry {\n  path: string;\n  size: number;\n}\n\nexport function solve(files: FileEntry[]): Record<string, number> {\n  return files.reduce<Record<string, number>>((totals, { path, size }) => {\n    const parent = path.split('/').slice(0, -1).join('/');\n    if (parent !== '') {\n      totals[parent] = (totals[parent] ?? 0) + size;\n    }\n    return totals;\n  }, {});\n}\n"
     },
     {
       "categoryId": "sorting-and-ordering",
@@ -3421,7 +4519,8 @@
           "name": "single submission"
         }
       ],
-      "title": "Stability is a feature"
+      "title": "Stability is a feature",
+      "trap": "interface Submission {\n  name: string;\n  score: number;\n}\n\nexport function solve(submissions: Submission[]): Submission[] {\n  return submissions.toSorted((a, b) => a.score - b.score).reverse();\n}\n"
     },
     {
       "categoryId": "sorting-and-ordering",
@@ -3917,7 +5016,8 @@
           "name": "empty input"
         }
       ],
-      "title": "Parse the valid integers"
+      "title": "Parse the valid integers",
+      "trap": "export function solve(entries: string[]): number[] {\n  return entries.flatMap((entry) => (Number.isNaN(Number(entry)) ? [] : [Number(entry)]));\n}\n"
     },
     {
       "categoryId": "flattening-and-composing",
@@ -4529,7 +5629,8 @@
           "name": "marks the last todo"
         }
       ],
-      "title": "Complete a todo, shallowly"
+      "title": "Complete a todo, shallowly",
+      "trap": "interface Todo {\n  done: boolean;\n  id: number;\n}\n\nexport function solve(todos: Todo[], index: number): Todo[] {\n  return todos.with(index, { done: true } as Todo);\n}\n"
     },
     {
       "categoryId": "immutable-updates",
@@ -5124,7 +6225,8 @@
           "name": "empty expense list"
         }
       ],
-      "title": "Total per category"
+      "title": "Total per category",
+      "trap": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  return Object.entries(groups).map(([category, items]) => ({\n    category,\n    total: items.reduce((sum, item) => sum + item.amount, 0),\n  }));\n}\n"
     },
     {
       "categoryId": "grouping-and-aggregation",
@@ -5234,7 +6336,8 @@
           "name": "empty list"
         }
       ],
-      "title": "Index by unique id"
+      "title": "Index by unique id",
+      "trap": "interface Item {\n  id: number;\n  name: string;\n}\n\nexport function solve(items: Item[]): Map<number, Item> {\n  const index = new Map<number, Item>();\n  for (const item of items) {\n    if (!index.has(item.id)) {\n      index.set(item.id, item);\n    }\n  }\n  return index;\n}\n"
     },
     {
       "categoryId": "grouping-and-aggregation",
@@ -5692,7 +6795,8 @@
           "name": "empty list"
         }
       ],
-      "title": "Unique by key, first wins"
+      "title": "Unique by key, first wins",
+      "trap": "interface User {\n  id: number;\n  name: string;\n}\n\nexport function solve(users: User[]): User[] {\n  return users.filter((user, index) => users.indexOf(user) === index);\n}\n"
     },
     {
       "categoryId": "tricks-and-patterns",
@@ -5801,7 +6905,8 @@
           "name": "empty array"
         }
       ],
-      "title": "Sliding windows"
+      "title": "Sliding windows",
+      "trap": "export function solve(xs: number[], k: number): number[][] {\n  return Array.from({ length: Math.max(0, xs.length - k) }, (_, index) => xs.slice(index, index + k));\n}\n"
     },
     {
       "categoryId": "tricks-and-patterns",
