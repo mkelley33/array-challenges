@@ -2277,6 +2277,81 @@
     },
     {
       "categoryId": "mapping-and-transforming",
+      "description": "Build a lookup object from an array of `{ code, name }` records so that `lookup[code]` gives the name. When two records share a `code`, the later one wins.\n\nSignature: `solve(items: { code: string; name: string }[]): Record<string, string>`",
+      "difficulty": "intermediate",
+      "explanation": "`Object.fromEntries` inverts `Object.entries`: it consumes an iterable of `[key, value]` pairs and builds an object from them. Pairing it with `map` gives the idiomatic array-to-lookup transform — `items.map((item) => [item.code, item.name])` reshapes each record into an entry pair, and `Object.fromEntries` assembles the object in one step, replacing the old `reduce`-with-accumulator boilerplate. Duplicate keys resolve by assignment order: pairs are applied left to right, so a later pair with the same key silently overwrites the earlier one — “last write wins,” exactly like repeated assignments to the same property. That makes input order load-bearing when duplicates are possible, which is worth a comment in real code.",
+      "id": "entries-to-lookup",
+      "methods": [
+        "map",
+        "Object.fromEntries"
+      ],
+      "order": 5,
+      "solution": "export function solve(items: { code: string; name: string }[]): Record<string, string> {\n  return Object.fromEntries(items.map((item): [string, string] => [item.code, item.name]));\n}\n",
+      "starterCode": "export function solve(items: { code: string; name: string }[]): Record<string, string> {\n  // map each record to a [key, value] pair, then let Object.fromEntries assemble them.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "code": "US",
+                "name": "United States"
+              },
+              {
+                "code": "FR",
+                "name": "France"
+              }
+            ]
+          ],
+          "expected": {
+            "FR": "France",
+            "US": "United States"
+          },
+          "name": "builds a code-to-name lookup"
+        },
+        {
+          "args": [
+            [
+              {
+                "code": "US",
+                "name": "first"
+              },
+              {
+                "code": "US",
+                "name": "second"
+              }
+            ]
+          ],
+          "expected": {
+            "US": "second"
+          },
+          "name": "later duplicate code wins"
+        },
+        {
+          "args": [
+            [
+              {
+                "code": "JP",
+                "name": "Japan"
+              }
+            ]
+          ],
+          "expected": {
+            "JP": "Japan"
+          },
+          "name": "single entry"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "empty list gives an empty object"
+        }
+      ],
+      "title": "Entries to lookup"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
       "description": "Zip two arrays into pairs: `solve(['a', 'b'], [1, 2])` gives `[['a', 1], ['b', 2]]`. When the arrays differ in length, truncate to the shorter one — no `undefined` padding.\n\nSignature: `solve(left: string[], right: number[]): [string, number][]`",
       "difficulty": "advanced",
       "explanation": "The zip pattern rides on `map`’s index argument: mapping over one array while indexing into the other pairs elements positionally — `(item, index) => [item, right[index]]`. The subtlety is *which* array to map over. Mapping over the longer one produces pairs with `undefined` holes where the shorter array ran out, so the move is to cut down to the common length first: `left.slice(0, Math.min(left.length, right.length))` guarantees every index that `map` visits exists in *both* arrays. `slice` returns a new array, so neither input is disturbed, and when either side is empty the sliced length is 0 and `map` simply never runs.",
@@ -2284,7 +2359,7 @@
       "methods": [
         "map"
       ],
-      "order": 5,
+      "order": 6,
       "solution": "export function solve(left: string[], right: number[]): [string, number][] {\n  const length = Math.min(left.length, right.length);\n  return left.slice(0, length).map((item, index): [string, number] => [item, right[index]]);\n}\n",
       "starterCode": "export function solve(left: string[], right: number[]): [string, number][] {\n  // map over the SHORTER side (slice to the min length), pairing by index.\n  return [];\n}\n",
       "tests": [
@@ -2395,78 +2470,1361 @@
     },
     {
       "categoryId": "mapping-and-transforming",
-      "description": "Build a lookup object from an array of `{ code, name }` records so that `lookup[code]` gives the name. When two records share a `code`, the later one wins.\n\nSignature: `solve(items: { code: string; name: string }[]): Record<string, string>`",
-      "difficulty": "expert",
-      "explanation": "`Object.fromEntries` inverts `Object.entries`: it consumes an iterable of `[key, value]` pairs and builds an object from them. Pairing it with `map` gives the idiomatic array-to-lookup transform — `items.map((item) => [item.code, item.name])` reshapes each record into an entry pair, and `Object.fromEntries` assembles the object in one step, replacing the old `reduce`-with-accumulator boilerplate. Duplicate keys resolve by assignment order: pairs are applied left to right, so a later pair with the same key silently overwrites the earlier one — “last write wins,” exactly like repeated assignments to the same property. That makes input order load-bearing when duplicates are possible, which is worth a comment in real code.",
-      "id": "entries-to-lookup",
+      "description": "Render log rows as text: each row becomes one comma-separated line and the lines are joined with newlines. A cell may itself be a list — `[200, \"OK\"]` renders inline as `200,OK` — and a missing cell (`null` or `undefined`) renders as nothing at all, so `[\"GET\", null, 200]` becomes `GET,,200`.\n\nSignature: `solve(rows: (string | number | null | undefined | (string | number)[])[][]): string`\n\nAn array already knows how to render itself this way — `toString` does every part of the job.",
+      "difficulty": "advanced",
+      "explanation": "`Array.prototype.toString` is `join(\",\")` with two behaviours people forget. It converts each element with the abstract ToString operation, which renders `null` and `undefined` as the *empty string* — unlike `String(null)`, which gives `\"null\"` — and because an array’s own ToString is itself `join`, a nested array renders flattened and inline: `[200, [\"OK\"]]` becomes `\"200,OK\"`. So `map` turns each row into its line with `row.toString()` and `join(\"\\n\")` stacks the lines. The tempting version, `row.map(String).join(\",\")`, converts each cell explicitly and prints the literal words `null` and `undefined` into the log. `JSON.stringify` is wrong in the other direction: it keeps brackets and quotes. When the target format is exactly “comma-separated, blank for missing”, the array already knows how to render itself; the mistake is doing by hand what ToString already does.",
+      "id": "log-rows-to-lines",
       "methods": [
+        "toString",
         "map",
-        "Object.fromEntries"
+        "join"
       ],
-      "order": 6,
-      "solution": "export function solve(items: { code: string; name: string }[]): Record<string, string> {\n  return Object.fromEntries(items.map((item): [string, string] => [item.code, item.name]));\n}\n",
-      "starterCode": "export function solve(items: { code: string; name: string }[]): Record<string, string> {\n  // map each record to a [key, value] pair, then let Object.fromEntries assemble them.\n  return {};\n}\n",
+      "order": 7,
+      "solution": "type Cell = (number | string)[] | null | number | string | undefined;\n\nexport function solve(rows: Cell[][]): string {\n  return rows.map((row) => row.toString()).join('\\n');\n}\n",
+      "starterCode": "type Cell = (number | string)[] | null | number | string | undefined;\n\nexport function solve(rows: Cell[][]): string {\n  // Each row can render itself as one line — which method does that, and what does it print for null?\n  return '';\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                "GET",
+                "/home",
+                200
+              ],
+              [
+                "POST",
+                "/login",
+                302
+              ]
+            ]
+          ],
+          "expected": "GET,/home,200\nPOST,/login,302",
+          "name": "plain cells"
+        },
+        {
+          "args": [
+            [
+              [
+                "GET",
+                null,
+                200
+              ]
+            ]
+          ],
+          "expected": "GET,,200",
+          "name": "null cell renders as nothing (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                "GET",
+                {
+                  "$t": "undef"
+                },
+                200
+              ]
+            ]
+          ],
+          "expected": "GET,,200",
+          "name": "undefined cell renders as nothing (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                "GET",
+                [
+                  200,
+                  "OK"
+                ]
+              ]
+            ]
+          ],
+          "expected": "GET,200,OK",
+          "name": "nested list cell flattens inline"
+        },
+        {
+          "args": [
+            [
+              [
+                "a"
+              ],
+              [],
+              [
+                "b"
+              ]
+            ]
+          ],
+          "expected": "a\n\nb",
+          "name": "empty row is an empty line"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": "",
+          "name": "no rows"
+        }
+      ],
+      "title": "Log rows to lines",
+      "trap": "type Cell = (number | string)[] | null | number | string | undefined;\n\nexport function solve(rows: Cell[][]): string {\n  return rows.map((row) => row.map(String).join(',')).join('\\n');\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Apply a percentage discount to every product and return a tuple `[discounted, products]`: the first element carries the new prices, rounded to whole cents; the second is the `products` array you were given — still holding the original prices.\n\nSignature: `solve(products: { name: string; price: number }[], percent: number): [{ name: string; price: number }[], { name: string; price: number }[]]`\n\n`map` returns a new array, but not new objects — that is the whole trap.",
+      "difficulty": "advanced",
+      "explanation": "`map` allocates a fresh outer array, and that is *all* it allocates: every element the callback receives is the very same object that sits in `products`. Writing `product.price = …` inside the callback therefore edits the caller’s data in place, and returning `product` just files the mutated object into the new array — both halves of the tuple end up pointing at objects with the discounted price, and the original is gone. The fix is to have the callback build a new object per element, `({ ...product, price: … })`, so the shallow copy of the array becomes a real copy at the depth you changed. `map` is still the right tool; the rule is that it copies the *container*, not the contents, and the contents are your responsibility. `Math.round` keeps the result in whole cents.",
+      "id": "discount-without-mutating",
+      "methods": [
+        "map"
+      ],
+      "order": 8,
+      "solution": "interface Product {\n  name: string;\n  price: number;\n}\n\nexport function solve(products: Product[], percent: number): [Product[], Product[]] {\n  const discounted = products.map((product) => ({\n    ...product,\n    price: Math.round((product.price * (100 - percent)) / 100),\n  }));\n  return [discounted, products];\n}\n",
+      "starterCode": "interface Product {\n  name: string;\n  price: number;\n}\n\nexport function solve(products: Product[], percent: number): [Product[], Product[]] {\n  // map hands you the same objects it was given — build a fresh one before changing price.\n  return [[], products];\n}\n",
       "tests": [
         {
           "args": [
             [
               {
-                "code": "US",
-                "name": "United States"
+                "name": "pen",
+                "price": 200
               },
               {
-                "code": "FR",
-                "name": "France"
+                "name": "ink",
+                "price": 1000
+              }
+            ],
+            50
+          ],
+          "expected": [
+            [
+              {
+                "name": "pen",
+                "price": 100
+              },
+              {
+                "name": "ink",
+                "price": 500
+              }
+            ],
+            [
+              {
+                "name": "pen",
+                "price": 200
+              },
+              {
+                "name": "ink",
+                "price": 1000
               }
             ]
           ],
-          "expected": {
-            "FR": "France",
-            "US": "United States"
-          },
-          "name": "builds a code-to-name lookup"
+          "name": "original keeps its prices (trap)"
         },
         {
           "args": [
             [
               {
-                "code": "US",
-                "name": "first"
-              },
+                "name": "gum",
+                "price": 99
+              }
+            ],
+            10
+          ],
+          "expected": [
+            [
               {
-                "code": "US",
-                "name": "second"
+                "name": "gum",
+                "price": 89
+              }
+            ],
+            [
+              {
+                "name": "gum",
+                "price": 99
               }
             ]
           ],
-          "expected": {
-            "US": "second"
-          },
-          "name": "later duplicate code wins"
+          "name": "rounds to whole cents (trap)"
         },
         {
           "args": [
             [
               {
-                "code": "JP",
-                "name": "Japan"
+                "name": "tag",
+                "price": 5
+              }
+            ],
+            50
+          ],
+          "expected": [
+            [
+              {
+                "name": "tag",
+                "price": 3
+              }
+            ],
+            [
+              {
+                "name": "tag",
+                "price": 5
               }
             ]
           ],
+          "name": "half a cent rounds up (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "cup",
+                "price": 50
+              }
+            ],
+            0
+          ],
+          "expected": [
+            [
+              {
+                "name": "cup",
+                "price": 50
+              }
+            ],
+            [
+              {
+                "name": "cup",
+                "price": 50
+              }
+            ]
+          ],
+          "name": "zero percent leaves prices alone"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "cup",
+                "price": 50
+              }
+            ],
+            100
+          ],
+          "expected": [
+            [
+              {
+                "name": "cup",
+                "price": 0
+              }
+            ],
+            [
+              {
+                "name": "cup",
+                "price": 50
+              }
+            ]
+          ],
+          "name": "full discount is free"
+        },
+        {
+          "args": [
+            [],
+            25
+          ],
+          "expected": [
+            [],
+            []
+          ],
+          "name": "no products"
+        }
+      ],
+      "title": "Discount without mutating",
+      "trap": "interface Product {\n  name: string;\n  price: number;\n}\n\nexport function solve(products: Product[], percent: number): [Product[], Product[]] {\n  const discounted = products.map((product) => {\n    product.price = Math.round((product.price * (100 - percent)) / 100);\n    return product;\n  });\n  return [discounted, products];\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Reverse the letters of every word in `sentence` while keeping the words in their original order, separated by single spaces: `\"hello world\"` becomes `\"olleh dlrow\"`.\n\nSignature: `solve(sentence: string): string`\n\nSplit, `map` each word through a reversal, and `join` — and check what `join` does when you pass it nothing.",
+      "difficulty": "advanced",
+      "explanation": "`join` has a default separator, and it is not the empty string: called with no argument it inserts a comma, so `[\"c\", \"b\", \"a\"].join()` is `\"c,b,a\"` and the reversed word comes out as `\"o,l,l,e,h\"`. Passing `\"\"` explicitly is the only way to concatenate. The rest of the pipeline is a textbook nested transform: `split(\" \")` breaks the sentence into words, `map` reverses each word in isolation by spreading it into characters, reversing, and joining with `\"\"`, and the outer `join(\" \")` restores the spaces. Keeping the inner and outer separators distinct is what makes the structure survive: the inner `join` glues letters, the outer glues words. An empty sentence splits into `[\"\"]`, reverses to `\"\"`, and joins back to `\"\"`, so no guard is needed.",
+      "id": "reverse-each-word",
+      "methods": [
+        "join",
+        "map"
+      ],
+      "order": 9,
+      "solution": "export function solve(sentence: string): string {\n  return sentence\n    .split(' ')\n    .map((word) => [...word].reverse().join(''))\n    .join(' ');\n}\n",
+      "starterCode": "export function solve(sentence: string): string {\n  // Words are joined by spaces; letters inside a word are joined by nothing — say so explicitly.\n  return sentence;\n}\n",
+      "tests": [
+        {
+          "args": [
+            "hello world"
+          ],
+          "expected": "olleh dlrow",
+          "name": "two words (trap)"
+        },
+        {
+          "args": [
+            "abc"
+          ],
+          "expected": "cba",
+          "name": "single word (trap)"
+        },
+        {
+          "args": [
+            "a b c"
+          ],
+          "expected": "a b c",
+          "name": "single letters are unchanged"
+        },
+        {
+          "args": [
+            "level up"
+          ],
+          "expected": "level pu",
+          "name": "palindrome word stays put"
+        },
+        {
+          "args": [
+            ""
+          ],
+          "expected": "",
+          "name": "empty string"
+        }
+      ],
+      "title": "Reverse each word",
+      "trap": "export function solve(sentence: string): string {\n  return sentence\n    .split(' ')\n    .map((word) => [...word].reverse().join())\n    .join(' ');\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Return every character of `text` wrapped in square brackets: `\"ab\"` becomes `[\"[a]\", \"[b]\"]`. Characters outside the Basic Multilingual Plane — emoji such as `\"😀\"` — must stay in one piece.\n\nSignature: `solve(text: string): string[]`\n\nHow you turn the string into an array decides whether an emoji survives the `map`.",
+      "difficulty": "advanced",
+      "explanation": "`split(\"\")` slices a string at every UTF-16 *code unit*, and an emoji like `\"😀\"` is stored as a surrogate pair — two code units — so it splits into two broken halves that each render as `�`. The string iterator, reached through spread (`[...text]`) or `Array.from(text)`, walks *code points* instead and yields the emoji whole. Once the array holds real characters, `map` is the natural one-to-one transform: every character becomes exactly one wrapped string, and the output length matches the character count a person would give. The trap is invisible on ASCII input, which is why the tests include emoji. When you need a per-character `map` over user text, always start from the iterator; `split(\"\")` is a legacy idiom from before strings were iterable.",
+      "id": "wrap-each-character",
+      "methods": [
+        "map"
+      ],
+      "order": 10,
+      "solution": "export function solve(text: string): string[] {\n  return [...text].map((char) => '[' + char + ']');\n}\n",
+      "starterCode": "export function solve(text: string): string[] {\n  // Get an array of characters first — the string iterator, not split(''), respects surrogate pairs.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            "ab"
+          ],
+          "expected": [
+            "[a]",
+            "[b]"
+          ],
+          "name": "ascii letters"
+        },
+        {
+          "args": [
+            "a😀b"
+          ],
+          "expected": [
+            "[a]",
+            "[😀]",
+            "[b]"
+          ],
+          "name": "emoji stays whole (trap)"
+        },
+        {
+          "args": [
+            "😀😀"
+          ],
+          "expected": [
+            "[😀]",
+            "[😀]"
+          ],
+          "name": "two emoji in a row (trap)"
+        },
+        {
+          "args": [
+            "x"
+          ],
+          "expected": [
+            "[x]"
+          ],
+          "name": "single character"
+        },
+        {
+          "args": [
+            ""
+          ],
+          "expected": [],
+          "name": "empty string"
+        }
+      ],
+      "title": "Wrap each character",
+      "trap": "export function solve(text: string): string[] {\n  return text.split('').map((char) => '[' + char + ']');\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Build a settings object from `[key, value]` pairs listed in priority order — user overrides first, then team settings, then defaults. When a key appears more than once, the *earliest* pair wins.\n\nSignature: `solve(pairs: [string, string][]): Record<string, string>`\n\n`Object.fromEntries` builds the object, but it has its own opinion about which duplicate wins.",
+      "difficulty": "advanced",
+      "explanation": "`Object.fromEntries` consumes its pairs in order and assigns each one, so with duplicates the *last* assignment stands — “last write wins”, the same as writing `obj.theme = \"dark\"` and then `obj.theme = \"light\"`. Fed a priority-ordered list directly, it therefore promotes the lowest-priority layer, and the user’s choice is silently overwritten by the default. The smallest correct move is to hand it the pairs in the opposite order: `pairs.toReversed()` makes the highest-priority pair the last one applied, and because `toReversed` copies rather than mutating, the caller’s list is untouched. The alternative is filtering to the first occurrence of each key before building, which is more code for the same result. The general lesson: whenever input order encodes priority, decide explicitly whether your builder keeps first or last — `Object.fromEntries`, `Map`, and spread all keep last.",
+      "id": "first-pair-wins",
+      "methods": [
+        "Object.fromEntries",
+        "toReversed"
+      ],
+      "order": 11,
+      "solution": "export function solve(pairs: [string, string][]): Record<string, string> {\n  return Object.fromEntries(pairs.toReversed());\n}\n",
+      "starterCode": "export function solve(pairs: [string, string][]): Record<string, string> {\n  // fromEntries applies pairs left to right, so the LAST duplicate wins — arrange the pairs accordingly.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                "theme",
+                "dark"
+              ],
+              [
+                "lang",
+                "en"
+              ],
+              [
+                "theme",
+                "light"
+              ]
+            ]
+          ],
           "expected": {
-            "JP": "Japan"
+            "lang": "en",
+            "theme": "dark"
           },
-          "name": "single entry"
+          "name": "user override beats the default (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                "a",
+                "1"
+              ],
+              [
+                "a",
+                "2"
+              ],
+              [
+                "a",
+                "3"
+              ]
+            ]
+          ],
+          "expected": {
+            "a": "1"
+          },
+          "name": "three layers of the same key (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                "x",
+                "1"
+              ],
+              [
+                "y",
+                "2"
+              ]
+            ]
+          ],
+          "expected": {
+            "x": "1",
+            "y": "2"
+          },
+          "name": "no duplicates"
+        },
+        {
+          "args": [
+            [
+              [
+                "k",
+                "v"
+              ]
+            ]
+          ],
+          "expected": {
+            "k": "v"
+          },
+          "name": "single pair"
         },
         {
           "args": [
             []
           ],
           "expected": {},
-          "name": "empty list gives an empty object"
+          "name": "no pairs"
         }
       ],
-      "title": "Entries to lookup"
+      "title": "First pair wins",
+      "trap": "export function solve(pairs: [string, string][]): Record<string, string> {\n  return Object.fromEntries(pairs);\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Convert a series of readings into changes: each output element is the reading minus the one before it, and the first reading (which has no predecessor) reports a change of `0`.\n\nSignature: `solve(readings: number[]): number[]`\n\n`map` gives you the index — the question is what sits at `index - 1` on the first step.",
+      "difficulty": "advanced",
+      "explanation": "A delta needs the previous element, and `map` makes it reachable through its second and third arguments, `(reading, index, array)`, so `readings[index - 1]` is the predecessor without any loop bookkeeping. The trap is the first step. At `index === 0` the lookup is `readings[-1]`, which is `undefined`, and `reading - undefined` is `NaN`; nothing throws, the array has the right length, and the poison sits at position 0 until a chart or a sum reveals it. The fix is to treat the first element explicitly — return `0` when `index === 0` — or to default the predecessor to the reading itself with `readings[index - 1] ?? reading`. Either way `map` remains the right shape for this problem, because every output depends on a *fixed* neighbourhood of the input; a running total, which depends on everything before it, belongs to `reduce`.",
+      "id": "deltas-from-previous",
+      "methods": [
+        "map"
+      ],
+      "order": 12,
+      "solution": "export function solve(readings: number[]): number[] {\n  return readings.map((reading, index) => (index === 0 ? 0 : reading - readings[index - 1]));\n}\n",
+      "starterCode": "export function solve(readings: number[]): number[] {\n  // Subtract the previous reading — and decide what \"previous\" means at index 0.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              10,
+              13,
+              11
+            ]
+          ],
+          "expected": [
+            0,
+            3,
+            -2
+          ],
+          "name": "rising then falling (trap)"
+        },
+        {
+          "args": [
+            [
+              7
+            ]
+          ],
+          "expected": [
+            0
+          ],
+          "name": "single reading has no delta (trap)"
+        },
+        {
+          "args": [
+            [
+              5,
+              5,
+              5
+            ]
+          ],
+          "expected": [
+            0,
+            0,
+            0
+          ],
+          "name": "flat series"
+        },
+        {
+          "args": [
+            [
+              -3,
+              -1,
+              -6
+            ]
+          ],
+          "expected": [
+            0,
+            2,
+            -5
+          ],
+          "name": "negative readings"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty series"
+        }
+      ],
+      "title": "Deltas from the previous reading",
+      "trap": "export function solve(readings: number[]): number[] {\n  return readings.map((reading, index) => reading - readings[index - 1]);\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Invert `lookup` so each value becomes a key whose value is the list of original keys that mapped to it, in their original order: `{ a: 1, b: 2, c: 1 }` becomes `{ \"1\": [\"a\", \"c\"], \"2\": [\"b\"] }`.\n\nSignature: `solve(lookup: Record<string, number>): Record<string, string[]>`\n\nThree steps compose here: take the entries apart, group the keys by value, and let `Object.fromEntries` put the result back together.",
+      "difficulty": "expert",
+      "explanation": "Inverting a record is only trivial when the values are unique. Because a plain `Object.fromEntries(entries.map(([k, v]) => [v, k]))` assigns pairs left to right, two keys sharing a value collapse to whichever came last, and the first key vanishes without a warning. The robust pipeline has three stages. `Object.entries` exposes the `[key, value]` pairs; `Map.groupBy` buckets those pairs by value, preserving encounter order inside each bucket, which is what keeps `[\"a\", \"c\"]` in the original order; then `map` reshapes each bucket into `[value, keys]` — projecting the pairs down to their keys — and `Object.fromEntries` reassembles the object. Grouping is the step the naive version skips: it turns a many-to-one relation into one-to-many explicitly, so no assignment ever overwrites another. Grouping by `String(value)` up front is deliberate: object keys are strings, and matching that early avoids a mismatch later.",
+      "id": "invert-with-collisions",
+      "methods": [
+        "Object.entries",
+        "Map.groupBy",
+        "map",
+        "Object.fromEntries"
+      ],
+      "order": 13,
+      "solution": "export function solve(lookup: Record<string, number>): Record<string, string[]> {\n  const grouped = Map.groupBy(Object.entries(lookup), ([, value]) => String(value));\n  return Object.fromEntries([...grouped].map(([value, pairs]) => [value, pairs.map(([key]) => key)]));\n}\n",
+      "starterCode": "export function solve(lookup: Record<string, number>): Record<string, string[]> {\n  // Entries out, group the pairs by value, map each group to [value, keys], entries back in.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            {
+              "a": 1,
+              "b": 2,
+              "c": 1
+            }
+          ],
+          "expected": {
+            "1": [
+              "a",
+              "c"
+            ],
+            "2": [
+              "b"
+            ]
+          },
+          "name": "two keys share a value (trap)"
+        },
+        {
+          "args": [
+            {
+              "x": 10,
+              "y": 20
+            }
+          ],
+          "expected": {
+            "10": [
+              "x"
+            ],
+            "20": [
+              "y"
+            ]
+          },
+          "name": "no collisions"
+        },
+        {
+          "args": [
+            {
+              "a": 0,
+              "b": 0,
+              "c": 0
+            }
+          ],
+          "expected": {
+            "0": [
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          "name": "every key shares one value (trap)"
+        },
+        {
+          "args": [
+            {
+              "only": 7
+            }
+          ],
+          "expected": {
+            "7": [
+              "only"
+            ]
+          },
+          "name": "single entry"
+        },
+        {
+          "args": [
+            {}
+          ],
+          "expected": {},
+          "name": "empty lookup"
+        }
+      ],
+      "title": "Invert a lookup, collisions included",
+      "trap": "export function solve(lookup: Record<string, number>): Record<string, string[]> {\n  return Object.fromEntries(Object.entries(lookup).map(([key, value]) => [value, [key]]));\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Rename the keys of every record according to `renames`, a plain object mapping old key → new key. Keys that are not in `renames` pass through unchanged, and a rename for a key the record does not have adds nothing.\n\nSignature: `solve(records: Record<string, unknown>[], renames: Record<string, string>): Record<string, unknown>[]`\n\nEach record is taken apart with `Object.entries`, reshaped with `map`, and rebuilt with `Object.fromEntries`.",
+      "difficulty": "expert",
+      "explanation": "A rename is a per-entry transform, so the record has to be dismantled into entries first. `Object.entries` yields `[key, value]` pairs, `map` swaps in the new name with `renames[key] ?? key` — the `??` is what lets unmapped keys pass through — and `Object.fromEntries` folds the pairs back into an object; the outer `map` applies that to every record. The tempting shortcut iterates the *mapping* instead of the record: `Object.entries(renames).map(([from, to]) => [to, record[from]])`. It drops every key the mapping does not mention, and for a renamed key the record lacks it manufactures `{ contact: undefined }`, a key that did not exist before. Driving the transform from the data rather than from the rules keeps the output a faithful reshaping of the input, and the mapping stays pure configuration that can be loaded from JSON.",
+      "id": "rename-keys-by-map",
+      "methods": [
+        "Object.entries",
+        "map",
+        "Object.fromEntries"
+      ],
+      "order": 14,
+      "solution": "export function solve(records: Record<string, unknown>[], renames: Record<string, string>): Record<string, unknown>[] {\n  return records.map((record) =>\n    Object.fromEntries(Object.entries(record).map(([key, value]) => [renames[key] ?? key, value])),\n  );\n}\n",
+      "starterCode": "export function solve(records: Record<string, unknown>[], renames: Record<string, string>): Record<string, unknown>[] {\n  // Walk each record's entries (not the mapping's), swap the key when a rename exists, rebuild the object.\n  return records;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "age": 36,
+                "first_name": "Ada"
+              }
+            ],
+            {
+              "first_name": "firstName"
+            }
+          ],
+          "expected": [
+            {
+              "age": 36,
+              "firstName": "Ada"
+            }
+          ],
+          "name": "snake_case to camelCase, other keys pass through (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1
+              }
+            ],
+            {
+              "email": "contact"
+            }
+          ],
+          "expected": [
+            {
+              "id": 1
+            }
+          ],
+          "name": "rename for an absent key adds nothing (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "a": 1,
+                "b": 2,
+                "c": 3
+              }
+            ],
+            {
+              "a": "x",
+              "c": "z"
+            }
+          ],
+          "expected": [
+            {
+              "b": 2,
+              "x": 1,
+              "z": 3
+            }
+          ],
+          "name": "several renames at once"
+        },
+        {
+          "args": [
+            [
+              {
+                "a": 1
+              },
+              {
+                "a": 2,
+                "b": 3
+              }
+            ],
+            {
+              "a": "alpha"
+            }
+          ],
+          "expected": [
+            {
+              "alpha": 1
+            },
+            {
+              "alpha": 2,
+              "b": 3
+            }
+          ],
+          "name": "records of different shapes"
+        },
+        {
+          "args": [
+            [
+              {
+                "k": "v"
+              }
+            ],
+            {}
+          ],
+          "expected": [
+            {
+              "k": "v"
+            }
+          ],
+          "name": "empty renames leaves records alone"
+        },
+        {
+          "args": [
+            [],
+            {
+              "a": "b"
+            }
+          ],
+          "expected": [],
+          "name": "no records"
+        }
+      ],
+      "title": "Rename keys from a mapping",
+      "trap": "export function solve(records: Record<string, unknown>[], renames: Record<string, string>): Record<string, unknown>[] {\n  return records.map((record) =>\n    Object.fromEntries(Object.entries(renames).map(([from, to]) => [to, record[from]])),\n  );\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Normalise `records` against `defaults`: every output object has exactly the keys of `defaults` — a key the record has keeps the record’s value (even when that value is `null`), a key it lacks takes the default, and any extra key on the record is dropped.\n\nSignature: `solve(records: Record<string, unknown>[], defaults: Record<string, unknown>): Record<string, unknown>[]`\n\nThe key list comes from `defaults`, so build each record from `Object.entries(defaults)` and `Object.fromEntries`.",
+      "difficulty": "expert",
+      "explanation": "`defaults` is doing double duty here: it supplies fallback values *and* it defines the exact set of keys the output may have. `Object.entries(defaults)` is therefore the right thing to iterate — one pair per allowed key — and `map` decides each pair’s value with `key in record ? record[key] : fallback`, which honours a present `null` because the `in` test asks about presence, not nullishness; `record[key] ?? fallback` would quietly replace it. `Object.fromEntries` then assembles the conformed object, and the outer `map` does it per record. Spreading, `{ ...defaults, ...record }`, is the tempting one-liner: it fills gaps correctly but copies every extra key straight through, so the output shape depends on whatever the caller sent. Driving the build from the schema makes the output shape a guarantee rather than a hope.",
+      "id": "conform-records-to-defaults",
+      "methods": [
+        "Object.entries",
+        "map",
+        "Object.fromEntries"
+      ],
+      "order": 15,
+      "solution": "export function solve(\n  records: Record<string, unknown>[],\n  defaults: Record<string, unknown>,\n): Record<string, unknown>[] {\n  return records.map((record) =>\n    Object.fromEntries(\n      Object.entries(defaults).map(([key, fallback]) => [key, key in record ? record[key] : fallback]),\n    ),\n  );\n}\n",
+      "starterCode": "export function solve(\n  records: Record<string, unknown>[],\n  defaults: Record<string, unknown>,\n): Record<string, unknown>[] {\n  // Iterate the entries of defaults, not of the record — and test presence with \"in\", not ??.\n  return records;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "role": "admin"
+              }
+            ],
+            {
+              "active": true,
+              "name": ""
+            }
+          ],
+          "expected": [
+            {
+              "active": true,
+              "name": "Ada"
+            }
+          ],
+          "name": "extra keys are dropped (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Bob"
+              }
+            ],
+            {
+              "active": true,
+              "name": ""
+            }
+          ],
+          "expected": [
+            {
+              "active": true,
+              "name": "Bob"
+            }
+          ],
+          "name": "missing keys take the default"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": null
+              }
+            ],
+            {
+              "name": "anon"
+            }
+          ],
+          "expected": [
+            {
+              "name": null
+            }
+          ],
+          "name": "null is a value, not a gap"
+        },
+        {
+          "args": [
+            [
+              {},
+              {
+                "a": 2,
+                "z": 9
+              }
+            ],
+            {
+              "a": 1,
+              "b": 2
+            }
+          ],
+          "expected": [
+            {
+              "a": 1,
+              "b": 2
+            },
+            {
+              "a": 2,
+              "b": 2
+            }
+          ],
+          "name": "mixed records"
+        },
+        {
+          "args": [
+            [],
+            {
+              "a": 1
+            }
+          ],
+          "expected": [],
+          "name": "no records"
+        }
+      ],
+      "title": "Conform records to a schema",
+      "trap": "export function solve(\n  records: Record<string, unknown>[],\n  defaults: Record<string, unknown>,\n): Record<string, unknown>[] {\n  return records.map((record) => ({ ...defaults, ...record }));\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Render a rectangular grid of strings as an aligned text table: every cell is padded on the right to the width of the widest cell *in its column*, cells are joined with `\" | \"`, and rows are joined with newlines. No rows renders as an empty string.\n\nSignature: `solve(rows: string[][]): string`\n\nColumn widths need a pass down each column before `map` and `join` can lay out the rows.",
+      "difficulty": "expert",
+      "explanation": "A table is aligned by *column*, so the widths must be measured across rows before any row can be rendered — that is the transpose-shaped step. `rows[0].map((_, column) => Math.max(...rows.map((row) => row[column].length)))` walks the columns of the first row and, for each, looks down every row to find the widest cell. With the widths known, rendering is two nested `map`s and two `join`s: each cell is `padEnd`ed to its column width, cells are joined with `\" | \"`, and rows with `\"\\n\"`. The tempting shortcut measures each row on its own, which pads every cell in a row to that row’s widest cell — the columns drift the moment a longer value shows up further down. The empty guard matters too: `rows[0]` is `undefined` when there are no rows, and `Math.max()` of nothing is `-Infinity`.",
+      "id": "ascii-table",
+      "methods": [
+        "map",
+        "join",
+        "padEnd"
+      ],
+      "order": 16,
+      "solution": "export function solve(rows: string[][]): string {\n  if (rows.length === 0) {\n    return '';\n  }\n  const widths = rows[0].map((_cell, column) => Math.max(...rows.map((row) => row[column].length)));\n  return rows.map((row) => row.map((cell, column) => cell.padEnd(widths[column])).join(' | ')).join('\\n');\n}\n",
+      "starterCode": "export function solve(rows: string[][]): string {\n  // Measure each column across ALL rows first, then padEnd every cell to its column's width.\n  return '';\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              [
+                "id",
+                "name"
+              ],
+              [
+                "1",
+                "Grace Hopper"
+              ]
+            ]
+          ],
+          "expected": "id | name        \n1  | Grace Hopper",
+          "name": "widest cell sits in a later row (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                "a",
+                "b"
+              ],
+              [
+                "c",
+                "d"
+              ]
+            ]
+          ],
+          "expected": "a | b\nc | d",
+          "name": "already equal widths"
+        },
+        {
+          "args": [
+            [
+              [
+                "x",
+                "yy",
+                "zzz"
+              ]
+            ]
+          ],
+          "expected": "x | yy | zzz",
+          "name": "single row"
+        },
+        {
+          "args": [
+            [
+              [
+                "one"
+              ],
+              [
+                "three"
+              ],
+              [
+                "sixty"
+              ]
+            ]
+          ],
+          "expected": "one  \nthree\nsixty",
+          "name": "single column"
+        },
+        {
+          "args": [
+            [
+              [
+                "",
+                "b"
+              ],
+              [
+                "aa",
+                ""
+              ]
+            ]
+          ],
+          "expected": "   | b\naa |  ",
+          "name": "empty cells are padded (trap)"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": "",
+          "name": "no rows"
+        }
+      ],
+      "title": "Render an ASCII table",
+      "trap": "export function solve(rows: string[][]): string {\n  return rows\n    .map((row) => {\n      const width = Math.max(...row.map((cell) => cell.length));\n      return row.map((cell) => cell.padEnd(width)).join(' | ');\n    })\n    .join('\\n');\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Flatten a nested object into a single level whose keys are dot-separated paths: `{ a: { b: 1, c: { d: 2 } }, e: 3 }` becomes `{ \"a.b\": 1, \"a.c.d\": 2, e: 3 }`. Only plain objects nest — arrays, `null`, and primitives are leaves. An empty nested object contributes nothing.\n\nSignature: `solve(source: Record<string, unknown>): Record<string, unknown>`\n\n`Object.entries`, a recursive `flatMap`, and `Object.fromEntries` do this in one expression each.",
+      "difficulty": "expert",
+      "explanation": "Flattening is recursion over entries, and `flatMap` is the method that lets a recursive step return *several* pairs or *none* and still land in one flat list. `Object.entries` opens the current level; for each `[key, value]` the callback either returns the single leaf pair `[path, value]` or recurses into a plain-object value with the extended prefix and returns everything it found — `flatMap` splices those results in at the right depth, which is why an empty nested object simply vanishes. `Object.fromEntries` turns the finished path list back into an object. The one-level version, mapping over `Object.entries(value)` inside the callback, handles `a.b` and stops: `a.c` comes back as a nested object instead of `a.c.d`. Recursing *through* the same helper is what makes depth irrelevant. The leaf test must exclude arrays and `null`: both report `typeof \"object\"`, and neither should be walked.",
+      "id": "flatten-object-paths",
+      "methods": [
+        "Object.entries",
+        "flatMap",
+        "Object.fromEntries"
+      ],
+      "order": 17,
+      "solution": "function isPlainObject(value: unknown): value is Record<string, unknown> {\n  return typeof value === 'object' && value !== null && !Array.isArray(value);\n}\n\nfunction pathEntries(source: Record<string, unknown>, prefix: string): [string, unknown][] {\n  return Object.entries(source).flatMap(([key, value]): [string, unknown][] => {\n    const path = prefix === '' ? key : prefix + '.' + key;\n    return isPlainObject(value) ? pathEntries(value, path) : [[path, value]];\n  });\n}\n\nexport function solve(source: Record<string, unknown>): Record<string, unknown> {\n  return Object.fromEntries(pathEntries(source, ''));\n}\n",
+      "starterCode": "export function solve(source: Record<string, unknown>): Record<string, unknown> {\n  // A helper that flatMaps entries and calls itself for plain-object values, carrying the path prefix.\n  return source;\n}\n",
+      "tests": [
+        {
+          "args": [
+            {
+              "a": {
+                "b": 1,
+                "c": {
+                  "d": 2
+                }
+              },
+              "e": 3
+            }
+          ],
+          "expected": {
+            "a.b": 1,
+            "a.c.d": 2,
+            "e": 3
+          },
+          "name": "three levels deep (trap)"
+        },
+        {
+          "args": [
+            {
+              "x": 1,
+              "y": "two"
+            }
+          ],
+          "expected": {
+            "x": 1,
+            "y": "two"
+          },
+          "name": "already flat"
+        },
+        {
+          "args": [
+            {
+              "list": {
+                "items": [
+                  1,
+                  2
+                ]
+              }
+            }
+          ],
+          "expected": {
+            "list.items": [
+              1,
+              2
+            ]
+          },
+          "name": "arrays are leaves"
+        },
+        {
+          "args": [
+            {
+              "a": {
+                "b": null
+              }
+            }
+          ],
+          "expected": {
+            "a.b": null
+          },
+          "name": "null is a leaf"
+        },
+        {
+          "args": [
+            {
+              "a": {},
+              "b": 1
+            }
+          ],
+          "expected": {
+            "b": 1
+          },
+          "name": "empty nested object contributes nothing"
+        },
+        {
+          "args": [
+            {}
+          ],
+          "expected": {},
+          "name": "empty source"
+        }
+      ],
+      "title": "Flatten nested keys into paths",
+      "trap": "function isPlainObject(value: unknown): value is Record<string, unknown> {\n  return typeof value === 'object' && value !== null && !Array.isArray(value);\n}\n\nexport function solve(source: Record<string, unknown>): Record<string, unknown> {\n  return Object.fromEntries(\n    Object.entries(source).flatMap(([key, value]): [string, unknown][] =>\n      isPlainObject(value) ? Object.entries(value).map(([inner, leaf]) => [key + '.' + inner, leaf]) : [[key, value]],\n    ),\n  );\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Serialise `params` as a URL query string: `key=value` pairs joined with `&`, keys in the object’s own order, every key and value passed through `encodeURIComponent`. An array value expands to one pair per element (`tags=x&tags=y`); a `null` or `undefined` value is omitted entirely. No pairs at all gives an empty string.\n\nSignature: `solve(params: Record<string, unknown>): string`\n\n`Object.entries`, `flatMap`, `map`, and `join` — and beware of what `String` does to an array.",
+      "difficulty": "expert",
+      "explanation": "The shape of this problem is one-to-*many*: a single entry can produce several pairs or none, which is exactly the case `map` cannot express and `flatMap` can. `Object.entries` exposes the pairs in insertion order; `flatMap` returns `[]` for a `null` or `undefined` value (dropping it), wraps a scalar in a one-element array, and `map`s each item to `key=value`, so an array value becomes one pair per element and an empty array becomes nothing; `join(\"&\")` closes the string. The tempting `map`-and-`String` version stringifies the array as `\"x,y\"` — `Array.prototype.toString` joining with commas — and then encodes the comma to `%2C`, producing a single parameter with a value the server will not split. `encodeURIComponent` on both key and value is the boundary that keeps `&`, `=`, and `/` from being read as syntax.",
+      "id": "query-string-from-object",
+      "methods": [
+        "Object.entries",
+        "flatMap",
+        "map",
+        "join"
+      ],
+      "order": 18,
+      "solution": "export function solve(params: Record<string, unknown>): string {\n  return Object.entries(params)\n    .flatMap(([key, value]) => {\n      if (value === null || value === undefined) {\n        return [];\n      }\n      const values = Array.isArray(value) ? value : [value];\n      return values.map((item) => encodeURIComponent(key) + '=' + encodeURIComponent(String(item)));\n    })\n    .join('&');\n}\n",
+      "starterCode": "export function solve(params: Record<string, unknown>): string {\n  // One entry can become zero pairs (null) or many (array) — that is flatMap territory, not map.\n  return '';\n}\n",
+      "tests": [
+        {
+          "args": [
+            {
+              "q": "a b",
+              "tags": [
+                "x",
+                "y"
+              ]
+            }
+          ],
+          "expected": "q=a%20b&tags=x&tags=y",
+          "name": "array value repeats the key (trap)"
+        },
+        {
+          "args": [
+            {
+              "a": 1,
+              "b": null,
+              "c": {
+                "$t": "undef"
+              },
+              "d": "x"
+            }
+          ],
+          "expected": "a=1&d=x",
+          "name": "null and undefined are omitted"
+        },
+        {
+          "args": [
+            {
+              "redirect": "/home?x=1&y=2"
+            }
+          ],
+          "expected": "redirect=%2Fhome%3Fx%3D1%26y%3D2",
+          "name": "special characters are encoded"
+        },
+        {
+          "args": [
+            {
+              "exact": false,
+              "page": 2
+            }
+          ],
+          "expected": "exact=false&page=2",
+          "name": "booleans and numbers serialise as text"
+        },
+        {
+          "args": [
+            {
+              "page": 1,
+              "tags": []
+            }
+          ],
+          "expected": "page=1",
+          "name": "empty array contributes nothing (trap)"
+        },
+        {
+          "args": [
+            {}
+          ],
+          "expected": "",
+          "name": "no params"
+        }
+      ],
+      "title": "Object to query string",
+      "trap": "export function solve(params: Record<string, unknown>): string {\n  return Object.entries(params)\n    .filter(([, value]) => value !== null && value !== undefined)\n    .map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(String(value)))\n    .join('&');\n}\n"
+    },
+    {
+      "categoryId": "mapping-and-transforming",
+      "description": "Pivot flat sales rows into a nested table keyed by region, then by quarter, summing `amount` when the same region and quarter appear more than once: `[{ region: \"EU\", quarter: \"Q1\", amount: 5 }, { region: \"EU\", quarter: \"Q1\", amount: 2 }]` becomes `{ EU: { Q1: 7 } }`.\n\nSignature: `solve(rows: { amount: number; quarter: string; region: string }[]): Record<string, Record<string, number>>`\n\nGroup, then `reduce` each group into its quarter totals, then let `map` and `Object.fromEntries` rebuild the outer object.",
+      "difficulty": "expert",
+      "explanation": "A pivot is a group-then-aggregate, and each half has a method. `Map.groupBy` splits the rows by `region` into buckets that keep encounter order; spreading the map yields `[region, rows]` pairs, `map` turns each bucket into `[region, quarterTotals]`, and `Object.fromEntries` builds the outer object. The inner step is where the trap lives: `Object.fromEntries(sales.map(({ quarter, amount }) => [quarter, amount]))` looks like the obvious mirror of the outer step, but `Object.fromEntries` keeps the *last* pair per key, so a second `Q1` row for the same region overwrites the first instead of adding to it. Aggregation needs a fold — `reduce` with a `{}` seed and `(totals[quarter] ?? 0) + amount` — so that every row contributes. The pattern generalises: whenever the inner key can repeat, the inner builder must be a `reduce`, not a `fromEntries`.",
+      "id": "pivot-sales-table",
+      "methods": [
+        "Map.groupBy",
+        "map",
+        "Object.fromEntries",
+        "reduce"
+      ],
+      "order": 19,
+      "solution": "interface SaleRow {\n  amount: number;\n  quarter: string;\n  region: string;\n}\n\nexport function solve(rows: SaleRow[]): Record<string, Record<string, number>> {\n  const byRegion = Map.groupBy(rows, (row) => row.region);\n  return Object.fromEntries(\n    [...byRegion].map(([region, sales]) => [\n      region,\n      sales.reduce<Record<string, number>>((totals, { amount, quarter }) => {\n        totals[quarter] = (totals[quarter] ?? 0) + amount;\n        return totals;\n      }, {}),\n    ]),\n  );\n}\n",
+      "starterCode": "interface SaleRow {\n  amount: number;\n  quarter: string;\n  region: string;\n}\n\nexport function solve(rows: SaleRow[]): Record<string, Record<string, number>> {\n  // Group by region, fold each group into quarter totals, then fromEntries the outer pairs.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "amount": 5,
+                "quarter": "Q1",
+                "region": "EU"
+              },
+              {
+                "amount": 2,
+                "quarter": "Q1",
+                "region": "EU"
+              }
+            ]
+          ],
+          "expected": {
+            "EU": {
+              "Q1": 7
+            }
+          },
+          "name": "repeated region and quarter sum (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 5,
+                "quarter": "Q1",
+                "region": "EU"
+              },
+              {
+                "amount": 3,
+                "quarter": "Q1",
+                "region": "US"
+              },
+              {
+                "amount": 4,
+                "quarter": "Q2",
+                "region": "EU"
+              },
+              {
+                "amount": 1,
+                "quarter": "Q2",
+                "region": "US"
+              }
+            ]
+          ],
+          "expected": {
+            "EU": {
+              "Q1": 5,
+              "Q2": 4
+            },
+            "US": {
+              "Q1": 3,
+              "Q2": 1
+            }
+          },
+          "name": "two regions, two quarters"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "quarter": "Q1",
+                "region": "EU"
+              },
+              {
+                "amount": 9,
+                "quarter": "Q3",
+                "region": "US"
+              }
+            ]
+          ],
+          "expected": {
+            "EU": {
+              "Q1": 1
+            },
+            "US": {
+              "Q3": 9
+            }
+          },
+          "name": "regions with different quarters"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "quarter": "Q1",
+                "region": "EU"
+              },
+              {
+                "amount": 1,
+                "quarter": "Q1",
+                "region": "US"
+              },
+              {
+                "amount": 1,
+                "quarter": "Q1",
+                "region": "EU"
+              }
+            ]
+          ],
+          "expected": {
+            "EU": {
+              "Q1": 2
+            },
+            "US": {
+              "Q1": 1
+            }
+          },
+          "name": "interleaved rows still sum (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 12,
+                "quarter": "Q4",
+                "region": "APAC"
+              }
+            ]
+          ],
+          "expected": {
+            "APAC": {
+              "Q4": 12
+            }
+          },
+          "name": "single row"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "no rows"
+        }
+      ],
+      "title": "Pivot rows into a nested table",
+      "trap": "interface SaleRow {\n  amount: number;\n  quarter: string;\n  region: string;\n}\n\nexport function solve(rows: SaleRow[]): Record<string, Record<string, number>> {\n  const byRegion = Map.groupBy(rows, (row) => row.region);\n  return Object.fromEntries(\n    [...byRegion].map(([region, sales]) => [\n      region,\n      Object.fromEntries(sales.map(({ amount, quarter }) => [quarter, amount])),\n    ]),\n  );\n}\n"
     },
     {
       "categoryId": "reduce-and-folding",
