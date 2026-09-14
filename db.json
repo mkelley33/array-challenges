@@ -6118,126 +6118,14 @@
     },
     {
       "categoryId": "grouping-and-aggregation",
-      "description": "Total the `amount` spent per `category` and return one `{ category, total }` object per category, sorted ascending by category name so the output is deterministic.\n\nSignature: `solve(expenses: { category: string; amount: number }[]): { category: string; total: number }[]`\n\nThis is the group-then-aggregate pipeline: bucket first, then fold each bucket down to one number.",
-      "difficulty": "advanced",
-      "explanation": "Grouping and aggregating are separate steps, and keeping them separate keeps each trivial: `Object.groupBy` buckets the expenses by category, `Object.entries` turns the resulting object back into an iterable of `[category, items]` pairs, and `map` collapses each bucket into `{ category, total }` with a `reduce` over the amounts. The final `sort` matters because object key order follows insertion order of the input, which is an accident of the data — sorting by name makes the output stable no matter how the expenses arrived. This groupBy → entries → map pipeline is the idiomatic replacement for a hand-rolled accumulator object.",
-      "id": "total-per-category",
-      "methods": [
-        "Object.groupBy",
-        "map"
-      ],
-      "order": 4,
-      "solution": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  return Object.entries(groups)\n    .map(([category, items]) => ({\n      category,\n      total: items.reduce((sum, item) => sum + item.amount, 0),\n    }))\n    .sort((a, b) => a.category.localeCompare(b.category));\n}\n",
-      "starterCode": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  // Pipeline: Object.groupBy → Object.entries → map each [category, items] pair → sort by name.\n  return [];\n}\n",
-      "tests": [
-        {
-          "args": [
-            [
-              {
-                "amount": 12,
-                "category": "food"
-              },
-              {
-                "amount": 50,
-                "category": "travel"
-              },
-              {
-                "amount": 8,
-                "category": "food"
-              },
-              {
-                "amount": 5,
-                "category": "office"
-              }
-            ]
-          ],
-          "expected": [
-            {
-              "category": "food",
-              "total": 20
-            },
-            {
-              "category": "office",
-              "total": 5
-            },
-            {
-              "category": "travel",
-              "total": 50
-            }
-          ],
-          "name": "totals per category, sorted by name"
-        },
-        {
-          "args": [
-            [
-              {
-                "amount": 1,
-                "category": "food"
-              },
-              {
-                "amount": 2,
-                "category": "food"
-              },
-              {
-                "amount": 3,
-                "category": "food"
-              }
-            ]
-          ],
-          "expected": [
-            {
-              "category": "food",
-              "total": 6
-            }
-          ],
-          "name": "single category sums all amounts"
-        },
-        {
-          "args": [
-            [
-              {
-                "amount": 1,
-                "category": "zoo"
-              },
-              {
-                "amount": 2,
-                "category": "apple"
-              }
-            ]
-          ],
-          "expected": [
-            {
-              "category": "apple",
-              "total": 2
-            },
-            {
-              "category": "zoo",
-              "total": 1
-            }
-          ],
-          "name": "input order does not dictate output order"
-        },
-        {
-          "args": [
-            []
-          ],
-          "expected": [],
-          "name": "empty expense list"
-        }
-      ],
-      "title": "Total per category",
-      "trap": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  return Object.entries(groups).map(([category, items]) => ({\n    category,\n    total: items.reduce((sum, item) => sum + item.amount, 0),\n  }));\n}\n"
-    },
-    {
-      "categoryId": "grouping-and-aggregation",
       "description": "Index an array of items by their unique `id`: build a `Map` from each id to the item itself, so lookups become `O(1)`. If two items share an id, the *later* one wins.\n\nSignature: `solve(items: { id: number; name: string }[]): Map<number, { id: number; name: string }>`\n\nThis is keyBy (one value per key), not groupBy (an array per key).",
-      "difficulty": "advanced",
+      "difficulty": "intermediate",
       "explanation": "The `Map` constructor accepts any iterable of `[key, value]` pairs, so `items.map((item) => [item.id, item])` followed by `new Map(...)` builds the whole index in one expression. Contrast the two shapes: groupBy is 1:many — every key holds an *array* of members — while keyBy is 1:1, each key holding a single item, which is what you want when ids are unique and you need constant-time lookup instead of a linear `find` per access. Because `Map.prototype.set` overwrites existing keys, feeding duplicate ids means the last pair processed silently replaces the earlier one — later-duplicate-wins — so keyBy also doubles as “latest record per id” when applied to an append-only log.",
       "id": "index-items-by-id",
       "methods": [
         "map"
       ],
-      "order": 5,
+      "order": 4,
       "solution": "interface Item {\n  id: number;\n  name: string;\n}\n\nexport function solve(items: Item[]): Map<number, Item> {\n  return new Map(items.map((item): [number, Item] => [item.id, item]));\n}\n",
       "starterCode": "interface Item {\n  id: number;\n  name: string;\n}\n\nexport function solve(items: Item[]): Map<number, Item> {\n  // new Map(...) accepts an iterable of [key, value] pairs — map each item into one.\n  return new Map();\n}\n",
       "tests": [
@@ -6336,8 +6224,1032 @@
           "name": "empty list"
         }
       ],
-      "title": "Index by unique id",
-      "trap": "interface Item {\n  id: number;\n  name: string;\n}\n\nexport function solve(items: Item[]): Map<number, Item> {\n  const index = new Map<number, Item>();\n  for (const item of items) {\n    if (!index.has(item.id)) {\n      index.set(item.id, item);\n    }\n  }\n  return index;\n}\n"
+      "title": "Index by unique id"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Total the `amount` spent per `category` and return one `{ category, total }` object per category, sorted ascending by category name so the output is deterministic.\n\nSignature: `solve(expenses: { category: string; amount: number }[]): { category: string; total: number }[]`\n\nThis is the group-then-aggregate pipeline: bucket first, then fold each bucket down to one number.",
+      "difficulty": "advanced",
+      "explanation": "Grouping and aggregating are separate steps, and keeping them separate keeps each trivial: `Object.groupBy` buckets the expenses by category, `Object.entries` turns the resulting object back into an iterable of `[category, items]` pairs, and `map` collapses each bucket into `{ category, total }` with a `reduce` over the amounts. The final `sort` matters because object key order follows insertion order of the input, which is an accident of the data — sorting by name makes the output stable no matter how the expenses arrived. This groupBy → entries → map pipeline is the idiomatic replacement for a hand-rolled accumulator object.",
+      "id": "total-per-category",
+      "methods": [
+        "Object.groupBy",
+        "map"
+      ],
+      "order": 5,
+      "solution": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  return Object.entries(groups)\n    .map(([category, items]) => ({\n      category,\n      total: items.reduce((sum, item) => sum + item.amount, 0),\n    }))\n    .sort((a, b) => a.category.localeCompare(b.category));\n}\n",
+      "starterCode": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  // Pipeline: Object.groupBy → Object.entries → map each [category, items] pair → sort by name.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "amount": 12,
+                "category": "food"
+              },
+              {
+                "amount": 50,
+                "category": "travel"
+              },
+              {
+                "amount": 8,
+                "category": "food"
+              },
+              {
+                "amount": 5,
+                "category": "office"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "category": "food",
+              "total": 20
+            },
+            {
+              "category": "office",
+              "total": 5
+            },
+            {
+              "category": "travel",
+              "total": 50
+            }
+          ],
+          "name": "totals per category, sorted by name"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "food"
+              },
+              {
+                "amount": 2,
+                "category": "food"
+              },
+              {
+                "amount": 3,
+                "category": "food"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "category": "food",
+              "total": 6
+            }
+          ],
+          "name": "single category sums all amounts"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "zoo"
+              },
+              {
+                "amount": 2,
+                "category": "apple"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "category": "apple",
+              "total": 2
+            },
+            {
+              "category": "zoo",
+              "total": 1
+            }
+          ],
+          "name": "input order does not dictate output order (trap)"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty expense list"
+        }
+      ],
+      "title": "Total per category",
+      "trap": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface CategoryTotal {\n  category: string;\n  total: number;\n}\n\nexport function solve(expenses: Expense[]): CategoryTotal[] {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  return Object.entries(groups).map(([category, items]) => ({\n    category,\n    total: items.reduce((sum, item) => sum + item.amount, 0),\n  }));\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Lay out a ticket board: group `tickets` by `status`, but the board needs a column for every status in `columns` — including the empty ones — and nothing else: a ticket whose status is not a listed column is dropped.\n\nSignature: `solve(tickets: { id: number; status: string }[], columns: string[]): Record<string, { id: number; status: string }[]>`\n\nTrap: `Object.groupBy` only creates the keys it meets — a column no ticket mentions never appears.",
+      "difficulty": "advanced",
+      "explanation": "`Object.groupBy` is driven entirely by the data: a key exists in the result only because some element produced it, and every key an element produces is kept. A board driven by a list of columns has the opposite contract — the *columns* decide which keys exist, and the data merely fills them. So the grouping is only half the job. The reference solution still lets `Object.groupBy` do the bucketing, then walks `columns` with `map` and reads each bucket with `groups[column] ?? []`, so an unmentioned status becomes an empty array instead of a missing key, and a status outside the list is never read at all. `Object.fromEntries` turns those `[column, tickets]` pairs back into the record. Returning the raw groupBy result fails both ways: the empty `done` column vanishes, and an `archived` ticket sneaks in.",
+      "id": "every-column-present",
+      "methods": [
+        "Object.groupBy",
+        "Object.fromEntries",
+        "map"
+      ],
+      "order": 6,
+      "solution": "interface Ticket {\n  id: number;\n  status: string;\n}\n\nexport function solve(tickets: Ticket[], columns: string[]): Record<string, Ticket[]> {\n  const groups = Object.groupBy(tickets, (ticket) => ticket.status);\n  return Object.fromEntries(columns.map((column): [string, Ticket[]] => [column, groups[column] ?? []]));\n}\n",
+      "starterCode": "interface Ticket {\n  id: number;\n  status: string;\n}\n\nexport function solve(tickets: Ticket[], columns: string[]): Record<string, Ticket[]> {\n  // groupBy only creates the keys it sees — walk columns yourself and fill the gaps with ?? [].\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "status": "open"
+              },
+              {
+                "id": 2,
+                "status": "done"
+              },
+              {
+                "id": 3,
+                "status": "open"
+              }
+            ],
+            [
+              "open",
+              "done"
+            ]
+          ],
+          "expected": {
+            "done": [
+              {
+                "id": 2,
+                "status": "done"
+              }
+            ],
+            "open": [
+              {
+                "id": 1,
+                "status": "open"
+              },
+              {
+                "id": 3,
+                "status": "open"
+              }
+            ]
+          },
+          "name": "every column has tickets"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "status": "open"
+              }
+            ],
+            [
+              "open",
+              "done"
+            ]
+          ],
+          "expected": {
+            "done": [],
+            "open": [
+              {
+                "id": 1,
+                "status": "open"
+              }
+            ]
+          },
+          "name": "column with no tickets is still present (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "status": "open"
+              },
+              {
+                "id": 2,
+                "status": "archived"
+              }
+            ],
+            [
+              "open"
+            ]
+          ],
+          "expected": {
+            "open": [
+              {
+                "id": 1,
+                "status": "open"
+              }
+            ]
+          },
+          "name": "ticket with an unlisted status is dropped (trap)"
+        },
+        {
+          "args": [
+            [],
+            [
+              "todo",
+              "doing"
+            ]
+          ],
+          "expected": {
+            "doing": [],
+            "todo": []
+          },
+          "name": "no tickets yields every column empty"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 5,
+                "status": "done"
+              },
+              {
+                "id": 2,
+                "status": "done"
+              }
+            ],
+            [
+              "done"
+            ]
+          ],
+          "expected": {
+            "done": [
+              {
+                "id": 5,
+                "status": "done"
+              },
+              {
+                "id": 2,
+                "status": "done"
+              }
+            ]
+          },
+          "name": "order inside a column follows input"
+        }
+      ],
+      "title": "Every column on the board",
+      "trap": "interface Ticket {\n  id: number;\n  status: string;\n}\n\nexport function solve(tickets: Ticket[], columns: string[]): Record<string, Ticket[]> {\n  return Object.groupBy(tickets, (ticket) => ticket.status) as Record<string, Ticket[]>;\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Count how many times each word appears in `words`, returning a plain object mapping word → count. The words come from user input, so any string is possible — including `\"constructor\"` and `\"toString\"`.\n\nSignature: `solve(words: string[]): Record<string, number>`\n\nTrap: a `{}` accumulator inherits from `Object.prototype`, so `counts[\"constructor\"]` is already defined before you have counted anything.",
+      "difficulty": "advanced",
+      "explanation": "The classic `reduce` into `{}` has a hole: a plain object literal inherits from `Object.prototype`, so `counts[\"constructor\"]` is the `Object` function before the first word is counted. `?? 0` does not help — a function is not nullish — and `Object + 1` produces a string, not a count. `Object.groupBy` sidesteps this because its result is a *null-prototype* object: there is nothing to inherit, so every key you read is either your own group or `undefined`. Grouping each word under itself gives one array per distinct word, `Object.entries` walks those `[word, occurrences]` pairs, and `Object.fromEntries` rebuilds the record with each array replaced by its `length`. The output is an ordinary object — its `constructor` key is now an own property holding `2` — which is exactly what the caller asked for.",
+      "id": "word-counts-without-prototype-leaks",
+      "methods": [
+        "Object.groupBy",
+        "Object.entries",
+        "Object.fromEntries"
+      ],
+      "order": 7,
+      "solution": "export function solve(words: string[]): Record<string, number> {\n  const groups = Object.groupBy(words, (word) => word) as Record<string, string[]>;\n  return Object.fromEntries(Object.entries(groups).map(([word, occurrences]) => [word, occurrences.length]));\n}\n",
+      "starterCode": "export function solve(words: string[]): Record<string, number> {\n  // Object.groupBy hands back a null-prototype object — nothing inherited can collide with a word.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "a"
+            ]
+          ],
+          "expected": {
+            "a": 2,
+            "b": 1
+          },
+          "name": "ordinary words count cleanly"
+        },
+        {
+          "args": [
+            [
+              "constructor",
+              "apple",
+              "constructor"
+            ]
+          ],
+          "expected": {
+            "apple": 1,
+            "constructor": 2
+          },
+          "name": "a word that names an inherited method (trap)"
+        },
+        {
+          "args": [
+            [
+              "toString"
+            ]
+          ],
+          "expected": {
+            "toString": 1
+          },
+          "name": "toString as a word (trap)"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "y"
+            ]
+          ],
+          "expected": {
+            "x": 1,
+            "y": 1
+          },
+          "name": "every word unique"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "no words"
+        }
+      ],
+      "title": "Count words named constructor",
+      "trap": "export function solve(words: string[]): Record<string, number> {\n  return words.reduce<Record<string, number>>((counts, word) => {\n    counts[word] = (counts[word] ?? 0) + 1;\n    return counts;\n  }, {});\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Bucket `scores` by decade (`90` for 90–99, `40` for 40–49, and so on) and return the buckets as `[decade, scores]` pairs in the order each decade was *first seen* in the input.\n\nSignature: `solve(scores: number[]): [number, number[]][]`\n\nTrap: an object cannot remember the order of integer-like keys — `Object.entries` hands them back sorted.",
+      "difficulty": "advanced",
+      "explanation": "JavaScript objects enumerate integer-like keys — `\"40\"`, `\"90\"` — in ascending numeric order *before* every other key, regardless of when they were inserted. So `Object.groupBy` with a numeric decade key silently reorders the groups: for `[95, 42, 91]` the `90` bucket is created first, but `Object.entries` lists `40` before it, and the first-seen order is gone. (It also hands the keys back as strings, which is why the trap needs a `Number()` call.) `Map.groupBy` has neither problem: a `Map` keeps its keys as real numbers and iterates them in insertion order, so spreading the result with `[...Map.groupBy(...)]` yields `[decade, scores]` tuples in exactly the order the decades appeared. Rule of thumb: when the key is a number, or when the order of the groups matters, group into a `Map`.",
+      "id": "decades-in-first-seen-order",
+      "methods": [
+        "Map.groupBy",
+        "Object.groupBy"
+      ],
+      "order": 8,
+      "solution": "export function solve(scores: number[]): [number, number[]][] {\n  return [...Map.groupBy(scores, (score) => Math.floor(score / 10) * 10)];\n}\n",
+      "starterCode": "export function solve(scores: number[]): [number, number[]][] {\n  // Which groupBy remembers the order its keys were created in — and keeps them as numbers?\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              12,
+              15,
+              27
+            ]
+          ],
+          "expected": [
+            [
+              10,
+              [
+                12,
+                15
+              ]
+            ],
+            [
+              20,
+              [
+                27
+              ]
+            ]
+          ],
+          "name": "decades in ascending first-seen order"
+        },
+        {
+          "args": [
+            [
+              95,
+              42,
+              91
+            ]
+          ],
+          "expected": [
+            [
+              90,
+              [
+                95,
+                91
+              ]
+            ],
+            [
+              40,
+              [
+                42
+              ]
+            ]
+          ],
+          "name": "a higher decade seen first stays first (trap)"
+        },
+        {
+          "args": [
+            [
+              33,
+              7,
+              30
+            ]
+          ],
+          "expected": [
+            [
+              30,
+              [
+                33,
+                30
+              ]
+            ],
+            [
+              0,
+              [
+                7
+              ]
+            ]
+          ],
+          "name": "zero decade seen after others (trap)"
+        },
+        {
+          "args": [
+            [
+              50
+            ]
+          ],
+          "expected": [
+            [
+              50,
+              [
+                50
+              ]
+            ]
+          ],
+          "name": "single score"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "no scores"
+        }
+      ],
+      "title": "Decades in first-seen order",
+      "trap": "export function solve(scores: number[]): [number, number[]][] {\n  const groups = Object.groupBy(scores, (score) => Math.floor(score / 10) * 10) as Record<string, number[]>;\n  return Object.entries(groups).map(([decade, group]): [number, number[]] => [Number(decade), group]);\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Every file carries its `owner` as an embedded `{ id, name }` object. Build one section per owner — `{ files, owner }`, with the files in input order — in the order owners first appear. Two files with the same owner id belong in the same section.\n\nSignature: `solve(files: { owner: { id: number; name: string }; path: string }[]): { files: { owner: { id: number; name: string }; path: string }[]; owner: { id: number; name: string } }[]`\n\nTrap: `Map` keys are compared by identity — two owner objects that *look* the same are two different keys.",
+      "difficulty": "advanced",
+      "explanation": "`Map.groupBy` compares keys with SameValueZero, which for objects means reference identity: `{ id: 1 }` and another `{ id: 1 }` are as different as `1` and `2`. Every file here carries its *own* owner object, so grouping on `file.owner` produces one group per file — the sections for Ada are split in two, and the test that puts two of her files together fails. The fix is to group on a primitive that captures the identity you mean: `file.owner.id`. `Map.groupBy` then gives one array per owner id, in first-seen order, and `map` over `.values()` reshapes each group into a section, borrowing the owner object from the group’s first file. The general rule: when the thing you want to group by is an object, pick the field that *is* its identity and group by that, because no `Map` will ever treat two separate objects as equal.",
+      "id": "sections-per-owner",
+      "methods": [
+        "Map.groupBy",
+        "map"
+      ],
+      "order": 9,
+      "solution": "interface Owner {\n  id: number;\n  name: string;\n}\n\ninterface FileRecord {\n  owner: Owner;\n  path: string;\n}\n\ninterface Section {\n  files: FileRecord[];\n  owner: Owner;\n}\n\nexport function solve(files: FileRecord[]): Section[] {\n  const byOwnerId = Map.groupBy(files, (file) => file.owner.id);\n  return [...byOwnerId.values()].map((group): Section => ({ files: group, owner: group[0].owner }));\n}\n",
+      "starterCode": "interface Owner {\n  id: number;\n  name: string;\n}\n\ninterface FileRecord {\n  owner: Owner;\n  path: string;\n}\n\ninterface Section {\n  files: FileRecord[];\n  owner: Owner;\n}\n\nexport function solve(files: FileRecord[]): Section[] {\n  // Two owner objects with the same id are still two Map keys — group by something primitive.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "owner": {
+                  "id": 1,
+                  "name": "Ada"
+                },
+                "path": "a.txt"
+              },
+              {
+                "owner": {
+                  "id": 2,
+                  "name": "Bob"
+                },
+                "path": "b.txt"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "files": [
+                {
+                  "owner": {
+                    "id": 1,
+                    "name": "Ada"
+                  },
+                  "path": "a.txt"
+                }
+              ],
+              "owner": {
+                "id": 1,
+                "name": "Ada"
+              }
+            },
+            {
+              "files": [
+                {
+                  "owner": {
+                    "id": 2,
+                    "name": "Bob"
+                  },
+                  "path": "b.txt"
+                }
+              ],
+              "owner": {
+                "id": 2,
+                "name": "Bob"
+              }
+            }
+          ],
+          "name": "one file per owner"
+        },
+        {
+          "args": [
+            [
+              {
+                "owner": {
+                  "id": 1,
+                  "name": "Ada"
+                },
+                "path": "a.txt"
+              },
+              {
+                "owner": {
+                  "id": 2,
+                  "name": "Bob"
+                },
+                "path": "b.txt"
+              },
+              {
+                "owner": {
+                  "id": 1,
+                  "name": "Ada"
+                },
+                "path": "c.txt"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "files": [
+                {
+                  "owner": {
+                    "id": 1,
+                    "name": "Ada"
+                  },
+                  "path": "a.txt"
+                },
+                {
+                  "owner": {
+                    "id": 1,
+                    "name": "Ada"
+                  },
+                  "path": "c.txt"
+                }
+              ],
+              "owner": {
+                "id": 1,
+                "name": "Ada"
+              }
+            },
+            {
+              "files": [
+                {
+                  "owner": {
+                    "id": 2,
+                    "name": "Bob"
+                  },
+                  "path": "b.txt"
+                }
+              ],
+              "owner": {
+                "id": 2,
+                "name": "Bob"
+              }
+            }
+          ],
+          "name": "two files from the same owner share one section (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "owner": {
+                  "id": 1,
+                  "name": "Ada"
+                },
+                "path": "x"
+              },
+              {
+                "owner": {
+                  "id": 1,
+                  "name": "Ada"
+                },
+                "path": "y"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "files": [
+                {
+                  "owner": {
+                    "id": 1,
+                    "name": "Ada"
+                  },
+                  "path": "x"
+                },
+                {
+                  "owner": {
+                    "id": 1,
+                    "name": "Ada"
+                  },
+                  "path": "y"
+                }
+              ],
+              "owner": {
+                "id": 1,
+                "name": "Ada"
+              }
+            }
+          ],
+          "name": "every file belongs to one owner (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "owner": {
+                  "id": 2,
+                  "name": "Bob"
+                },
+                "path": "b"
+              },
+              {
+                "owner": {
+                  "id": 1,
+                  "name": "Ada"
+                },
+                "path": "a"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "files": [
+                {
+                  "owner": {
+                    "id": 2,
+                    "name": "Bob"
+                  },
+                  "path": "b"
+                }
+              ],
+              "owner": {
+                "id": 2,
+                "name": "Bob"
+              }
+            },
+            {
+              "files": [
+                {
+                  "owner": {
+                    "id": 1,
+                    "name": "Ada"
+                  },
+                  "path": "a"
+                }
+              ],
+              "owner": {
+                "id": 1,
+                "name": "Ada"
+              }
+            }
+          ],
+          "name": "sections follow first-seen owner order"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "no files"
+        }
+      ],
+      "title": "Sections per owner",
+      "trap": "interface Owner {\n  id: number;\n  name: string;\n}\n\ninterface FileRecord {\n  owner: Owner;\n  path: string;\n}\n\ninterface Section {\n  files: FileRecord[];\n  owner: Owner;\n}\n\nexport function solve(files: FileRecord[]): Section[] {\n  return [...Map.groupBy(files, (file) => file.owner)].map(([owner, group]): Section => ({ files: group, owner }));\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Split `lines` into pages of `size` lines each, in order; the last page may be shorter. Lines can repeat anywhere in the input.\n\nSignature: `solve(lines: string[], size: number): string[][]`\n\nTrap: the page a line belongs on depends on its *position*, and `indexOf` only ever finds the first copy.",
+      "difficulty": "advanced",
+      "explanation": "The key selector of `Map.groupBy` receives two arguments — the element *and its index* — and the index is what a positional key needs: `Math.floor(index / size)` sends lines 0 and 1 to page `0`, lines 2 and 3 to page `1`, and so on. Reaching for `lines.indexOf(line)` instead looks equivalent and is wrong the moment a line repeats: `indexOf` returns the position of the *first* copy, so every duplicate is filed on the first copy’s page and later pages come up short (it is also O(n) per element, turning the pagination quadratic). Because the page numbers are created in ascending order, `Map.groupBy` yields the pages in sequence and `[...pages.values()]` drops the keys to leave the array of pages. Any time a grouping key is about *where* an element sits rather than *what* it is, the second callback argument is the tool.",
+      "id": "pages-by-index",
+      "methods": [
+        "Map.groupBy"
+      ],
+      "order": 10,
+      "solution": "export function solve(lines: string[], size: number): string[][] {\n  return [...Map.groupBy(lines, (_line, index) => Math.floor(index / size)).values()];\n}\n",
+      "starterCode": "export function solve(lines: string[], size: number): string[][] {\n  // The groupBy callback gets (element, index) — the page number comes from the index, not the line.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e"
+            ],
+            2
+          ],
+          "expected": [
+            [
+              "a",
+              "b"
+            ],
+            [
+              "c",
+              "d"
+            ],
+            [
+              "e"
+            ]
+          ],
+          "name": "three pages of two"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "a",
+              "c"
+            ],
+            2
+          ],
+          "expected": [
+            [
+              "a",
+              "b"
+            ],
+            [
+              "a",
+              "c"
+            ]
+          ],
+          "name": "repeated lines stay on their own pages (trap)"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "y"
+            ],
+            5
+          ],
+          "expected": [
+            [
+              "x",
+              "y"
+            ]
+          ],
+          "name": "a page larger than the input"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "a",
+              "b"
+            ],
+            1
+          ],
+          "expected": [
+            [
+              "a"
+            ],
+            [
+              "a"
+            ],
+            [
+              "b"
+            ]
+          ],
+          "name": "size of one puts every line on its own page (trap)"
+        },
+        {
+          "args": [
+            [],
+            3
+          ],
+          "expected": [],
+          "name": "no lines yields no pages"
+        }
+      ],
+      "title": "Pages by position",
+      "trap": "export function solve(lines: string[], size: number): string[][] {\n  return [...Map.groupBy(lines, (line) => Math.floor(lines.indexOf(line) / size)).values()];\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Group `products` by `category` in the order categories first appear, with the products *inside* each group sorted by ascending `price` (equal prices keep their input order). Return `[category, products]` pairs.\n\nSignature: `solve(products: { category: string; name: string; price: number }[]): [string, { category: string; name: string; price: number }[]][]`\n\nTrap: sorting the whole list *before* grouping also reorders which category is seen first.",
+      "difficulty": "advanced",
+      "explanation": "Sort-then-group reads like a shortcut — one `toSorted` up front and the groups come out ordered — but `Map.groupBy` creates each key the first time it meets it, and after a global sort the first element is the cheapest product, not the first product. In `[fruit apple 3, veg kale 1]` the sort moves kale to the front, so `veg` becomes the first group and the category order the task asked for is lost. Group first, then sort: `Map.groupBy` on the *original* array fixes the category order from the input, and a `map` over the entries applies `toSorted((a, b) => a.price - b.price)` to each group independently. `toSorted` is stable, so equal prices keep their relative input order, and it copies rather than mutates, so the groups the `Map` holds are never reordered underneath you. Fix the order first; reorder as narrowly as possible afterwards.",
+      "id": "sort-within-groups",
+      "methods": [
+        "Map.groupBy",
+        "toSorted"
+      ],
+      "order": 11,
+      "solution": "interface Product {\n  category: string;\n  name: string;\n  price: number;\n}\n\nexport function solve(products: Product[]): [string, Product[]][] {\n  return [...Map.groupBy(products, (product) => product.category)].map(([category, group]): [string, Product[]] => [\n    category,\n    group.toSorted((a, b) => a.price - b.price),\n  ]);\n}\n",
+      "starterCode": "interface Product {\n  category: string;\n  name: string;\n  price: number;\n}\n\nexport function solve(products: Product[]): [string, Product[]][] {\n  // Group on the ORIGINAL order first; sort each group afterwards, not the whole list before.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "category": "fruit",
+                "name": "apple",
+                "price": 3
+              },
+              {
+                "category": "veg",
+                "name": "kale",
+                "price": 5
+              },
+              {
+                "category": "fruit",
+                "name": "fig",
+                "price": 1
+              }
+            ]
+          ],
+          "expected": [
+            [
+              "fruit",
+              [
+                {
+                  "category": "fruit",
+                  "name": "fig",
+                  "price": 1
+                },
+                {
+                  "category": "fruit",
+                  "name": "apple",
+                  "price": 3
+                }
+              ]
+            ],
+            [
+              "veg",
+              [
+                {
+                  "category": "veg",
+                  "name": "kale",
+                  "price": 5
+                }
+              ]
+            ]
+          ],
+          "name": "cheapest product is already in the first category"
+        },
+        {
+          "args": [
+            [
+              {
+                "category": "fruit",
+                "name": "apple",
+                "price": 3
+              },
+              {
+                "category": "veg",
+                "name": "kale",
+                "price": 1
+              }
+            ]
+          ],
+          "expected": [
+            [
+              "fruit",
+              [
+                {
+                  "category": "fruit",
+                  "name": "apple",
+                  "price": 3
+                }
+              ]
+            ],
+            [
+              "veg",
+              [
+                {
+                  "category": "veg",
+                  "name": "kale",
+                  "price": 1
+                }
+              ]
+            ]
+          ],
+          "name": "sorting first would reorder the categories (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "category": "a",
+                "name": "x",
+                "price": 2
+              },
+              {
+                "category": "a",
+                "name": "y",
+                "price": 2
+              }
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              [
+                {
+                  "category": "a",
+                  "name": "x",
+                  "price": 2
+                },
+                {
+                  "category": "a",
+                  "name": "y",
+                  "price": 2
+                }
+              ]
+            ]
+          ],
+          "name": "equal prices keep input order"
+        },
+        {
+          "args": [
+            [
+              {
+                "category": "c",
+                "name": "z",
+                "price": 9
+              },
+              {
+                "category": "a",
+                "name": "p",
+                "price": 5
+              },
+              {
+                "category": "c",
+                "name": "w",
+                "price": 1
+              },
+              {
+                "category": "b",
+                "name": "q",
+                "price": 3
+              }
+            ]
+          ],
+          "expected": [
+            [
+              "c",
+              [
+                {
+                  "category": "c",
+                  "name": "w",
+                  "price": 1
+                },
+                {
+                  "category": "c",
+                  "name": "z",
+                  "price": 9
+                }
+              ]
+            ],
+            [
+              "a",
+              [
+                {
+                  "category": "a",
+                  "name": "p",
+                  "price": 5
+                }
+              ]
+            ],
+            [
+              "b",
+              [
+                {
+                  "category": "b",
+                  "name": "q",
+                  "price": 3
+                }
+              ]
+            ]
+          ],
+          "name": "three categories interleaved (trap)"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "no products"
+        }
+      ],
+      "title": "Sort inside the groups, not before",
+      "trap": "interface Product {\n  category: string;\n  name: string;\n  price: number;\n}\n\nexport function solve(products: Product[]): [string, Product[]][] {\n  return [...Map.groupBy(products.toSorted((a, b) => a.price - b.price), (product) => product.category)];\n}\n"
     },
     {
       "categoryId": "grouping-and-aggregation",
@@ -6349,7 +7261,7 @@
         "Map.groupBy",
         "reduce"
       ],
-      "order": 6,
+      "order": 12,
       "solution": "interface Order {\n  region: string;\n  status: string;\n}\n\nexport function solve(orders: Order[]): Map<string, Map<string, number>> {\n  const byRegion = Map.groupBy(orders, (order) => order.region);\n  return new Map(\n    [...byRegion].map(([region, group]): [string, Map<string, number>] => [\n      region,\n      group.reduce(\n        (counts, order) => counts.set(order.status, (counts.get(order.status) ?? 0) + 1),\n        new Map<string, number>(),\n      ),\n    ]),\n  );\n}\n",
       "starterCode": "interface Order {\n  region: string;\n  status: string;\n}\n\nexport function solve(orders: Order[]): Map<string, Map<string, number>> {\n  // Map.groupBy by region first, then reduce each group into a Map of status → count.\n  return new Map();\n}\n",
       "tests": [
@@ -6497,6 +7409,910 @@
         }
       ],
       "title": "Orders by region, then status"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "For each department, find the employee with the highest `salary`; when two tie, keep the one that appears first. Return `{ department, name }` objects sorted by department name.\n\nSignature: `solve(employees: { department: string; name: string; salary: number }[]): { department: string; name: string }[]`\n\nGroup, then reduce each group to one winner, then order the winners.",
+      "difficulty": "expert",
+      "explanation": "Three stages compose here, and each one is a method you already know. `Object.groupBy` buckets the employees by department, so the “per department” part of the question is settled before any comparison happens. `Object.entries` turns those buckets into `[department, group]` pairs, and inside the `map` a seedless `reduce` carries the best candidate forward with a strict `>` — strict so that a later employee on the same salary never displaces the earlier one, and seedless safely because a group produced by groupBy is never empty. Finally `toSorted` orders the winners by department, since object key order is an accident of which department appeared first in the input. The shape — bucket, reduce each bucket to one value, then sort the results — is the general “top item per group” pipeline; only the comparator and the projection change from problem to problem.",
+      "id": "top-earner-per-department",
+      "methods": [
+        "Object.groupBy",
+        "Object.entries",
+        "reduce",
+        "toSorted"
+      ],
+      "order": 13,
+      "solution": "interface Employee {\n  department: string;\n  name: string;\n  salary: number;\n}\n\ninterface TopEarner {\n  department: string;\n  name: string;\n}\n\nexport function solve(employees: Employee[]): TopEarner[] {\n  const groups = Object.groupBy(employees, (employee) => employee.department) as Record<string, Employee[]>;\n  return Object.entries(groups)\n    .map(([department, group]): TopEarner => ({\n      department,\n      name: group.reduce((best, employee) => (employee.salary > best.salary ? employee : best)).name,\n    }))\n    .toSorted((a, b) => a.department.localeCompare(b.department));\n}\n",
+      "starterCode": "interface Employee {\n  department: string;\n  name: string;\n  salary: number;\n}\n\ninterface TopEarner {\n  department: string;\n  name: string;\n}\n\nexport function solve(employees: Employee[]): TopEarner[] {\n  // Object.groupBy → Object.entries → reduce each group to its top earner → toSorted by department.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "department": "eng",
+                "name": "Ada",
+                "salary": 120
+              },
+              {
+                "department": "ops",
+                "name": "Bob",
+                "salary": 90
+              },
+              {
+                "department": "eng",
+                "name": "Cy",
+                "salary": 150
+              },
+              {
+                "department": "ops",
+                "name": "Di",
+                "salary": 80
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "department": "eng",
+              "name": "Cy"
+            },
+            {
+              "department": "ops",
+              "name": "Bob"
+            }
+          ],
+          "name": "top earner in each of two departments"
+        },
+        {
+          "args": [
+            [
+              {
+                "department": "eng",
+                "name": "Ada",
+                "salary": 100
+              },
+              {
+                "department": "eng",
+                "name": "Bo",
+                "salary": 100
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "department": "eng",
+              "name": "Ada"
+            }
+          ],
+          "name": "tie keeps the earlier employee"
+        },
+        {
+          "args": [
+            [
+              {
+                "department": "zoo",
+                "name": "Zed",
+                "salary": 1
+              },
+              {
+                "department": "art",
+                "name": "Amy",
+                "salary": 2
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "department": "art",
+              "name": "Amy"
+            },
+            {
+              "department": "zoo",
+              "name": "Zed"
+            }
+          ],
+          "name": "departments come out sorted by name"
+        },
+        {
+          "args": [
+            [
+              {
+                "department": "hr",
+                "name": "Solo",
+                "salary": 5
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "department": "hr",
+              "name": "Solo"
+            }
+          ],
+          "name": "single employee tops their department"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "no employees"
+        }
+      ],
+      "title": "Top earner per department"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Return each category’s share of the total `amount` as a whole-number percentage, and make the shares sum to exactly `100`: floor every share, then hand the leftover points out one at a time to the categories with the largest fractional remainders (ties go to the category whose name sorts first). No expenses returns `{}`.\n\nSignature: `solve(expenses: { amount: number; category: string }[]): Record<string, number>`\n\nTrap: rounding each share on its own produces percentages that add up to 99 or 104.",
+      "difficulty": "expert",
+      "explanation": "Percentages rounded independently do not sum to 100: three equal categories round to `33 + 33 + 33`, eight equal ones to `13 × 8 = 104`. The largest-remainder method fixes this in two passes over the grouped totals. `Object.groupBy` buckets the expenses and a `reduce` per bucket produces each category’s total; dividing by the grand total gives the exact share. Every share is floored, the floors are summed, and `100 - sum` is how many points are still owed. `toSorted` then orders the categories by fractional remainder descending (`share % 1`), falling through to `localeCompare` on the name for ties, and `slice(0, leftover)` picks the categories that receive one extra point. `Object.fromEntries` assembles the result. Computing `(total * 100) / grandTotal` rather than `total / grandTotal * 100` keeps exact shares exact in floating point, so a true `25` never floors to `24`.",
+      "id": "share-per-category",
+      "methods": [
+        "Object.groupBy",
+        "Object.entries",
+        "reduce",
+        "toSorted",
+        "Object.fromEntries"
+      ],
+      "order": 14,
+      "solution": "interface Expense {\n  amount: number;\n  category: string;\n}\n\ninterface Share {\n  category: string;\n  share: number;\n}\n\nexport function solve(expenses: Expense[]): Record<string, number> {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  const totals = Object.entries(groups).map(([category, group]) => ({\n    category,\n    total: group.reduce((sum, expense) => sum + expense.amount, 0),\n  }));\n  const grandTotal = totals.reduce((sum, { total }) => sum + total, 0);\n  const shares = totals.map(({ category, total }): Share => ({ category, share: (total * 100) / grandTotal }));\n  const leftover = 100 - shares.reduce((sum, { share }) => sum + Math.floor(share), 0);\n  const bonus = new Set(\n    shares\n      .toSorted((a, b) => (b.share % 1) - (a.share % 1) || a.category.localeCompare(b.category))\n      .slice(0, leftover)\n      .map(({ category }) => category),\n  );\n  return Object.fromEntries(\n    shares.map(({ category, share }) => [category, Math.floor(share) + (bonus.has(category) ? 1 : 0)]),\n  );\n}\n",
+      "starterCode": "interface Expense {\n  amount: number;\n  category: string;\n}\n\nexport function solve(expenses: Expense[]): Record<string, number> {\n  // Group, total, floor each share, then give the leftover points to the largest remainders.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "amount": 25,
+                "category": "a"
+              },
+              {
+                "amount": 75,
+                "category": "b"
+              }
+            ]
+          ],
+          "expected": {
+            "a": 25,
+            "b": 75
+          },
+          "name": "two categories split cleanly"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "a"
+              },
+              {
+                "amount": 1,
+                "category": "b"
+              },
+              {
+                "amount": 1,
+                "category": "c"
+              }
+            ]
+          ],
+          "expected": {
+            "a": 34,
+            "b": 33,
+            "c": 33
+          },
+          "name": "three equal categories still sum to 100 (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "a"
+              },
+              {
+                "amount": 2,
+                "category": "b"
+              }
+            ]
+          ],
+          "expected": {
+            "a": 33,
+            "b": 67
+          },
+          "name": "leftover point goes to the largest remainder"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "z"
+              },
+              {
+                "amount": 1,
+                "category": "y"
+              },
+              {
+                "amount": 1,
+                "category": "x"
+              }
+            ]
+          ],
+          "expected": {
+            "x": 34,
+            "y": 33,
+            "z": 33
+          },
+          "name": "ties on the remainder resolve by name (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 1,
+                "category": "a"
+              },
+              {
+                "amount": 1,
+                "category": "b"
+              },
+              {
+                "amount": 1,
+                "category": "c"
+              },
+              {
+                "amount": 1,
+                "category": "d"
+              },
+              {
+                "amount": 1,
+                "category": "e"
+              },
+              {
+                "amount": 1,
+                "category": "f"
+              },
+              {
+                "amount": 1,
+                "category": "g"
+              },
+              {
+                "amount": 1,
+                "category": "h"
+              }
+            ]
+          ],
+          "expected": {
+            "a": 13,
+            "b": 13,
+            "c": 13,
+            "d": 13,
+            "e": 12,
+            "f": 12,
+            "g": 12,
+            "h": 12
+          },
+          "name": "rounding everything up would overshoot (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "amount": 10,
+                "category": "a"
+              },
+              {
+                "amount": 30,
+                "category": "b"
+              },
+              {
+                "amount": 10,
+                "category": "a"
+              }
+            ]
+          ],
+          "expected": {
+            "a": 40,
+            "b": 60
+          },
+          "name": "a category with several expenses is totalled first"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "no expenses"
+        }
+      ],
+      "title": "Shares that sum to 100",
+      "trap": "interface Expense {\n  amount: number;\n  category: string;\n}\n\nexport function solve(expenses: Expense[]): Record<string, number> {\n  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;\n  const totals = Object.entries(groups).map(([category, group]) => ({\n    category,\n    total: group.reduce((sum, expense) => sum + expense.amount, 0),\n  }));\n  const grandTotal = totals.reduce((sum, { total }) => sum + total, 0);\n  return Object.fromEntries(totals.map(({ category, total }) => [category, Math.round((total * 100) / grandTotal)]));\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Pivot flat `rows` into one line per `region`: `values` holds the summed `revenue` for each quarter in `quarters`, in that order, with `0` wherever a region has no rows for a quarter. Lines are sorted by region name.\n\nSignature: `solve(rows: { quarter: string; region: string; revenue: number }[], quarters: string[]): { region: string; values: number[] }[]`\n\nTrap: the columns must follow `quarters`, not whichever order the rows happened to arrive in.",
+      "difficulty": "expert",
+      "explanation": "A pivot is a two-level grouping where the second level is turned into *positions* rather than keys. `Map.groupBy` on `region` produces the rows of the matrix in first-seen order — a `Map` because the outer level is iterated, not looked up. Inside each region, `Object.groupBy` on `quarter` produces the inner buckets, and this is where the columns come from: `quarters.map(...)` walks the *requested* column list and reads `byQuarter[quarter] ?? []`, so a quarter with no rows contributes a `0` from an empty `reduce` rather than a missing cell. Taking `Object.values(byQuarter)` instead looks shorter and breaks twice: a missing quarter shifts every later column left, and rows that arrive out of order swap columns silently. `toSorted` by region finishes the table. When output positions are dictated by a list, walk the list and look the groups up — never walk the groups.",
+      "id": "pivot-revenue-by-quarter",
+      "methods": [
+        "Map.groupBy",
+        "Object.groupBy",
+        "map",
+        "toSorted"
+      ],
+      "order": 15,
+      "solution": "interface Row {\n  quarter: string;\n  region: string;\n  revenue: number;\n}\n\ninterface PivotLine {\n  region: string;\n  values: number[];\n}\n\nexport function solve(rows: Row[], quarters: string[]): PivotLine[] {\n  return [...Map.groupBy(rows, (row) => row.region)]\n    .map(([region, group]): PivotLine => {\n      const byQuarter = Object.groupBy(group, (row) => row.quarter);\n      return {\n        region,\n        values: quarters.map((quarter) => (byQuarter[quarter] ?? []).reduce((sum, row) => sum + row.revenue, 0)),\n      };\n    })\n    .toSorted((a, b) => a.region.localeCompare(b.region));\n}\n",
+      "starterCode": "interface Row {\n  quarter: string;\n  region: string;\n  revenue: number;\n}\n\ninterface PivotLine {\n  region: string;\n  values: number[];\n}\n\nexport function solve(rows: Row[], quarters: string[]): PivotLine[] {\n  // Group by region, then by quarter inside each region — and build values by walking quarters, not the groups.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "quarter": "Q1",
+                "region": "east",
+                "revenue": 10
+              },
+              {
+                "quarter": "Q2",
+                "region": "east",
+                "revenue": 20
+              },
+              {
+                "quarter": "Q1",
+                "region": "west",
+                "revenue": 5
+              },
+              {
+                "quarter": "Q2",
+                "region": "west",
+                "revenue": 7
+              }
+            ],
+            [
+              "Q1",
+              "Q2"
+            ]
+          ],
+          "expected": [
+            {
+              "region": "east",
+              "values": [
+                10,
+                20
+              ]
+            },
+            {
+              "region": "west",
+              "values": [
+                5,
+                7
+              ]
+            }
+          ],
+          "name": "every region has every quarter"
+        },
+        {
+          "args": [
+            [
+              {
+                "quarter": "Q1",
+                "region": "east",
+                "revenue": 10
+              },
+              {
+                "quarter": "Q2",
+                "region": "west",
+                "revenue": 7
+              }
+            ],
+            [
+              "Q1",
+              "Q2"
+            ]
+          ],
+          "expected": [
+            {
+              "region": "east",
+              "values": [
+                10,
+                0
+              ]
+            },
+            {
+              "region": "west",
+              "values": [
+                0,
+                7
+              ]
+            }
+          ],
+          "name": "missing quarter becomes a zero column (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "quarter": "Q2",
+                "region": "east",
+                "revenue": 20
+              },
+              {
+                "quarter": "Q1",
+                "region": "east",
+                "revenue": 10
+              }
+            ],
+            [
+              "Q1",
+              "Q2"
+            ]
+          ],
+          "expected": [
+            {
+              "region": "east",
+              "values": [
+                10,
+                20
+              ]
+            }
+          ],
+          "name": "rows arriving out of quarter order (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "quarter": "Q1",
+                "region": "east",
+                "revenue": 1
+              },
+              {
+                "quarter": "Q1",
+                "region": "east",
+                "revenue": 2
+              }
+            ],
+            [
+              "Q1",
+              "Q2"
+            ]
+          ],
+          "expected": [
+            {
+              "region": "east",
+              "values": [
+                3,
+                0
+              ]
+            }
+          ],
+          "name": "repeated quarter rows are summed"
+        },
+        {
+          "args": [
+            [
+              {
+                "quarter": "Q1",
+                "region": "west",
+                "revenue": 1
+              },
+              {
+                "quarter": "Q1",
+                "region": "east",
+                "revenue": 2
+              }
+            ],
+            [
+              "Q1"
+            ]
+          ],
+          "expected": [
+            {
+              "region": "east",
+              "values": [
+                2
+              ]
+            },
+            {
+              "region": "west",
+              "values": [
+                1
+              ]
+            }
+          ],
+          "name": "regions sorted by name"
+        },
+        {
+          "args": [
+            [],
+            [
+              "Q1"
+            ]
+          ],
+          "expected": [],
+          "name": "no rows"
+        }
+      ],
+      "title": "Pivot revenue by quarter",
+      "trap": "interface Row {\n  quarter: string;\n  region: string;\n  revenue: number;\n}\n\ninterface PivotLine {\n  region: string;\n  values: number[];\n}\n\nexport function solve(rows: Row[], quarters: string[]): PivotLine[] {\n  return [...Map.groupBy(rows, (row) => row.region)]\n    .map(([region, group]): PivotLine => {\n      const byQuarter = Object.groupBy(group, (row) => row.quarter) as Record<string, Row[]>;\n      return {\n        region,\n        values: Object.values(byQuarter).map((quarterRows) => quarterRows.reduce((sum, row) => sum + row.revenue, 0)),\n      };\n    })\n    .toSorted((a, b) => a.region.localeCompare(b.region));\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Return the median `value` per `group`: sort each group’s values numerically and take the middle one, or the mean of the two middle ones when the count is even.\n\nSignature: `solve(readings: { group: string; value: number }[]): Record<string, number>`\n\nTrap: `toSorted()` with no comparator sorts numbers as strings, so `10` lands before `9`.",
+      "difficulty": "expert",
+      "explanation": "A median cannot be folded incrementally — it needs the whole sorted group — so the pipeline is: bucket, then sort each bucket, then index into it. `Object.groupBy` builds the buckets, `Object.entries` exposes them as `[group, members]` pairs, and inside the `map` the values are pulled out and ordered with `toSorted((a, b) => a - b)`. That comparator is the load-bearing detail of the sort step: without it `toSorted` compares the values as strings, so `[9, 10, 11]` becomes `[10, 11, 9]` and the “median” is `11`. With the sorted values in hand, `Math.floor(length / 2)` is the middle index for an odd count, and for an even count the two elements straddling it are averaged. `Object.fromEntries` turns the `[group, median]` pairs back into the record. Every group produced by groupBy has at least one member, so neither the index nor the average ever meets an empty array.",
+      "id": "median-per-group",
+      "methods": [
+        "Object.groupBy",
+        "Object.entries",
+        "toSorted",
+        "Object.fromEntries"
+      ],
+      "order": 16,
+      "solution": "interface Reading {\n  group: string;\n  value: number;\n}\n\nexport function solve(readings: Reading[]): Record<string, number> {\n  const groups = Object.groupBy(readings, (reading) => reading.group) as Record<string, Reading[]>;\n  return Object.fromEntries(\n    Object.entries(groups).map(([group, members]): [string, number] => {\n      const sorted = members.map((reading) => reading.value).toSorted((a, b) => a - b);\n      const middle = Math.floor(sorted.length / 2);\n      const median = sorted.length % 2 === 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;\n      return [group, median];\n    }),\n  );\n}\n",
+      "starterCode": "interface Reading {\n  group: string;\n  value: number;\n}\n\nexport function solve(readings: Reading[]): Record<string, number> {\n  // Object.groupBy → per group: pull the values, toSorted NUMERICALLY, take the middle (or average the two).\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "group": "a",
+                "value": 3
+              },
+              {
+                "group": "a",
+                "value": 1
+              },
+              {
+                "group": "a",
+                "value": 2
+              }
+            ]
+          ],
+          "expected": {
+            "a": 2
+          },
+          "name": "odd count picks the middle value"
+        },
+        {
+          "args": [
+            [
+              {
+                "group": "a",
+                "value": 9
+              },
+              {
+                "group": "a",
+                "value": 10
+              },
+              {
+                "group": "a",
+                "value": 11
+              }
+            ]
+          ],
+          "expected": {
+            "a": 10
+          },
+          "name": "double-digit values must sort numerically (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "group": "a",
+                "value": 1
+              },
+              {
+                "group": "a",
+                "value": 4
+              },
+              {
+                "group": "a",
+                "value": 2
+              },
+              {
+                "group": "a",
+                "value": 3
+              }
+            ]
+          ],
+          "expected": {
+            "a": 2.5
+          },
+          "name": "even count averages the two middle values"
+        },
+        {
+          "args": [
+            [
+              {
+                "group": "a",
+                "value": 5
+              },
+              {
+                "group": "b",
+                "value": 100
+              },
+              {
+                "group": "a",
+                "value": 7
+              },
+              {
+                "group": "b",
+                "value": 20
+              },
+              {
+                "group": "b",
+                "value": 30
+              }
+            ]
+          ],
+          "expected": {
+            "a": 6,
+            "b": 30
+          },
+          "name": "groups are independent (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "group": "x",
+                "value": 42
+              }
+            ]
+          ],
+          "expected": {
+            "x": 42
+          },
+          "name": "single reading is its own median"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "no readings"
+        }
+      ],
+      "title": "Median per group",
+      "trap": "interface Reading {\n  group: string;\n  value: number;\n}\n\nexport function solve(readings: Reading[]): Record<string, number> {\n  const groups = Object.groupBy(readings, (reading) => reading.group) as Record<string, Reading[]>;\n  return Object.fromEntries(\n    Object.entries(groups).map(([group, members]): [string, number] => {\n      const sorted = members.map((reading) => reading.value).toSorted();\n      const middle = Math.floor(sorted.length / 2);\n      const median = sorted.length % 2 === 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;\n      return [group, median];\n    }),\n  );\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "For each `poll`, return the `choice` with the most votes; when choices tie, the one that sorts first alphabetically wins. Return a plain object mapping poll → winning choice.\n\nSignature: `solve(votes: { choice: string; poll: string }[]): Record<string, string>`\n\nTrap: sorting by count alone leaves ties in first-seen order, which is not the rule.",
+      "difficulty": "expert",
+      "explanation": "Two levels of `Object.groupBy` do the counting without a single accumulator: the outer call buckets the votes by poll, and inside each poll a second call buckets them by choice, so the size of each inner array *is* that choice’s tally. `Object.entries` turns the inner buckets into `[choice, supporters]` pairs, `map` reshapes them into `{ choice, count }`, and `toSorted` ranks them. The comparator is where the tie rule lives: `b.count - a.count || a.choice.localeCompare(b.choice)` orders by count descending and, *only when the difference is zero*, falls through to name ascending. Dropping the second clause does not crash — `toSorted` is stable, so tied choices simply stay in the order they were first seen, and `zeta` beats `alpha` because it was voted for first. The first ranked entry is the winner, and `Object.fromEntries` collects one per poll.",
+      "id": "winner-per-poll",
+      "methods": [
+        "Object.groupBy",
+        "Object.entries",
+        "map",
+        "toSorted"
+      ],
+      "order": 17,
+      "solution": "interface Vote {\n  choice: string;\n  poll: string;\n}\n\ninterface Tally {\n  choice: string;\n  count: number;\n}\n\nexport function solve(votes: Vote[]): Record<string, string> {\n  const polls = Object.groupBy(votes, (vote) => vote.poll) as Record<string, Vote[]>;\n  return Object.fromEntries(\n    Object.entries(polls).map(([poll, ballots]): [string, string] => {\n      const choices = Object.groupBy(ballots, (vote) => vote.choice) as Record<string, Vote[]>;\n      const ranked = Object.entries(choices)\n        .map(([choice, supporters]): Tally => ({ choice, count: supporters.length }))\n        .toSorted((a, b) => b.count - a.count || a.choice.localeCompare(b.choice));\n      return [poll, ranked[0].choice];\n    }),\n  );\n}\n",
+      "starterCode": "interface Vote {\n  choice: string;\n  poll: string;\n}\n\nexport function solve(votes: Vote[]): Record<string, string> {\n  // groupBy poll, groupBy choice inside each poll, rank by count DESC then name ASC, take the first.\n  return {};\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "choice": "cat",
+                "poll": "x"
+              },
+              {
+                "choice": "dog",
+                "poll": "x"
+              },
+              {
+                "choice": "cat",
+                "poll": "x"
+              }
+            ]
+          ],
+          "expected": {
+            "x": "cat"
+          },
+          "name": "clear majority"
+        },
+        {
+          "args": [
+            [
+              {
+                "choice": "zeta",
+                "poll": "x"
+              },
+              {
+                "choice": "zeta",
+                "poll": "x"
+              },
+              {
+                "choice": "alpha",
+                "poll": "x"
+              },
+              {
+                "choice": "alpha",
+                "poll": "x"
+              }
+            ]
+          ],
+          "expected": {
+            "x": "alpha"
+          },
+          "name": "tie goes to the alphabetically first choice (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "choice": "a",
+                "poll": "p1"
+              },
+              {
+                "choice": "b",
+                "poll": "p2"
+              },
+              {
+                "choice": "a",
+                "poll": "p1"
+              },
+              {
+                "choice": "b",
+                "poll": "p2"
+              },
+              {
+                "choice": "c",
+                "poll": "p2"
+              }
+            ]
+          ],
+          "expected": {
+            "p1": "a",
+            "p2": "b"
+          },
+          "name": "two polls are tallied separately"
+        },
+        {
+          "args": [
+            [
+              {
+                "choice": "m",
+                "poll": "x"
+              },
+              {
+                "choice": "b",
+                "poll": "x"
+              },
+              {
+                "choice": "k",
+                "poll": "x"
+              }
+            ]
+          ],
+          "expected": {
+            "x": "b"
+          },
+          "name": "every choice with one vote (trap)"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": {},
+          "name": "no votes"
+        }
+      ],
+      "title": "Winner per poll",
+      "trap": "interface Vote {\n  choice: string;\n  poll: string;\n}\n\ninterface Tally {\n  choice: string;\n  count: number;\n}\n\nexport function solve(votes: Vote[]): Record<string, string> {\n  const polls = Object.groupBy(votes, (vote) => vote.poll) as Record<string, Vote[]>;\n  return Object.fromEntries(\n    Object.entries(polls).map(([poll, ballots]): [string, string] => {\n      const choices = Object.groupBy(ballots, (vote) => vote.choice) as Record<string, Vote[]>;\n      const ranked = Object.entries(choices)\n        .map(([choice, supporters]): Tally => ({ choice, count: supporters.length }))\n        .toSorted((a, b) => b.count - a.count);\n      return [poll, ranked[0].choice];\n    }),\n  );\n}\n"
+    },
+    {
+      "categoryId": "grouping-and-aggregation",
+      "description": "Split `values` into runs of consecutive equal elements, preserving order: `[\"a\", \"a\", \"b\", \"a\"]` → `[[\"a\", \"a\"], [\"b\"], [\"a\"]]`. A value that reappears later starts a *new* run — it must not be merged into the earlier one.\n\nSignature: `solve(values: string[]): string[][]`\n\nTrap: grouping by the value itself merges every copy of `\"a\"` into one group, wherever it sits.",
+      "difficulty": "expert",
+      "explanation": "groupBy keys are global: every element with the same key lands in the same group wherever it appears, so `Object.groupBy(values, (value) => value)` flattens `a a b a` into two groups and loses the adjacency the task is about. The fix is to make the *key* position-aware. A `reduce` assigns each element a run id: the id stays the same while the element equals its predecessor and increments when it changes, so `a a b a` becomes `0 0 1 2`. `Map.groupBy` then groups by that id, using the index argument of its callback to look it up — `(_value, index) => runIds[index]` — and because the ids are created in ascending order the `Map` iterates the runs in sequence; spreading `.values()` discards the ids. Any “group consecutive” problem works the same way: compute a key that changes exactly at the boundaries you care about, then let groupBy bucket.",
+      "id": "consecutive-runs",
+      "methods": [
+        "Map.groupBy",
+        "reduce"
+      ],
+      "order": 18,
+      "solution": "export function solve(values: string[]): string[][] {\n  const runIds = values.reduce<number[]>((ids, value, index) => {\n    const previous = ids.at(-1) ?? 0;\n    return [...ids, index > 0 && value !== values[index - 1] ? previous + 1 : previous];\n  }, []);\n  return [...Map.groupBy(values, (_value, index) => runIds[index]).values()];\n}\n",
+      "starterCode": "export function solve(values: string[]): string[][] {\n  // Build a run id per index (bump it whenever the value changes), then Map.groupBy on that id.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "a",
+              "b"
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              "a"
+            ],
+            [
+              "b"
+            ]
+          ],
+          "name": "each value forms one run"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "a",
+              "b",
+              "a"
+            ]
+          ],
+          "expected": [
+            [
+              "a",
+              "a"
+            ],
+            [
+              "b"
+            ],
+            [
+              "a"
+            ]
+          ],
+          "name": "a value that returns later starts a new run (trap)"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "y",
+              "x",
+              "y"
+            ]
+          ],
+          "expected": [
+            [
+              "x"
+            ],
+            [
+              "y"
+            ],
+            [
+              "x"
+            ],
+            [
+              "y"
+            ]
+          ],
+          "name": "alternating values are all singleton runs (trap)"
+        },
+        {
+          "args": [
+            [
+              "z",
+              "z",
+              "z"
+            ]
+          ],
+          "expected": [
+            [
+              "z",
+              "z",
+              "z"
+            ]
+          ],
+          "name": "one long run"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty input"
+        }
+      ],
+      "title": "Runs of consecutive values",
+      "trap": "export function solve(values: string[]): string[][] {\n  return Object.values(Object.groupBy(values, (value) => value) as Record<string, string[]>);\n}\n"
     },
     {
       "categoryId": "tricks-and-patterns",
