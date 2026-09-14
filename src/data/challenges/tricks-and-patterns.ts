@@ -178,6 +178,16 @@ export function solve(users: User[]): User[] {
         tc('empty list', [[]], []),
       ],
       title: 'Unique by key, first wins',
+      trap: code(`
+interface User {
+  id: number;
+  name: string;
+}
+
+export function solve(users: User[]): User[] {
+  return users.filter((user, index) => users.indexOf(user) === index);
+}
+`),
     },
     {
       categoryId: 'tricks-and-patterns',
@@ -233,6 +243,11 @@ export function solve(xs: number[], k: number): number[][] {
         tc('empty array', [[], 2], []),
       ],
       title: 'Sliding windows',
+      trap: code(`
+export function solve(xs: number[], k: number): number[][] {
+  return Array.from({ length: Math.max(0, xs.length - k) }, (_, index) => xs.slice(index, index + k));
+}
+`),
     },
     {
       categoryId: 'tricks-and-patterns',

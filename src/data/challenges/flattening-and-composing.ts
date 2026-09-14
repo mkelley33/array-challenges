@@ -197,6 +197,11 @@ export function solve(entries: string[]): number[] {
         tc('empty input', [[]], []),
       ],
       title: 'Parse the valid integers',
+      trap: code(`
+export function solve(entries: string[]): number[] {
+  return entries.flatMap((entry) => (Number.isNaN(Number(entry)) ? [] : [Number(entry)]));
+}
+`),
     },
     {
       categoryId: 'flattening-and-composing',

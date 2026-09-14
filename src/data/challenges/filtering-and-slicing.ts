@@ -250,6 +250,20 @@ export function solve(scores: number[], threshold: number): { fail: number[]; pa
         tc('empty scores', [[], 60], { fail: [], pass: [] }),
       ],
       title: 'Partition in one pass',
+      trap: code(`
+export function solve(scores: number[], threshold: number): { fail: number[]; pass: number[] } {
+  return scores.reduce<{ fail: number[]; pass: number[] }>(
+    (groups, score) => {
+      if (score >= threshold) {
+        groups.pass.push(score);
+      } else {
+        groups.fail.push(score);
+      }
+    },
+    { fail: [], pass: [] },
+  );
+}
+`),
     },
     {
       categoryId: 'filtering-and-slicing',

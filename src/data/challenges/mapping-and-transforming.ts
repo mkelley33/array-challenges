@@ -226,6 +226,11 @@ export function solve(left: string[], right: number[]): [string, number][] {
         ),
       ],
       title: 'Zip into pairs',
+      trap: code(`
+export function solve(left: string[], right: number[]): [string, number][] {
+  return left.map((item, index): [string, number] => [item, right[index]]);
+}
+`),
     },
     {
       categoryId: 'mapping-and-transforming',

@@ -352,6 +352,16 @@ export function solve(submissions: Submission[]): Submission[] {
         tc('single submission', [[{ name: 'Only', score: 42 }]], [{ name: 'Only', score: 42 }]),
       ],
       title: 'Stability is a feature',
+      trap: code(`
+interface Submission {
+  name: string;
+  score: number;
+}
+
+export function solve(submissions: Submission[]): Submission[] {
+  return submissions.toSorted((a, b) => a.score - b.score).reverse();
+}
+`),
     },
     {
       categoryId: 'sorting-and-ordering',

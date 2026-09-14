@@ -9,16 +9,16 @@ import {
 } from '@/data/catalog-invariants';
 import { installPolyfills } from '@/lib/polyfills';
 
-import { groupingAndAggregation } from './grouping-and-aggregation';
+import { creatingArrays } from './creating-arrays';
 
 installPolyfills();
 
-describe('grouping-and-aggregation category', () => {
+describe('creating-arrays category', () => {
   it('satisfies the structural invariants', () => {
-    expect(structuralIssues(groupingAndAggregation)).toEqual([]);
+    expect(structuralIssues(creatingArrays)).toEqual([]);
   });
 
-  it.each(groupingAndAggregation.challenges.map((challenge) => [challenge.id, challenge] as const))(
+  it.each(creatingArrays.challenges.map((challenge) => [challenge.id, challenge] as const))(
     '%s: starter transpiles, exports solve, and does not already pass',
     async (_id, challenge) => {
       expect(starterTranspileIssues(challenge)).toEqual([]);
@@ -26,14 +26,14 @@ describe('grouping-and-aggregation category', () => {
     },
   );
 
-  it.each(groupingAndAggregation.challenges.map((challenge) => [challenge.id, challenge] as const))(
+  it.each(creatingArrays.challenges.map((challenge) => [challenge.id, challenge] as const))(
     '%s: reference solution passes its own tests',
     async (_id, challenge) => {
       expect(await solutionMustPass(challenge)).toBeNull();
     },
   );
 
-  it.each(groupingAndAggregation.challenges.map((challenge) => [challenge.id, challenge] as const))(
+  it.each(creatingArrays.challenges.map((challenge) => [challenge.id, challenge] as const))(
     '%s: trap, when present, transpiles and fails at least one test',
     async (_id, challenge) => {
       expect(await trapMustNotPass(challenge)).toBeNull();

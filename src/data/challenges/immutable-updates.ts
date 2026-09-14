@@ -285,6 +285,16 @@ export function solve(todos: Todo[], index: number): Todo[] {
         ),
       ],
       title: 'Complete a todo, shallowly',
+      trap: code(`
+interface Todo {
+  done: boolean;
+  id: number;
+}
+
+export function solve(todos: Todo[], index: number): Todo[] {
+  return todos.with(index, { done: true } as Todo);
+}
+`),
     },
     {
       categoryId: 'immutable-updates',
