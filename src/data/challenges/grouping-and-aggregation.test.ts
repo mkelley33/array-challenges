@@ -5,6 +5,7 @@ import {
   starterMustNotPass,
   starterTranspileIssues,
   structuralIssues,
+  trapMustNotPass,
 } from '@/data/catalog-invariants';
 import { installPolyfills } from '@/lib/polyfills';
 
@@ -29,6 +30,13 @@ describe('grouping-and-aggregation category', () => {
     '%s: reference solution passes its own tests',
     async (_id, challenge) => {
       expect(await solutionMustPass(challenge)).toBeNull();
+    },
+  );
+
+  it.each(groupingAndAggregation.challenges.map((challenge) => [challenge.id, challenge] as const))(
+    '%s: trap, when present, transpiles and fails at least one test',
+    async (_id, challenge) => {
+      expect(await trapMustNotPass(challenge)).toBeNull();
     },
   );
 });

@@ -233,6 +233,12 @@ export function solve(values: number[], target: number): number[] {
         tc('empty array', [[], 1], []),
       ],
       title: 'Every index of a value',
+      trap: code(`
+export function solve(values: number[], target: number): number[] {
+  const position = values.indexOf(target);
+  return position === -1 ? [] : [position];
+}
+`),
     },
     {
       categoryId: 'access-and-search',

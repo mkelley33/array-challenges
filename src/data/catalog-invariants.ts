@@ -52,8 +52,30 @@ export function structuralIssues(module: CategoryModule): string[] {
     if (!challenge.methods.some((method) => challenge.explanation.includes(method))) {
       issues.push(`${challenge.id}: explanation must mention one of: ${challenge.methods.join(', ')}`);
     }
+    if (challenge.difficulty === 'advanced' && challenge.trap === undefined) {
+      issues.push(`${challenge.id}: advanced challenge needs a trap`);
+    }
   }
   return issues;
+}
+
+/**
+ * A trap must transpile (an uncompilable trap teaches nothing) and must fail at
+ * least one test — otherwise the challenge advertises a pitfall that does not exist.
+ */
+export async function trapMustNotPass(challenge: Challenge): Promise<null | string> {
+  if (challenge.trap === undefined) {
+    return null;
+  }
+  const transpiled = transpileTs(challenge.trap);
+  if (!transpiled.ok) {
+    return `${challenge.id}: trap does not transpile — ${transpiled.message}`;
+  }
+  const report = await runChallenge(new DirectExecutor(), challenge.trap, SOLVE_FN_NAME, challenge.tests);
+  if (report.overall === 'passed') {
+    return `${challenge.id}: trap passes every test — it is not a trap`;
+  }
+  return null;
 }
 
 export function starterTranspileIssues(challenge: Challenge): string[] {

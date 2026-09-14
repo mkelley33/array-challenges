@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { installPolyfills } from '@/lib/polyfills';
 
-import { solutionMustPass, starterMustNotPass, starterTranspileIssues, structuralIssues } from './catalog-invariants';
+import {
+  solutionMustPass,
+  starterMustNotPass,
+  starterTranspileIssues,
+  structuralIssues,
+  trapMustNotPass,
+} from './catalog-invariants';
 import { allCategories, allChallenges, allModules } from './challenges';
 
 installPolyfills();
@@ -54,6 +60,15 @@ describe('reference solutions', () => {
     '%s: reference solution passes its own tests',
     async (_id, challenge) => {
       expect(await solutionMustPass(challenge)).toBeNull();
+    },
+  );
+});
+
+describe('traps', () => {
+  it.each(allChallenges.map((challenge) => [challenge.id, challenge] as const))(
+    '%s: trap, when present, transpiles and fails at least one test',
+    async (_id, challenge) => {
+      expect(await trapMustNotPass(challenge)).toBeNull();
     },
   );
 });

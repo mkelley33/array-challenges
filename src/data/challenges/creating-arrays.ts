@@ -164,6 +164,11 @@ export function solve(n: number): number[] {
         tc('first three squares', [3], [0, 1, 4]),
       ],
       title: 'Squares, no holes',
+      trap: code(`
+export function solve(n: number): number[] {
+  return new Array<number>(n).map((_, index) => index * index);
+}
+`),
     },
     {
       categoryId: 'creating-arrays',

@@ -338,6 +338,25 @@ export function solve(expenses: Expense[]): CategoryTotal[] {
         tc('empty expense list', [[]], []),
       ],
       title: 'Total per category',
+      trap: code(`
+interface Expense {
+  amount: number;
+  category: string;
+}
+
+interface CategoryTotal {
+  category: string;
+  total: number;
+}
+
+export function solve(expenses: Expense[]): CategoryTotal[] {
+  const groups = Object.groupBy(expenses, (expense) => expense.category) as Record<string, Expense[]>;
+  return Object.entries(groups).map(([category, items]) => ({
+    category,
+    total: items.reduce((sum, item) => sum + item.amount, 0),
+  }));
+}
+`),
     },
     {
       categoryId: 'grouping-and-aggregation',
@@ -407,6 +426,22 @@ export function solve(items: Item[]): Map<number, Item> {
         tc('empty list', [[]], new Map()),
       ],
       title: 'Index by unique id',
+      trap: code(`
+interface Item {
+  id: number;
+  name: string;
+}
+
+export function solve(items: Item[]): Map<number, Item> {
+  const index = new Map<number, Item>();
+  for (const item of items) {
+    if (!index.has(item.id)) {
+      index.set(item.id, item);
+    }
+  }
+  return index;
+}
+`),
     },
     {
       categoryId: 'grouping-and-aggregation',

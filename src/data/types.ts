@@ -21,6 +21,12 @@ export interface Challenge {
   starterCode: string;
   tests: TestCaseInput[];
   title: string;
+  /**
+   * The tempting-but-wrong solution the challenge is built around. Required on
+   * the advanced tier; the catalog gate proves it fails at least one test so the
+   * "trap" label is never an empty promise.
+   */
+  trap?: string;
 }
 
 export interface CategoryModule {

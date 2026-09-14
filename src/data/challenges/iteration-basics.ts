@@ -266,6 +266,14 @@ export function solve(matrix: number[][]): boolean {
         tc('empty matrix has no signal', [[]], false),
       ],
       title: 'Validate the matrix',
+      trap: code(`
+export function solve(matrix: number[][]): boolean {
+  const width = matrix.length === 0 ? 0 : matrix[0].length;
+  const rectangular = matrix.some((row) => row.length === width);
+  const hasSignal = matrix.some((row) => row.some((cell) => cell !== 0));
+  return rectangular && hasSignal;
+}
+`),
     },
     {
       categoryId: 'iteration-basics',

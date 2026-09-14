@@ -195,6 +195,11 @@ export function solve(amounts: number[]): number {
         tc('negative adjustments subtract', [[100, -25, -5]], 70),
       ],
       title: 'The empty-cart TypeError',
+      trap: code(`
+export function solve(amounts: number[]): number {
+  return amounts.reduce((total, amount) => total + amount);
+}
+`),
     },
     {
       categoryId: 'reduce-and-folding',
@@ -236,6 +241,14 @@ export function solve(transactions: number[]): number[] {
         tc('overdraft goes negative', [[50, -80, 10]], [50, -30, -20]),
       ],
       title: 'Running balance (scan)',
+      trap: code(`
+export function solve(transactions: number[]): number[] {
+  return transactions.reduce<number[]>(
+    (balances, transaction) => [...balances, balances[balances.length - 1] + transaction],
+    [],
+  );
+}
+`),
     },
     {
       categoryId: 'reduce-and-folding',
