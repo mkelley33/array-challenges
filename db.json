@@ -18932,7 +18932,7 @@
               "name": "other"
             }
           ],
-          "name": "keeps the first occurrence"
+          "name": "keeps the first occurrence (trap)"
         },
         {
           "args": [
@@ -18965,7 +18965,7 @@
               "name": "c"
             }
           ],
-          "name": "multiple duplicate groups"
+          "name": "multiple duplicate groups (trap)"
         },
         {
           "args": [
@@ -18983,6 +18983,47 @@
             }
           ],
           "name": "no duplicates passes through"
+        },
+        {
+          "args": [
+            [
+              {
+                "id": 1,
+                "name": "a"
+              },
+              {
+                "id": 2,
+                "name": "b"
+              },
+              {
+                "id": 3,
+                "name": "c"
+              },
+              {
+                "id": 2,
+                "name": "d"
+              },
+              {
+                "id": 1,
+                "name": "e"
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "id": 1,
+              "name": "a"
+            },
+            {
+              "id": 2,
+              "name": "b"
+            },
+            {
+              "id": 3,
+              "name": "c"
+            }
+          ],
+          "name": "ids interleaved across the list (trap)"
         },
         {
           "args": [
@@ -19034,7 +19075,7 @@
               4
             ]
           ],
-          "name": "pairs overlap by one"
+          "name": "pairs overlap by one (trap)"
         },
         {
           "args": [
@@ -19064,7 +19105,7 @@
               5
             ]
           ],
-          "name": "triples overlap by two"
+          "name": "triples overlap by two (trap)"
         },
         {
           "args": [
@@ -19080,7 +19121,7 @@
               2
             ]
           ],
-          "name": "window equal to the whole array"
+          "name": "window equal to the whole array (trap)"
         },
         {
           "args": [
@@ -19108,7 +19149,7 @@
     {
       "categoryId": "tricks-and-patterns",
       "description": "Transpose a rectangular matrix: rows become columns, so `solve([[1, 2, 3], [4, 5, 6]])` → `[[1, 4], [2, 5], [3, 6]]`. An empty matrix transposes to `[]`.\n\nSignature: `solve(matrix: number[][]): number[][]`\n\nTrap: the naive `matrix[0].map(...)` explodes on an empty matrix — guard it.",
-      "difficulty": "expert",
+      "difficulty": "advanced",
       "explanation": "The transpose has one row per *column* of the input, so iterate the first row to drive the output: `matrix[0].map((_, col) => matrix.map((row) => row[col]))`. The outer map runs once per column index and ignores the element itself — only the index matters — while the inner map walks every row plucking the value at that column, assembling the new row. This index-driven double map is the general recipe for any “regroup by position” transform. The empty-matrix guard is mandatory: with no rows there is no `matrix[0]`, and calling `.map` on `undefined` throws — an early `return []` handles the case where there are no rows, and therefore no columns either.",
       "id": "transpose-matrix",
       "methods": [
@@ -19225,10 +19266,473 @@
             []
           ],
           "expected": [],
-          "name": "empty matrix"
+          "name": "empty matrix (trap)"
         }
       ],
-      "title": "Transpose a matrix"
+      "title": "Transpose a matrix",
+      "trap": "export function solve(matrix: number[][]): number[][] {\n  return matrix[0].map((_, column) => matrix.map((row) => row[column]));\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Rotate `xs` to the left by `k` positions: the first `k` elements move to the end, so `solve([1, 2, 3, 4, 5], 2)` → `[3, 4, 5, 1, 2]`. `k` may exceed the length, and a negative `k` rotates to the right. Do not mutate `xs`.\n\nSignature: `solve(xs: number[], k: number): number[]`\n\nTrap: `slice(k)` glued to `slice(0, k)` is only a rotation while `0 <= k < xs.length`.",
+      "difficulty": "advanced",
+      "explanation": "A left rotation is two slices glued back together: `xs.slice(k)` is everything from position `k` onward, `xs.slice(0, k)` is the head that wraps around, and `concat` joins them into a new array without touching `xs`. That one-liner is only right for `0 <= k < xs.length`. Rotating five elements by `7` should land where rotating by `2` does, but `slice(7)` is empty and `slice(0, 7)` is the whole array, so the tempting version hands the input back unrotated. Reducing `k` modulo the length fixes the overflow; the extra `+ n) % n` fixes the sign, because `%` in JavaScript keeps the sign of its left operand and `-4 % 3` is `-1`, not `2`. Normalising first means `slice` and `concat` only ever see a shift that lies inside the array. The empty guard exists because `k % 0` is `NaN`.",
+      "id": "rotate-by-k",
+      "methods": [
+        "slice",
+        "concat"
+      ],
+      "order": 6,
+      "solution": "export function solve(xs: number[], k: number): number[] {\n  if (xs.length === 0) {\n    return [];\n  }\n  const shift = ((k % xs.length) + xs.length) % xs.length;\n  return xs.slice(shift).concat(xs.slice(0, shift));\n}\n",
+      "starterCode": "export function solve(xs: number[], k: number): number[] {\n  // Normalise k into 0..length-1 first, then glue slice(k) and slice(0, k) together.\n  return xs;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            2
+          ],
+          "expected": [
+            3,
+            4,
+            5,
+            1,
+            2
+          ],
+          "name": "rotate left by two"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            7
+          ],
+          "expected": [
+            3,
+            4,
+            5,
+            1,
+            2
+          ],
+          "name": "k larger than the length wraps around (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            -1
+          ],
+          "expected": [
+            5,
+            1,
+            2,
+            3,
+            4
+          ],
+          "name": "negative k rotates right"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            -4
+          ],
+          "expected": [
+            3,
+            1,
+            2
+          ],
+          "name": "negative k beyond the length (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            3
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "k equal to the length is the identity"
+        },
+        {
+          "args": [
+            [],
+            4
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "Rotate by k",
+      "trap": "export function solve(xs: number[], k: number): number[] {\n  return xs.slice(k).concat(xs.slice(0, k));\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Deal `xs` into `n` buckets round-robin: element `i` lands in bucket `i % n`, so `solve([1, 2, 3, 4, 5], 2)` → `[[1, 3, 5], [2, 4]]`. Every bucket is present even when it receives nothing.\n\nSignature: `solve(xs: number[], n: number): number[][]`\n\nTrap: `Array(n).fill([])` looks like `n` empty buckets. It is one empty bucket, `n` times.",
+      "difficulty": "advanced",
+      "explanation": "`Array.from({ length: n }, () => [])` calls the mapper once per slot, so every bucket is a distinct array. `Array(n).fill([])` reads the same but evaluates `[]` once and stores that one reference in every slot — `fill` copies a value, it does not re-run an expression. Dealing then goes wrong silently: `buckets[index % n].push(value)` pushes onto the shared array through whichever slot was chosen, and every bucket ends up holding every element. Nothing throws, and with a single bucket the answer is even right, which is why the bug survives small examples. The dealing itself is a `forEach` with the index: `index % n` cycles through the buckets in order and returns to bucket `0` after every `n` elements. The same rule applies to `fill({})` or `fill(new Set())` — any object handed to `fill` is shared by every slot.",
+      "id": "round-robin-buckets",
+      "methods": [
+        "Array.from",
+        "push",
+        "forEach"
+      ],
+      "order": 7,
+      "solution": "export function solve(xs: number[], n: number): number[][] {\n  const buckets = Array.from({ length: n }, (): number[] => []);\n  xs.forEach((value, index) => {\n    buckets[index % n].push(value);\n  });\n  return buckets;\n}\n",
+      "starterCode": "export function solve(xs: number[], n: number): number[][] {\n  // Build n DISTINCT empty arrays first, then push element i onto bucket i % n.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            2
+          ],
+          "expected": [
+            [
+              1,
+              3,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "name": "deal five into two buckets (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            3
+          ],
+          "expected": [
+            [
+              1,
+              4,
+              7
+            ],
+            [
+              2,
+              5
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "name": "deal seven into three buckets (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            4
+          ],
+          "expected": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [],
+            []
+          ],
+          "name": "more buckets than elements leaves some empty (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            1
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "name": "one bucket takes everything"
+        },
+        {
+          "args": [
+            [],
+            3
+          ],
+          "expected": [
+            [],
+            [],
+            []
+          ],
+          "name": "no elements yields empty buckets"
+        }
+      ],
+      "title": "Deal into buckets",
+      "trap": "export function solve(xs: number[], n: number): number[][] {\n  const buckets: number[][] = Array(n).fill([]);\n  xs.forEach((value, index) => {\n    buckets[index % n].push(value);\n  });\n  return buckets;\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Build the numbers from `start` up to but excluding `end`, advancing by `step`: `solve(0, 10, 3)` → `[0, 3, 6, 9]`. A negative `step` counts down: `solve(5, 0, -2)` → `[5, 3, 1]`. When `step` points away from `end` there is nothing to produce, so return `[]`. `step` is never `0`.\n\nSignature: `solve(start: number, end: number, step: number): number[]`\n\nTrap: the element count is `(end - start) / step` only when that division comes out whole.",
+      "difficulty": "advanced",
+      "explanation": "Every element of the range is `start + index * step`, so the only real question is how many there are. `(end - start) / step` measures the distance in steps, but `end` is excluded and the division rarely comes out whole: from `0` to `10` by `3` it is `3.33…`, and `Array.from` truncates a fractional `length` down to `3`, dropping the `9` that belongs in the result. `Math.ceil` is the fix — a partial step still needs a whole slot — and it holds for negative steps too, because the difference and the divisor flip sign together and the quotient stays positive. When `step` points away from `end` the quotient is negative; `Math.max(0, …)` clamps it to zero and `Array.from` produces `[]`. `Array.from` would also treat a negative length as zero on its own, but the explicit clamp states the intent instead of leaning on that quirk.",
+      "id": "stepped-range",
+      "methods": [
+        "Array.from"
+      ],
+      "order": 8,
+      "solution": "export function solve(start: number, end: number, step: number): number[] {\n  const count = Math.max(0, Math.ceil((end - start) / step));\n  return Array.from({ length: count }, (_, index) => start + index * step);\n}\n",
+      "starterCode": "export function solve(start: number, end: number, step: number): number[] {\n  // Element i is start + i * step — the work is computing how many there are, partial steps included.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            0,
+            10,
+            3
+          ],
+          "expected": [
+            0,
+            3,
+            6,
+            9
+          ],
+          "name": "step that does not divide evenly (trap)"
+        },
+        {
+          "args": [
+            0,
+            10,
+            5
+          ],
+          "expected": [
+            0,
+            5
+          ],
+          "name": "step that divides evenly"
+        },
+        {
+          "args": [
+            5,
+            0,
+            -2
+          ],
+          "expected": [
+            5,
+            3,
+            1
+          ],
+          "name": "negative step counts down (trap)"
+        },
+        {
+          "args": [
+            0,
+            10,
+            -1
+          ],
+          "expected": [],
+          "name": "step pointing away from end yields nothing"
+        },
+        {
+          "args": [
+            4,
+            4,
+            1
+          ],
+          "expected": [],
+          "name": "start equal to end yields nothing"
+        },
+        {
+          "args": [
+            -3,
+            3,
+            2
+          ],
+          "expected": [
+            -3,
+            -1,
+            1
+          ],
+          "name": "negative bounds"
+        }
+      ],
+      "title": "Range with a step",
+      "trap": "export function solve(start: number, end: number, step: number): number[] {\n  return Array.from({ length: Math.max(0, (end - start) / step) }, (_, index) => start + index * step);\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Run-length encode a list of characters: each maximal stretch of equal *adjacent* characters becomes one `{ ch, n }` entry, in order. `solve([\"a\", \"a\", \"b\", \"a\"])` → `[{ ch: \"a\", n: 2 }, { ch: \"b\", n: 1 }, { ch: \"a\", n: 1 }]`.\n\nSignature: `solve(chars: string[]): { ch: string; n: number }[]`\n\nTrap: a count per character is not a count per run — `\"a\"` above must come out as two separate runs.",
+      "difficulty": "advanced",
+      "explanation": "Run-length encoding compresses *adjacent* repeats, and adjacency is exactly what a frequency map throws away: tallying into an object keyed by character reports that `a` appears three times in `a a b a`, when the answer is two runs of `a` separated by a `b`. The fold has to look at the run in progress instead. `reduce` carries the list of runs built so far and `at(-1)` reads the most recent one; if its `ch` matches the current character that run grows by one, otherwise a fresh `{ ch, n: 1 }` is appended. Growing a run is done immutably — `slice(0, -1)` drops the old last entry and a new object with `n + 1` takes its place — so no run object is ever mutated after it is created. An empty input never invokes the callback, and the seed `[]` is returned as is.",
+      "id": "run-length-encode",
+      "methods": [
+        "reduce",
+        "at",
+        "slice"
+      ],
+      "order": 9,
+      "solution": "interface Run {\n  ch: string;\n  n: number;\n}\n\nexport function solve(chars: string[]): Run[] {\n  return chars.reduce<Run[]>((runs, ch) => {\n    const last = runs.at(-1);\n    if (last !== undefined && last.ch === ch) {\n      return [...runs.slice(0, -1), { ch, n: last.n + 1 }];\n    }\n    return [...runs, { ch, n: 1 }];\n  }, []);\n}\n",
+      "starterCode": "interface Run {\n  ch: string;\n  n: number;\n}\n\nexport function solve(chars: string[]): Run[] {\n  // Compare each character with the run in progress (at(-1)) — extend it or start a new one.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "a",
+              "a",
+              "b",
+              "a"
+            ]
+          ],
+          "expected": [
+            {
+              "ch": "a",
+              "n": 2
+            },
+            {
+              "ch": "b",
+              "n": 1
+            },
+            {
+              "ch": "a",
+              "n": 1
+            }
+          ],
+          "name": "a character that returns later starts a new run (trap)"
+        },
+        {
+          "args": [
+            [
+              "x",
+              "x",
+              "x"
+            ]
+          ],
+          "expected": [
+            {
+              "ch": "x",
+              "n": 3
+            }
+          ],
+          "name": "adjacent repeats collapse"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "a",
+              "b"
+            ]
+          ],
+          "expected": [
+            {
+              "ch": "a",
+              "n": 1
+            },
+            {
+              "ch": "b",
+              "n": 1
+            },
+            {
+              "ch": "a",
+              "n": 1
+            },
+            {
+              "ch": "b",
+              "n": 1
+            }
+          ],
+          "name": "alternating characters never merge (trap)"
+        },
+        {
+          "args": [
+            [
+              "a",
+              "b",
+              "c"
+            ]
+          ],
+          "expected": [
+            {
+              "ch": "a",
+              "n": 1
+            },
+            {
+              "ch": "b",
+              "n": 1
+            },
+            {
+              "ch": "c",
+              "n": 1
+            }
+          ],
+          "name": "no repeats at all"
+        },
+        {
+          "args": [
+            [
+              "z"
+            ]
+          ],
+          "expected": [
+            {
+              "ch": "z",
+              "n": 1
+            }
+          ],
+          "name": "single character"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty input"
+        }
+      ],
+      "title": "Run-length encode",
+      "trap": "interface Run {\n  ch: string;\n  n: number;\n}\n\nexport function solve(chars: string[]): Run[] {\n  const counts = chars.reduce<Record<string, number>>((tally, ch) => {\n    tally[ch] = (tally[ch] ?? 0) + 1;\n    return tally;\n  }, {});\n  return Object.entries(counts).map(([ch, n]) => ({ ch, n }));\n}\n"
     },
     {
       "categoryId": "tricks-and-patterns",
@@ -19240,7 +19744,7 @@
         "reduce",
         "concat"
       ],
-      "order": 6,
+      "order": 10,
       "solution": "export function solve(xs: unknown[], depth: number): unknown[] {\n  if (depth <= 0) {\n    return xs.slice();\n  }\n  return xs.reduce<unknown[]>(\n    (acc, item) => acc.concat(Array.isArray(item) ? solve(item, depth - 1) : [item]),\n    [],\n  );\n}\n",
       "starterCode": "export function solve(xs: unknown[], depth: number): unknown[] {\n  // concat splices arrays in one level; recurse with depth - 1 on nested arrays, stop at depth 0.\n  return xs;\n}\n",
       "tests": [
@@ -19348,6 +19852,864 @@
         }
       ],
       "title": "Build your own flat"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "A fixed-size buffer keeps its newest reading at index `0`. Make room for `k` new readings by moving every element `k` slots to the right — the oldest `k` fall off the end — then zero the freed slots at the front. Mutate `buffer` in place and return it: `solve([1, 2, 3, 4, 5], 2)` → `[0, 0, 1, 2, 3]`. A `k` of `0` changes nothing; a `k` at or beyond the length zeroes everything.\n\nSignature: `solve(buffer: number[], k: number): number[]`\n\n`copyWithin` exists for exactly this: moving a block to a destination that overlaps its source.",
+      "difficulty": "expert",
+      "explanation": "`copyWithin(target, start)` moves a block of the array to another position *inside the same array*, and its one job is handling overlap correctly: when the destination lies beyond the source, the specification copies from the end backwards, so no slot is read after it has already been overwritten. The hand-written forward loop `buffer[i] = buffer[i - k]` reads slots it has just clobbered — shifting `[1, 2, 3, 4, 5]` by `2` yields `[1, 2, 1, 2, 1]` — and it only appears to work when `k` is large enough that source and destination do not overlap. Two things it will not do: it never changes the length, and it leaves the vacated slots holding their old values, which is why `fill(0, 0, k)` follows to zero the freed head. Both methods mutate in place and return the same array, so the chain hands back the caller's buffer.",
+      "id": "ring-buffer-shift",
+      "methods": [
+        "copyWithin",
+        "fill"
+      ],
+      "order": 11,
+      "solution": "export function solve(buffer: number[], k: number): number[] {\n  return buffer.copyWithin(k, 0).fill(0, 0, k);\n}\n",
+      "starterCode": "export function solve(buffer: number[], k: number): number[] {\n  // copyWithin(target, start) moves a block even when it overlaps itself; then fill the freed slots with 0.\n  return buffer;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            2
+          ],
+          "expected": [
+            0,
+            0,
+            1,
+            2,
+            3
+          ],
+          "name": "shift right by two (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            1
+          ],
+          "expected": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "name": "shift right by one (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            3
+          ],
+          "expected": [
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "name": "shift by more than half has no overlap"
+        },
+        {
+          "args": [
+            [
+              7,
+              8,
+              9
+            ],
+            0
+          ],
+          "expected": [
+            7,
+            8,
+            9
+          ],
+          "name": "k of zero is a no-op"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            3
+          ],
+          "expected": [
+            0,
+            0,
+            0
+          ],
+          "name": "k equal to the length zeroes everything"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            5
+          ],
+          "expected": [
+            0,
+            0
+          ],
+          "name": "k beyond the length zeroes everything"
+        },
+        {
+          "args": [
+            [],
+            2
+          ],
+          "expected": [],
+          "name": "empty buffer"
+        }
+      ],
+      "title": "Shift a buffer in place",
+      "trap": "export function solve(buffer: number[], k: number): number[] {\n  for (let index = k; index < buffer.length; index += 1) {\n    buffer[index] = buffer[index - k];\n  }\n  return buffer.fill(0, 0, k);\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Evaluate an expression written in Reverse Polish Notation: `tokens` holds numbers and the operators `+`, `-`, `*`, `/`, and each operator applies to the two values pushed most recently. `solve([\"3\", \"4\", \"+\", \"2\", \"*\"])` → `14`. The input is always well-formed and never divides by zero.\n\nSignature: `solve(tokens: string[]): number`\n\nKeep a stack: `push` numbers, and let each operator `pop` its operands — mind which one comes off first.",
+      "difficulty": "expert",
+      "explanation": "Reverse Polish Notation is a stack machine: numbers are pushed, and an operator consumes the two most recent values and pushes its result. `push` and `pop` make an ordinary array behave as that stack, and `reduce` threads it through the tokens — the accumulator is the stack itself, mutated in place and returned from every step. The subtle part is operand order. `pop` returns the *most recently* pushed value, which for `5 3 -` is the `3`, and that value is the right-hand operand: the expression means `5 - 3`, not `3 - 5`. Popping into `right` first and `left` second keeps `-` and `/` honest; `+` and `*` are commutative and would hide the mistake. The `?? 0` fallbacks satisfy the type checker, since `pop` may return `undefined`; well-formed input never reaches them. Once every token is consumed exactly one value remains, and a final `pop` retrieves it.",
+      "id": "rpn-calculator",
+      "methods": [
+        "push",
+        "pop",
+        "reduce"
+      ],
+      "order": 12,
+      "solution": "const OPERATORS = new Set(['+', '-', '*', '/']);\n\nfunction apply(operator: string, left: number, right: number): number {\n  switch (operator) {\n    case '+':\n      return left + right;\n    case '-':\n      return left - right;\n    case '*':\n      return left * right;\n    default:\n      return left / right;\n  }\n}\n\nexport function solve(tokens: string[]): number {\n  const stack = tokens.reduce<number[]>((values, token) => {\n    if (!OPERATORS.has(token)) {\n      values.push(Number(token));\n      return values;\n    }\n    const right = values.pop() ?? 0;\n    const left = values.pop() ?? 0;\n    values.push(apply(token, left, right));\n    return values;\n  }, []);\n  return stack.pop() ?? 0;\n}\n",
+      "starterCode": "export function solve(tokens: string[]): number {\n  // Push numbers; an operator pops two values — the FIRST one popped is the right-hand operand.\n  return 0;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              "3",
+              "4",
+              "+",
+              "2",
+              "*"
+            ]
+          ],
+          "expected": 14,
+          "name": "add then multiply"
+        },
+        {
+          "args": [
+            [
+              "5",
+              "3",
+              "-"
+            ]
+          ],
+          "expected": 2,
+          "name": "subtraction takes the earlier operand first (trap)"
+        },
+        {
+          "args": [
+            [
+              "8",
+              "2",
+              "/"
+            ]
+          ],
+          "expected": 4,
+          "name": "division order matters (trap)"
+        },
+        {
+          "args": [
+            [
+              "10",
+              "2",
+              "3",
+              "-",
+              "-"
+            ]
+          ],
+          "expected": 11,
+          "name": "chained subtraction (trap)"
+        },
+        {
+          "args": [
+            [
+              "2",
+              "3",
+              "4",
+              "*",
+              "+"
+            ]
+          ],
+          "expected": 14,
+          "name": "nested operators"
+        },
+        {
+          "args": [
+            [
+              "-3",
+              "2",
+              "*"
+            ]
+          ],
+          "expected": -6,
+          "name": "negative literals are numbers, not operators"
+        },
+        {
+          "args": [
+            [
+              "42"
+            ]
+          ],
+          "expected": 42,
+          "name": "single number"
+        }
+      ],
+      "title": "RPN calculator",
+      "trap": "const OPERATORS = new Set(['+', '-', '*', '/']);\n\nfunction apply(operator: string, left: number, right: number): number {\n  switch (operator) {\n    case '+':\n      return left + right;\n    case '-':\n      return left - right;\n    case '*':\n      return left * right;\n    default:\n      return left / right;\n  }\n}\n\nexport function solve(tokens: string[]): number {\n  const stack = tokens.reduce<number[]>((values, token) => {\n    if (!OPERATORS.has(token)) {\n      values.push(Number(token));\n      return values;\n    }\n    const left = values.pop() ?? 0;\n    const right = values.pop() ?? 0;\n    values.push(apply(token, left, right));\n    return values;\n  }, []);\n  return stack.pop() ?? 0;\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Return the values of a tree in breadth-first order: the root, then every node at depth `1` from left to right, then depth `2`, and so on. Nodes are `{ children, value }`. For a root `1` with children `2` and `3`, where `2` has a child `4`, the answer is `[1, 2, 3, 4]` — the grandchild waits for every child.\n\nSignature: `solve(root: { children: TreeNode[]; value: number }): number[]`\n\nA queue is the whole trick: `shift` takes the oldest entry, `push` appends behind everything waiting.",
+      "difficulty": "expert",
+      "explanation": "Breadth-first order is a queue discipline: whoever has waited longest is served next. `shift` removes the front of an array and `push` appends to the back, so the pair turns an array into a first-in, first-out queue. Seed it with the root; each turn `shift`s one node, records its value, and `push`es its children behind everything already waiting — which is exactly why a grandchild cannot appear before an uncle: the uncle was queued earlier. The natural recursive version `[value, ...children.flatMap(solve)]` walks depth-first and produces pre-order, diving into the first child’s subtree before its sibling is visited — `[1, 2, 4, 3]` instead of `[1, 2, 3, 4]`. Swapping `shift` for `pop` turns the queue into a stack and gives a depth-first order too. One cost to know: `shift` re-indexes the array, so on very large trees a head pointer into the array beats repeated shifting.",
+      "id": "level-order-traversal",
+      "methods": [
+        "shift",
+        "push"
+      ],
+      "order": 13,
+      "solution": "interface TreeNode {\n  children: TreeNode[];\n  value: number;\n}\n\nexport function solve(root: TreeNode): number[] {\n  const queue: TreeNode[] = [root];\n  const values: number[] = [];\n  let node = queue.shift();\n  while (node !== undefined) {\n    values.push(node.value);\n    queue.push(...node.children);\n    node = queue.shift();\n  }\n  return values;\n}\n",
+      "starterCode": "interface TreeNode {\n  children: TreeNode[];\n  value: number;\n}\n\nexport function solve(root: TreeNode): number[] {\n  // Seed a queue with the root; shift a node, record it, push its children — repeat until the queue is empty.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "value": 4
+                    }
+                  ],
+                  "value": 2
+                },
+                {
+                  "children": [],
+                  "value": 3
+                }
+              ],
+              "value": 1
+            }
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "name": "grandchild waits for every child (trap)"
+        },
+        {
+          "args": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "value": 5
+                    },
+                    {
+                      "children": [],
+                      "value": 6
+                    }
+                  ],
+                  "value": 2
+                },
+                {
+                  "children": [],
+                  "value": 3
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "value": 7
+                    }
+                  ],
+                  "value": 4
+                }
+              ],
+              "value": 1
+            }
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "name": "three levels (trap)"
+        },
+        {
+          "args": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "value": 4
+                    }
+                  ],
+                  "value": 2
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "value": 5
+                    }
+                  ],
+                  "value": 3
+                }
+              ],
+              "value": 1
+            }
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "name": "siblings stay left to right (trap)"
+        },
+        {
+          "args": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "value": 3
+                    }
+                  ],
+                  "value": 2
+                }
+              ],
+              "value": 1
+            }
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "a chain reads the same in either order"
+        },
+        {
+          "args": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "value": 2
+                },
+                {
+                  "children": [],
+                  "value": 3
+                },
+                {
+                  "children": [],
+                  "value": 4
+                }
+              ],
+              "value": 1
+            }
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "name": "wide and flat"
+        },
+        {
+          "args": [
+            {
+              "children": [],
+              "value": 9
+            }
+          ],
+          "expected": [
+            9
+          ],
+          "name": "a single node"
+        }
+      ],
+      "title": "Level order with a queue",
+      "trap": "interface TreeNode {\n  children: TreeNode[];\n  value: number;\n}\n\nexport function solve(root: TreeNode): number[] {\n  return [root.value, ...root.children.flatMap((child) => solve(child))];\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Shuffle `xs` with the Fisher–Yates algorithm, taking the randomness as data so the result is reproducible. Walk `i` from the last index down to `1`; at step `s` pick `j = Math.floor(rolls[s] * (i + 1))` and swap positions `i` and `j`. `rolls` holds `xs.length - 1` numbers in `[0, 1)`. Return a new array and leave `xs` untouched.\n\nSignature: `solve(xs: number[], rolls: number[]): number[]`\n\nTrap: drawing `j` from the whole array instead of `0..i` is the classic biased shuffle.",
+      "difficulty": "expert",
+      "explanation": "Fisher–Yates walks `i` from the last index down to `1`, chooses a partner `j` uniformly from `0..i` — the still-unshuffled prefix plus `i` itself — and swaps. Because `j` never reaches into the already-placed tail, every one of the `n!` orderings is equally likely. The tempting shortcut draws `j` from the whole array, `Math.floor(roll * xs.length)`; that is not uniform, and here it simply produces a different array from the same rolls. Taking the rolls as data is what makes the algorithm testable. `Array.from` lays out the descending sequence of `i` values, `reduce` carries the partially shuffled array, and `with` performs each swap without mutating: `shuffled.with(i, shuffled[j]).with(j, shuffled[i])` reads both original values before either is replaced, so the input array is never touched. Every `with` copies the array, which makes this O(n²) — the price of immutability for an algorithm designed to swap in place.",
+      "id": "seeded-shuffle",
+      "methods": [
+        "with",
+        "Array.from",
+        "reduce"
+      ],
+      "order": 14,
+      "solution": "export function solve(xs: number[], rolls: number[]): number[] {\n  const positions = Array.from({ length: Math.max(0, xs.length - 1) }, (_, step) => xs.length - 1 - step);\n  return positions.reduce((shuffled, i, step) => {\n    const j = Math.floor(rolls[step] * (i + 1));\n    return shuffled.with(i, shuffled[j]).with(j, shuffled[i]);\n  }, xs);\n}\n",
+      "starterCode": "export function solve(xs: number[], rolls: number[]): number[] {\n  // For i = last..1: j = floor(rolls[step] * (i + 1)); swap i and j with two with() calls.\n  return xs;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              0.5,
+              0.5,
+              0.5
+            ]
+          ],
+          "expected": [
+            1,
+            4,
+            2,
+            3
+          ],
+          "name": "mid rolls"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              0.9,
+              0.9,
+              0.9
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "name": "rolls near one leave everything in place (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              0.7,
+              0.7,
+              0.7
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            4,
+            3
+          ],
+          "name": "seven-tenths (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "expected": [
+            2,
+            3,
+            4,
+            1
+          ],
+          "name": "rolls of zero always swap with the front"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              0.2
+            ]
+          ],
+          "expected": [
+            2,
+            1
+          ],
+          "name": "two elements swap on a low roll"
+        },
+        {
+          "args": [
+            [
+              5
+            ],
+            []
+          ],
+          "expected": [
+            5
+          ],
+          "name": "single element needs no rolls"
+        },
+        {
+          "args": [
+            [],
+            []
+          ],
+          "expected": [],
+          "name": "empty array"
+        }
+      ],
+      "title": "Seeded Fisher–Yates",
+      "trap": "export function solve(xs: number[], rolls: number[]): number[] {\n  const positions = Array.from({ length: Math.max(0, xs.length - 1) }, (_, step) => xs.length - 1 - step);\n  return positions.reduce((shuffled, i, step) => {\n    const j = Math.floor(rolls[step] * xs.length);\n    return shuffled.with(i, shuffled[j]).with(j, shuffled[i]);\n  }, xs);\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Rank the values of `xs` by how often they appear, most frequent first, as `[value, count]` pairs. Ties keep the order in which the values first appeared: `solve([10, 2, 2, 10, 5])` → `[[10, 2], [2, 2], [5, 1]]`.\n\nSignature: `solve(xs: number[]): [number, number][]`\n\nTrap: counting into a plain object reorders your keys behind your back.",
+      "difficulty": "expert",
+      "explanation": "`Map.groupBy(xs, (x) => x)` buckets the values in a single pass, and a `Map` remembers the order in which keys were first inserted, so the groups already sit in first-appearance order. Spreading the map yields `[value, group]` pairs, `map` swaps each group for its length, and `toSorted` orders by count descending. That last step leans on a guarantee: `toSorted` is stable, so pairs with equal counts keep their relative order — the first-appearance order the map preserved. Counting into a plain object breaks this before sorting even starts. Keys that look like array indices are enumerated in ascending numeric order ahead of every other key, so `Object.entries` on `{ 10: 2, 2: 2, 5: 1 }` yields `2` before `10` and the tie resolves the wrong way. It also turns every key into a string. `Map` keeps keys as they are, in the order they arrived.",
+      "id": "frequency-ranking",
+      "methods": [
+        "Map.groupBy",
+        "map",
+        "toSorted"
+      ],
+      "order": 15,
+      "solution": "export function solve(xs: number[]): [number, number][] {\n  return [...Map.groupBy(xs, (x) => x)]\n    .map(([value, group]): [number, number] => [value, group.length])\n    .toSorted((a, b) => b[1] - a[1]);\n}\n",
+      "starterCode": "export function solve(xs: number[]): [number, number][] {\n  // Group with Map.groupBy (insertion order preserved), map groups to counts, then a STABLE sort by count.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              10,
+              2,
+              2,
+              10,
+              5
+            ]
+          ],
+          "expected": [
+            [
+              10,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              5,
+              1
+            ]
+          ],
+          "name": "ties keep first-appearance order (trap)"
+        },
+        {
+          "args": [
+            [
+              7,
+              3,
+              9
+            ]
+          ],
+          "expected": [
+            [
+              7,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              9,
+              1
+            ]
+          ],
+          "name": "all ties preserve input order (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              3,
+              3,
+              3,
+              2,
+              2
+            ]
+          ],
+          "expected": [
+            [
+              3,
+              3
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "clear winner"
+        },
+        {
+          "args": [
+            [
+              -1,
+              0,
+              -1
+            ]
+          ],
+          "expected": [
+            [
+              -1,
+              2
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "name": "negative and zero values"
+        },
+        {
+          "args": [
+            [
+              4,
+              4
+            ]
+          ],
+          "expected": [
+            [
+              4,
+              2
+            ]
+          ],
+          "name": "single value"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [],
+          "name": "empty input"
+        }
+      ],
+      "title": "Frequency ranking",
+      "trap": "export function solve(xs: number[]): [number, number][] {\n  const counts = xs.reduce<Record<number, number>>((tally, value) => {\n    tally[value] = (tally[value] ?? 0) + 1;\n    return tally;\n  }, {});\n  return Object.entries(counts)\n    .map(([value, count]): [number, number] => [Number(value), count])\n    .toSorted((a, b) => b[1] - a[1]);\n}\n"
+    },
+    {
+      "categoryId": "tricks-and-patterns",
+      "description": "Rebuild `toSpliced` from `slice` and `concat`: return a copy of `xs` with `deleteCount` elements removed at `start` and `items` inserted in their place, leaving `xs` untouched. A negative `start` counts from the end, like the real method; a `deleteCount` past the end removes to the end. Calling `splice` or `toSpliced` is forbidden.\n\nSignature: `solve(xs: number[], start: number, deleteCount: number, items: number[]): number[]`\n\nTrap: `slice(0, start)` understands a negative `start`; `slice(start + deleteCount)` does not.",
+      "difficulty": "expert",
+      "explanation": "`toSpliced(start, deleteCount, ...items)` is three pieces concatenated: the part before `start`, the inserted `items`, and the part after the deleted stretch. `slice(0, from)` and `slice(from + deleteCount)` produce the outer two and `concat` joins them into a fresh array, so the input is never mutated. What the one-liner misses is that the real method normalises its arguments first. A negative `start` counts from the end, and while `slice(0, -1)` happens to understand that, `slice(-1 + 1)` is `slice(0)` — the whole array — so deleting the last element duplicates everything. Resolving `start` into a real index up front (`length + start` clamped at `0`; a positive value clamped at `length`) makes both slices agree. `deleteCount` is clamped at `0` too, because a negative count deletes nothing and would otherwise drag the second slice backwards. Once normalised, `slice` absorbs over-long counts on its own.",
+      "id": "build-your-own-tospliced",
+      "methods": [
+        "slice",
+        "concat"
+      ],
+      "order": 16,
+      "solution": "export function solve(xs: number[], start: number, deleteCount: number, items: number[]): number[] {\n  const from = start < 0 ? Math.max(0, xs.length + start) : Math.min(start, xs.length);\n  return xs.slice(0, from).concat(items, xs.slice(from + Math.max(0, deleteCount)));\n}\n",
+      "starterCode": "export function solve(xs: number[], start: number, deleteCount: number, items: number[]): number[] {\n  // Resolve start into a real index first (negative counts from the end), then slice / concat / slice.\n  return xs;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            1,
+            2,
+            [
+              9,
+              8
+            ]
+          ],
+          "expected": [
+            1,
+            9,
+            8,
+            4
+          ],
+          "name": "replace in the middle"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            1,
+            0,
+            [
+              9
+            ]
+          ],
+          "expected": [
+            1,
+            9,
+            2,
+            3
+          ],
+          "name": "insert without deleting"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            -1,
+            1,
+            [
+              9
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            9
+          ],
+          "name": "negative start counts from the end (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            1,
+            -1,
+            [
+              9
+            ]
+          ],
+          "expected": [
+            1,
+            9,
+            2,
+            3
+          ],
+          "name": "negative delete count deletes nothing (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            2,
+            10,
+            []
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "delete count past the end removes to the end"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            5,
+            0,
+            [
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "start past the end appends"
+        },
+        {
+          "args": [
+            [],
+            0,
+            0,
+            [
+              1
+            ]
+          ],
+          "expected": [
+            1
+          ],
+          "name": "empty array"
+        }
+      ],
+      "title": "Build your own toSpliced",
+      "trap": "export function solve(xs: number[], start: number, deleteCount: number, items: number[]): number[] {\n  return xs.slice(0, start).concat(items, xs.slice(start + deleteCount));\n}\n"
     }
   ],
   "submissions": []
