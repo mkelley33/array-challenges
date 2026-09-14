@@ -11141,6 +11141,835 @@
     },
     {
       "categoryId": "immutable-updates",
+      "description": "Prepend `items`, in order, to the front of `values` and return a tuple `[prepended, original]` — the new array first, then `values` itself, which must still hold its original contents.\n\nSignature: `solve(values: number[], items: number[]): [number[], number[]]`\n\n`unshift` is the mutating way to prepend; the change-by-copy family spells the same edit with `toSpliced`.",
+      "difficulty": "advanced",
+      "explanation": "`unshift` prepends in place and returns the new *length*, so the trap’s `prepended` and `values` are one array — the tuple comes back as the same prepended list twice and the “original” is gone. `toSpliced(0, 0, ...items)` is the copying spelling of the same edit: start at index `0`, delete nothing, insert the items — and hand back a fresh array while the receiver keeps its contents. That is what makes the tuple provable: the copy carries the prepended items, the original is untouched, and the tests can see both at once. Spreading `items` matters too; passing the array itself would insert one nested element. Every ES2023 change-by-copy method returns a new array and leaves the receiver alone, which is exactly the guarantee `unshift`, `push`, `shift`, and `pop` do not give you.",
+      "id": "prepend-keep-original",
+      "methods": [
+        "toSpliced"
+      ],
+      "order": 6,
+      "solution": "export function solve(values: number[], items: number[]): [number[], number[]] {\n  return [values.toSpliced(0, 0, ...items), values];\n}\n",
+      "starterCode": "export function solve(values: number[], items: number[]): [number[], number[]] {\n  // unshift() prepends in place and returns the new LENGTH — which copying method inserts at index 0?\n  return [[], []];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              3,
+              4
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              3,
+              4
+            ]
+          ],
+          "name": "prepends two items, original intact (trap)"
+        },
+        {
+          "args": [
+            [
+              2,
+              3
+            ],
+            [
+              1
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "name": "single item (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            []
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "name": "nothing to prepend"
+        },
+        {
+          "args": [
+            [],
+            [
+              9
+            ]
+          ],
+          "expected": [
+            [
+              9
+            ],
+            []
+          ],
+          "name": "prepend onto an empty array (trap)"
+        },
+        {
+          "args": [
+            [
+              10
+            ],
+            [
+              7,
+              8,
+              9
+            ]
+          ],
+          "expected": [
+            [
+              7,
+              8,
+              9,
+              10
+            ],
+            [
+              10
+            ]
+          ],
+          "name": "items keep their order"
+        }
+      ],
+      "title": "Prepend, keep the original",
+      "trap": "export function solve(values: number[], items: number[]): [number[], number[]] {\n  const prepended = values;\n  prepended.unshift(...items);\n  return [prepended, values];\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a copy of `values` with the element at `index` replaced by `replacement`. Negative indices count from the end. When `index` is out of range in either direction, return `null` instead of a grown or unchanged array.\n\nSignature: `solve(values: number[], index: number, replacement: number): number[] | null`\n\nTrap: a bracket write on a spread copy never complains — `copy[-1] = x` and `copy[99] = x` both “succeed”.",
+      "difficulty": "advanced",
+      "explanation": "`with` validates its index the way `at` reads one: negative values count back from the end, and anything outside `[-length, length)` throws a `RangeError` rather than doing something quietly. Catching that `RangeError` is the whole solution — the method performs the bounds check, and the `catch` turns the exception into `null`. The bracket write is the naive spelling and it never fails: `copy[-1] = x` creates a string-keyed property named `\"-1\"` that no index ever sees, so the last element is not replaced; `copy[10] = x` grows the array to eleven slots with holes in between. Neither outcome is an error to JavaScript, which is why the tests have to look for them by value. Reach for `with` when a bad index should be a bug you hear about, not a silent shape change.",
+      "id": "with-bounds-check",
+      "methods": [
+        "with"
+      ],
+      "order": 7,
+      "solution": "export function solve(values: number[], index: number, replacement: number): number[] | null {\n  try {\n    return values.with(index, replacement);\n  } catch (error) {\n    if (error instanceof RangeError) {\n      return null;\n    }\n    throw error;\n  }\n}\n",
+      "starterCode": "export function solve(values: number[], index: number, replacement: number): number[] | null {\n  // with() already knows which indices are legal — what does it do when one is not?\n  return null;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            1,
+            9
+          ],
+          "expected": [
+            1,
+            9,
+            3
+          ],
+          "name": "replaces in range"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            -1,
+            7
+          ],
+          "expected": [
+            1,
+            2,
+            7
+          ],
+          "name": "negative index counts from the end (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            3,
+            0
+          ],
+          "expected": null,
+          "name": "index past the end is out of range (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            10,
+            0
+          ],
+          "expected": null,
+          "name": "index far past the end (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            -4,
+            0
+          ],
+          "expected": null,
+          "name": "negative index past the start is out of range"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            -3,
+            5
+          ],
+          "expected": [
+            5,
+            2,
+            3
+          ],
+          "name": "index of exactly minus length hits the first element"
+        },
+        {
+          "args": [
+            [],
+            0,
+            1
+          ],
+          "expected": null,
+          "name": "empty array has no valid index"
+        }
+      ],
+      "title": "Let with() check the bounds",
+      "trap": "export function solve(values: number[], index: number, replacement: number): number[] | null {\n  const copy = [...values];\n  copy[index] = replacement;\n  return copy;\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a copy of `values` with the elements at indices `i` and `j` exchanged; the input is not modified. Swapping an index with itself returns an equal array.\n\nSignature: `solve(values: number[], i: number, j: number): number[]`\n\nTrap: after the first `with`, the array you are holding is no longer the one you read `values[i]` from.",
+      "difficulty": "advanced",
+      "explanation": "`with` is chainable because every call returns a fresh array, so a swap is two edits back to back: `values.with(i, values[j]).with(j, values[i])`. The part that matters is where the two replacement values are *read from*. Both reads go to `values`, the untouched input, which still holds the original occupant of `i` after the first `with` has replaced it in the copy. The trap reads the second value from the intermediate array instead — `halfway[i]` — but by then slot `i` already holds `values[j]`, so the swap writes the same element into both positions: `[1, 2, 3]` swapped at `0` and `2` becomes `[3, 2, 3]`. This is the immutable version of the classic temp-variable bug, with the twist that the “temp” is the source array itself, which nothing ever overwrote. A same-index swap writes each slot back with its own value, so it needs no special case.",
+      "id": "swap-two-slots",
+      "methods": [
+        "with"
+      ],
+      "order": 8,
+      "solution": "export function solve(values: number[], i: number, j: number): number[] {\n  return values.with(i, values[j]).with(j, values[i]);\n}\n",
+      "starterCode": "export function solve(values: number[], i: number, j: number): number[] {\n  // Two chained with() calls — but read both replacement values from the same untouched array.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            0,
+            2
+          ],
+          "expected": [
+            3,
+            2,
+            1
+          ],
+          "name": "swaps first and last (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            1,
+            2
+          ],
+          "expected": [
+            1,
+            3,
+            2,
+            4
+          ],
+          "name": "swaps adjacent elements (trap)"
+        },
+        {
+          "args": [
+            [
+              5,
+              6,
+              7
+            ],
+            1,
+            1
+          ],
+          "expected": [
+            5,
+            6,
+            7
+          ],
+          "name": "same index is a no-op"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            2,
+            0
+          ],
+          "expected": [
+            3,
+            2,
+            1
+          ],
+          "name": "order of the indices does not matter"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            0,
+            1
+          ],
+          "expected": [
+            2,
+            1
+          ],
+          "name": "two-element swap"
+        }
+      ],
+      "title": "Swap two slots with chained with()",
+      "trap": "export function solve(values: number[], i: number, j: number): number[] {\n  const halfway = values.with(i, values[j]);\n  return halfway.with(j, halfway[i]);\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a copy of `values` where the `deleteCount` elements starting at `start` are replaced by the elements of `items` — which may be shorter or longer than what they replace. The input is not modified.\n\nSignature: `solve(values: number[], start: number, deleteCount: number, items: number[]): number[]`\n\nExample: `solve([1, 2, 3, 4], 1, 2, [8, 9, 10])` → `[1, 8, 9, 10, 4]`. Trap: `toSpliced` takes the replacements as rest arguments — think about what happens when you hand it `items` directly.",
+      "difficulty": "advanced",
+      "explanation": "`toSpliced(start, deleteCount, ...items)` is `splice` with the two things that make `splice` awkward removed: it returns the *edited array* instead of the deleted elements, and it leaves the receiver alone. The deleted range and the inserted items are independent, so the result can grow (`[1, 2, 3, 4]` with two replaced by three) or shrink (three replaced by one) freely — the method rebuilds the array around the edit. The replacements are rest parameters, and that is where the trap lives: passing `items` without spreading inserts the whole array as a single nested element, giving `[1, [8, 9, 10], 4]`, and an empty `items` inserts `[]` rather than nothing. `...items` unpacks them into the argument list. Reaching for `splice` here would return `[2, 3]` — the removed elements — and mutate `values` on top of it.",
+      "id": "replace-a-range",
+      "methods": [
+        "toSpliced"
+      ],
+      "order": 9,
+      "solution": "export function solve(values: number[], start: number, deleteCount: number, items: number[]): number[] {\n  return values.toSpliced(start, deleteCount, ...items);\n}\n",
+      "starterCode": "export function solve(values: number[], start: number, deleteCount: number, items: number[]): number[] {\n  // One toSpliced call does it — mind how the replacement items are passed in.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            1,
+            2,
+            [
+              8,
+              9,
+              10
+            ]
+          ],
+          "expected": [
+            1,
+            8,
+            9,
+            10,
+            4
+          ],
+          "name": "replaces two with three (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            1,
+            3,
+            [
+              0
+            ]
+          ],
+          "expected": [
+            1,
+            0,
+            5
+          ],
+          "name": "replaces three with one (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            0,
+            2,
+            []
+          ],
+          "expected": [
+            3
+          ],
+          "name": "pure deletion when items is empty (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              4
+            ],
+            1,
+            0,
+            [
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "name": "pure insertion when deleteCount is zero"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            2,
+            1,
+            [
+              7,
+              8
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            7,
+            8
+          ],
+          "name": "replace at the end"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            1,
+            10,
+            [
+              9
+            ]
+          ],
+          "expected": [
+            1,
+            9
+          ],
+          "name": "deleteCount past the end clamps"
+        }
+      ],
+      "title": "Replace a range, any length",
+      "trap": "export function solve(values: number[], start: number, deleteCount: number, items: number[]): number[] {\n  return values.toSpliced(start, deleteCount, items);\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a tuple `[sorted, original]`: `sorted` is a new list where every player’s `scores` are in ascending order, and `original` is `players` itself — every one of its score lists must still be in its original order.\n\nSignature: `solve(players: Player[]): [Player[], Player[]]` where `Player` is `{ name: string; scores: number[] }`.\n\nTrap: `map` gives you a new outer array, but the `scores` arrays inside it are the caller’s.",
+      "difficulty": "advanced",
+      "explanation": "The change-by-copy methods are shallow, and so is `map`: the new outer array holds the *same* player objects, whose `scores` arrays are the caller’s. Calling `sort` on those inside the callback reorders the caller’s data — `map` faithfully returns each mutated player, the tuple’s “original” is sorted too, and the test that compares both halves fails. `toSorted` on each `scores` allocates a sorted copy and leaves the source list alone, and spreading the player into a fresh object (`{ ...player, scores }`) means the sorted list is attached to a new player rather than written back into the old one. The rule generalises: copying the container you are iterating is not enough when the edit reaches into an element — every level you change needs its own copy, and every level you do not change can be shared. The comparator `a - b` keeps the sort numeric.",
+      "id": "sort-nested-scores",
+      "methods": [
+        "toSorted",
+        "map"
+      ],
+      "order": 10,
+      "solution": "interface Player {\n  name: string;\n  scores: number[];\n}\n\nexport function solve(players: Player[]): [Player[], Player[]] {\n  const sorted = players.map((player) => ({ ...player, scores: player.scores.toSorted((a, b) => a - b) }));\n  return [sorted, players];\n}\n",
+      "starterCode": "interface Player {\n  name: string;\n  scores: number[];\n}\n\nexport function solve(players: Player[]): [Player[], Player[]] {\n  // map() copies the outer array only — each player's scores need their own copy before sorting.\n  return [[], []];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "scores": [
+                  30,
+                  10,
+                  20
+                ]
+              },
+              {
+                "name": "Bo",
+                "scores": [
+                  5,
+                  1
+                ]
+              }
+            ]
+          ],
+          "expected": [
+            [
+              {
+                "name": "Ada",
+                "scores": [
+                  10,
+                  20,
+                  30
+                ]
+              },
+              {
+                "name": "Bo",
+                "scores": [
+                  1,
+                  5
+                ]
+              }
+            ],
+            [
+              {
+                "name": "Ada",
+                "scores": [
+                  30,
+                  10,
+                  20
+                ]
+              },
+              {
+                "name": "Bo",
+                "scores": [
+                  5,
+                  1
+                ]
+              }
+            ]
+          ],
+          "name": "sorts each player, originals intact (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Cy",
+                "scores": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          ],
+          "expected": [
+            [
+              {
+                "name": "Cy",
+                "scores": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ],
+            [
+              {
+                "name": "Cy",
+                "scores": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          ],
+          "name": "already sorted scores are unchanged"
+        },
+        {
+          "args": [
+            []
+          ],
+          "expected": [
+            [],
+            []
+          ],
+          "name": "empty roster"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Di",
+                "scores": [
+                  10,
+                  9,
+                  100
+                ]
+              }
+            ]
+          ],
+          "expected": [
+            [
+              {
+                "name": "Di",
+                "scores": [
+                  9,
+                  10,
+                  100
+                ]
+              }
+            ],
+            [
+              {
+                "name": "Di",
+                "scores": [
+                  10,
+                  9,
+                  100
+                ]
+              }
+            ]
+          ],
+          "name": "double-digit scores sort numerically (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Ed",
+                "scores": []
+              }
+            ]
+          ],
+          "expected": [
+            [
+              {
+                "name": "Ed",
+                "scores": []
+              }
+            ],
+            [
+              {
+                "name": "Ed",
+                "scores": []
+              }
+            ]
+          ],
+          "name": "player with no scores"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Fi",
+                "scores": [
+                  0,
+                  -5,
+                  3
+                ]
+              }
+            ]
+          ],
+          "expected": [
+            [
+              {
+                "name": "Fi",
+                "scores": [
+                  -5,
+                  0,
+                  3
+                ]
+              }
+            ],
+            [
+              {
+                "name": "Fi",
+                "scores": [
+                  0,
+                  -5,
+                  3
+                ]
+              }
+            ]
+          ],
+          "name": "negative scores (trap)"
+        }
+      ],
+      "title": "Sort inside, copy outside",
+      "trap": "interface Player {\n  name: string;\n  scores: number[];\n}\n\nexport function solve(players: Player[]): [Player[], Player[]] {\n  const sorted = players.map((player) => {\n    player.scores.sort((a, b) => a - b);\n    return player;\n  });\n  return [sorted, players];\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a copy of `values` where every index listed in `indices` has been set to `0`. Indices may repeat; the input is not modified.\n\nSignature: `solve(values: number[], indices: number[]): number[]`\n\nTrap: calling `with` in a loop and ignoring what it returns changes nothing.",
+      "difficulty": "advanced",
+      "explanation": "`with` never touches its receiver: the replacement lives only in the array it *returns*. Written as a `forEach` that discards that return value, the loop allocates one copy per index, drops each on the floor, and hands back `values` untouched — nothing throws, the code reads like an update, and every test with a real index fails. Because each `with` produces the next array to edit, a sequence of edits is a fold: `indices.reduce((current, index) => current.with(index, 0), values)` seeds the accumulator with the input and threads the latest copy through, so each step edits the previous step’s result rather than the original. Repeated indices simply rewrite a slot that is already `0`, and negative indices count from the end as `with` always does. The habit this builds carries to every copying method: `toSorted`, `toReversed`, and `toSpliced` are all useless until you keep what they return.",
+      "id": "zero-out-indices",
+      "methods": [
+        "with",
+        "reduce"
+      ],
+      "order": 11,
+      "solution": "export function solve(values: number[], indices: number[]): number[] {\n  return indices.reduce((current, index) => current.with(index, 0), values);\n}\n",
+      "starterCode": "export function solve(values: number[], indices: number[]): number[] {\n  // with() hands back a new array each time — thread it through the indices instead of dropping it.\n  return values;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "expected": [
+            0,
+            2,
+            0,
+            4
+          ],
+          "name": "zeroes two positions (trap)"
+        },
+        {
+          "args": [
+            [
+              5,
+              6
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "expected": [
+            5,
+            0
+          ],
+          "name": "repeated index zeroes once (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            []
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "no indices returns an equal array"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              -1
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            0
+          ],
+          "name": "negative index counts from the end (trap)"
+        },
+        {
+          "args": [
+            [
+              0,
+              7
+            ],
+            [
+              0
+            ]
+          ],
+          "expected": [
+            0,
+            7
+          ],
+          "name": "already zero stays zero"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            0,
+            0,
+            0
+          ],
+          "name": "every index"
+        }
+      ],
+      "title": "with() returns, it does not write",
+      "trap": "export function solve(values: number[], indices: number[]): number[] {\n  indices.forEach((index) => {\n    values.with(index, 0);\n  });\n  return values;\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
       "description": "Apply a script of edits to `values`, in order, immutably: `set` replaces the element at `index` with `value`, `insert` places `value` at `index`, and `remove` deletes the element at `index`. Each op sees the result of the previous one; an empty script returns the input unchanged.\n\nSignature: `solve(values: number[], ops: EditOp[]): number[]` where `EditOp` is `{ index: number; type: \"set\" | \"insert\"; value: number }` or `{ index: number; type: \"remove\" }`.",
       "difficulty": "expert",
       "explanation": "`reduce` threads the evolving array through the script: the accumulator starts as the input and each op maps it to a new array — `with(op.index, op.value)` for a `set`, `toSpliced(op.index, 0, op.value)` for an `insert`, `toSpliced(op.index, 1)` for a `remove`. Because every step returns a fresh array, no intermediate state is ever mutated, yet each op naturally sees the indices of the world the previous op produced — which is why the sample script’s `remove` at index 2 deletes the `9` it just set at index 1 and then shifted by inserting at 0. The empty-script case costs nothing: with no ops the callback never runs and `reduce` hands back the initial value directly. This fold-over-operations shape is event sourcing in miniature: state as a pure function of an initial value plus a list of events.",
@@ -11150,7 +11979,7 @@
         "with",
         "toSpliced"
       ],
-      "order": 6,
+      "order": 12,
       "solution": "type EditOp =\n  | { index: number; type: 'insert'; value: number }\n  | { index: number; type: 'remove' }\n  | { index: number; type: 'set'; value: number };\n\nexport function solve(values: number[], ops: EditOp[]): number[] {\n  return ops.reduce((current, op) => {\n    if (op.type === 'set') {\n      return current.with(op.index, op.value);\n    }\n    if (op.type === 'insert') {\n      return current.toSpliced(op.index, 0, op.value);\n    }\n    return current.toSpliced(op.index, 1);\n  }, values);\n}\n",
       "starterCode": "type EditOp =\n  | { index: number; type: 'insert'; value: number }\n  | { index: number; type: 'remove' }\n  | { index: number; type: 'set'; value: number };\n\nexport function solve(values: number[], ops: EditOp[]): number[] {\n  // Fold the ops over values: with() handles set, toSpliced() handles insert and remove.\n  return [];\n}\n",
       "tests": [
@@ -11278,6 +12107,1112 @@
         }
       ],
       "title": "Apply an edit script"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "`entries` are already sorted by `score` ascending. Return a new array with `entry` inserted in the right place — after every existing entry with the same score — without re-sorting and without modifying `entries`.\n\nSignature: `solve(entries: Entry[], entry: Entry): Entry[]` where `Entry` is `{ name: string; score: number }`.\n\nTrap: “the first entry whose score is not lower” is the wrong slot when scores tie.",
+      "difficulty": "expert",
+      "explanation": "A sorted list stays sorted if you insert at the right slot, and finding that slot is one linear scan: `findIndex` returns the first entry whose score is strictly greater than the new one, and `toSpliced(position, 0, entry)` inserts there without touching the input. When no entry is greater, `findIndex` yields `-1`, which the fallback turns into `entries.length` so the newcomer is appended. The comparison must be strict. With `>=`, the scan stops at the first *equal* score and the newcomer jumps ahead of entries that were there first — a stability bug: `[Ada 10, Bo 20, Cy 30]` plus `Di 20` reads `Bo, Di` with `>` but `Di, Bo` with `>=`. Appending and calling `toSorted` also passes, at O(n log n) for a job that needs O(n), and it only keeps the ties right because `toSorted` is stable; the scan makes the ordering explicit.",
+      "id": "insert-sorted",
+      "methods": [
+        "findIndex",
+        "toSpliced"
+      ],
+      "order": 13,
+      "solution": "interface Entry {\n  name: string;\n  score: number;\n}\n\nexport function solve(entries: Entry[], entry: Entry): Entry[] {\n  const position = entries.findIndex((existing) => existing.score > entry.score);\n  return entries.toSpliced(position === -1 ? entries.length : position, 0, entry);\n}\n",
+      "starterCode": "interface Entry {\n  name: string;\n  score: number;\n}\n\nexport function solve(entries: Entry[], entry: Entry): Entry[] {\n  // findIndex the first entry that must come AFTER the newcomer, then toSpliced it in — mind the ties.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "score": 10
+              },
+              {
+                "name": "Bo",
+                "score": 20
+              },
+              {
+                "name": "Cy",
+                "score": 30
+              }
+            ],
+            {
+              "name": "Di",
+              "score": 20
+            }
+          ],
+          "expected": [
+            {
+              "name": "Ada",
+              "score": 10
+            },
+            {
+              "name": "Bo",
+              "score": 20
+            },
+            {
+              "name": "Di",
+              "score": 20
+            },
+            {
+              "name": "Cy",
+              "score": 30
+            }
+          ],
+          "name": "lands after an equal score (trap)"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "score": 10
+              },
+              {
+                "name": "Cy",
+                "score": 30
+              }
+            ],
+            {
+              "name": "Bo",
+              "score": 20
+            }
+          ],
+          "expected": [
+            {
+              "name": "Ada",
+              "score": 10
+            },
+            {
+              "name": "Bo",
+              "score": 20
+            },
+            {
+              "name": "Cy",
+              "score": 30
+            }
+          ],
+          "name": "inserts in the middle"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Bo",
+                "score": 20
+              }
+            ],
+            {
+              "name": "Ada",
+              "score": 5
+            }
+          ],
+          "expected": [
+            {
+              "name": "Ada",
+              "score": 5
+            },
+            {
+              "name": "Bo",
+              "score": 20
+            }
+          ],
+          "name": "lowest score goes first"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "score": 10
+              },
+              {
+                "name": "Bo",
+                "score": 20
+              }
+            ],
+            {
+              "name": "Cy",
+              "score": 99
+            }
+          ],
+          "expected": [
+            {
+              "name": "Ada",
+              "score": 10
+            },
+            {
+              "name": "Bo",
+              "score": 20
+            },
+            {
+              "name": "Cy",
+              "score": 99
+            }
+          ],
+          "name": "highest score goes last"
+        },
+        {
+          "args": [
+            [
+              {
+                "name": "Ada",
+                "score": 7
+              },
+              {
+                "name": "Bo",
+                "score": 7
+              },
+              {
+                "name": "Cy",
+                "score": 7
+              }
+            ],
+            {
+              "name": "Di",
+              "score": 7
+            }
+          ],
+          "expected": [
+            {
+              "name": "Ada",
+              "score": 7
+            },
+            {
+              "name": "Bo",
+              "score": 7
+            },
+            {
+              "name": "Cy",
+              "score": 7
+            },
+            {
+              "name": "Di",
+              "score": 7
+            }
+          ],
+          "name": "after several equal scores (trap)"
+        },
+        {
+          "args": [
+            [],
+            {
+              "name": "Ada",
+              "score": 1
+            }
+          ],
+          "expected": [
+            {
+              "name": "Ada",
+              "score": 1
+            }
+          ],
+          "name": "empty list"
+        }
+      ],
+      "title": "Insert without re-sorting",
+      "trap": "interface Entry {\n  name: string;\n  score: number;\n}\n\nexport function solve(entries: Entry[], entry: Entry): Entry[] {\n  const position = entries.findIndex((existing) => existing.score >= entry.score);\n  return entries.toSpliced(position === -1 ? entries.length : position, 0, entry);\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Insert several `inserts` into `values` at once. Each `index` refers to a position in the *original* array, so later inserts must not be shifted by earlier ones, and inserts sharing an index appear in the order listed. An index equal to `values.length` appends.\n\nSignature: `solve(values: number[], inserts: { index: number; value: number }[]): number[]`\n\nExample: `solve([1, 2, 3, 4], [{ index: 1, value: 10 }, { index: 3, value: 30 }])` → `[1, 10, 2, 3, 30, 4]`.",
+      "difficulty": "expert",
+      "explanation": "Each `toSpliced` insertion shifts everything after it one slot to the right, so inserts expressed against the *original* indices cannot be applied in listing order — after the insert at `1`, the element that used to be at `3` is at `4`, and the second insert lands one slot early. Applying them from the highest index down avoids the problem: an insert only moves elements *after* it, and every remaining insert targets a lower index. `toSorted((a, b) => b.index - a.index)` provides that order without touching the input list. Ties need care: a stable descending sort keeps two inserts at the same index in listing order, but inserting the first at `i` and then the second at `i` puts the second *before* the first — so the list is `toReversed` before sorting, which cancels that reversal. `reduce` then threads the growing array through the `toSpliced` calls.",
+      "id": "batch-insert",
+      "methods": [
+        "toReversed",
+        "toSorted",
+        "reduce",
+        "toSpliced"
+      ],
+      "order": 14,
+      "solution": "interface Insert {\n  index: number;\n  value: number;\n}\n\nexport function solve(values: number[], inserts: Insert[]): number[] {\n  return inserts\n    .toReversed()\n    .toSorted((a, b) => b.index - a.index)\n    .reduce((current, { index, value }) => current.toSpliced(index, 0, value), values);\n}\n",
+      "starterCode": "interface Insert {\n  index: number;\n  value: number;\n}\n\nexport function solve(values: number[], inserts: Insert[]): number[] {\n  // Apply the inserts highest index first so nothing shifts — and think about what a stable sort does to ties.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              {
+                "index": 1,
+                "value": 10
+              },
+              {
+                "index": 3,
+                "value": 30
+              }
+            ]
+          ],
+          "expected": [
+            1,
+            10,
+            2,
+            3,
+            30,
+            4
+          ],
+          "name": "later inserts keep their original indices (trap)"
+        },
+        {
+          "args": [
+            [
+              5
+            ],
+            [
+              {
+                "index": 0,
+                "value": 1
+              },
+              {
+                "index": 0,
+                "value": 2
+              }
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            5
+          ],
+          "name": "inserts sharing an index keep listing order (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              {
+                "index": 2,
+                "value": 20
+              },
+              {
+                "index": 0,
+                "value": 0
+              }
+            ]
+          ],
+          "expected": [
+            0,
+            1,
+            2,
+            20,
+            3
+          ],
+          "name": "inserts listed out of order"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              {
+                "index": 2,
+                "value": 3
+              }
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "index equal to length appends"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            []
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "no inserts"
+        },
+        {
+          "args": [
+            [
+              1
+            ],
+            [
+              {
+                "index": 0,
+                "value": 0
+              },
+              {
+                "index": 1,
+                "value": 2
+              }
+            ]
+          ],
+          "expected": [
+            0,
+            1,
+            2
+          ],
+          "name": "prepend and append together (trap)"
+        }
+      ],
+      "title": "Batch insert at original indices",
+      "trap": "interface Insert {\n  index: number;\n  value: number;\n}\n\nexport function solve(values: number[], inserts: Insert[]): number[] {\n  return inserts.reduce((current, { index, value }) => current.toSpliced(index, 0, value), values);\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Return a copy of `values` with every index in `indices` removed. `indices` refer to the original array, may be listed in any order, and may repeat. The input is not modified.\n\nSignature: `solve(values: number[], indices: number[]): number[]`\n\nExample: `solve([10, 20, 30, 40], [0, 2])` → `[20, 40]`. Trap: each removal shifts every later index by one.",
+      "difficulty": "expert",
+      "explanation": "Deleting index `1` moves the element at `2` down to `1`, so a following `toSpliced(2, 1)` removes what used to be at `3`. Applying removals in listing order therefore deletes the wrong elements whenever a later index sits above an earlier one, and a repeated index deletes twice. Walking the array from the right fixes both without sorting anything: `reduceRight` visits indices from `length - 1` down to `0`, and removing at the current index only shifts elements *to its right* — all of which have already been visited. Each slot is visited exactly once, so a `Set` built from `indices` answers “remove this one?” in constant time and collapses duplicates for free, and out-of-range indices are simply never reached. The accumulator is seeded with `values` and each `toSpliced` returns a fresh array, so the input survives. `filter` with `includes` also works but rescans `indices` for every element.",
+      "id": "remove-indices",
+      "methods": [
+        "reduceRight",
+        "toSpliced"
+      ],
+      "order": 15,
+      "solution": "export function solve(values: number[], indices: number[]): number[] {\n  const doomed = new Set(indices);\n  return values.reduceRight(\n    (current, _value, index) => (doomed.has(index) ? current.toSpliced(index, 1) : current),\n    values,\n  );\n}\n",
+      "starterCode": "export function solve(values: number[], indices: number[]): number[] {\n  // Remove from the right end first — which fold direction gives you the indices in that order?\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              10,
+              20,
+              30,
+              40
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "expected": [
+            20,
+            40
+          ],
+          "name": "two removals, original indexing (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "expected": [
+            2,
+            3
+          ],
+          "name": "indices listed in any order"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "expected": [
+            1,
+            3
+          ],
+          "name": "repeated index removes once (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            1,
+            4
+          ],
+          "name": "adjacent indices (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            []
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "no indices leaves an equal array"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              0,
+              1,
+              2
+            ]
+          ],
+          "expected": [],
+          "name": "every index empties the array (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              5
+            ]
+          ],
+          "expected": [
+            1,
+            2
+          ],
+          "name": "out-of-range index is ignored"
+        }
+      ],
+      "title": "Remove several indices at once",
+      "trap": "export function solve(values: number[], indices: number[]): number[] {\n  return indices.reduce((current, index) => current.toSpliced(index, 1), values);\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Replay `actions` against `initial` and return the final array. `set` replaces the element at `index` with `value`; `undo` restores the array as it was before the most recent `set` still in effect; `redo` re-applies the most recently undone `set`. A new `set` after an `undo` discards the redo history. An `undo` or `redo` with nothing to do is ignored.\n\nSignature: `solve(initial: number[], actions: { index?: number; type: 'redo' | 'set' | 'undo'; value?: number }[]): number[]`\n\nTrap: history is only worth keeping if the arrays in it were never edited in place.",
+      "difficulty": "expert",
+      "explanation": "Undo needs the array *as it was*, so the history must hold snapshots that later edits cannot reach. `with` guarantees that: each `set` produces a new `present`, and the one pushed onto `past` is never written to again. The imperative version keeps the same stacks but edits `present[index]` in place — `past` then holds a reference to the very array that just changed, and the first `undo` “restores” the current state. Nothing throws; only a value comparison catches it. `reduce` carries `{ future, past, present }` through the actions, building each new state from the old one: `set` appends the old present to `past` with a spread and empties `future`; `undo` reads the last snapshot with `at(-1)`, drops it with `slice(0, -1)`, and parks the present in `future`; `redo` does the mirror image. Every step returns fresh objects, so any snapshot can be handed back at any time.",
+      "id": "undo-redo-snapshots",
+      "methods": [
+        "reduce",
+        "with",
+        "at",
+        "slice"
+      ],
+      "order": 16,
+      "solution": "interface Action {\n  index?: number;\n  type: 'redo' | 'set' | 'undo';\n  value?: number;\n}\n\ninterface History {\n  future: number[][];\n  past: number[][];\n  present: number[];\n}\n\nexport function solve(initial: number[], actions: Action[]): number[] {\n  return actions.reduce<History>(\n    (history, { index = 0, type, value = 0 }) => {\n      const { future, past, present } = history;\n      if (type === 'set') {\n        return { future: [], past: [...past, present], present: present.with(index, value) };\n      }\n      if (type === 'undo') {\n        const previous = past.at(-1);\n        return previous === undefined\n          ? history\n          : { future: [...future, present], past: past.slice(0, -1), present: previous };\n      }\n      const next = future.at(-1);\n      return next === undefined\n        ? history\n        : { future: future.slice(0, -1), past: [...past, present], present: next };\n    },\n    { future: [], past: [], present: initial },\n  ).present;\n}\n",
+      "starterCode": "interface Action {\n  index?: number;\n  type: 'redo' | 'set' | 'undo';\n  value?: number;\n}\n\nexport function solve(initial: number[], actions: Action[]): number[] {\n  // Fold { past, present, future } over the actions — every snapshot must be an array nobody edits afterwards.\n  return initial;\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              {
+                "index": 0,
+                "type": "set",
+                "value": 9
+              },
+              {
+                "type": "undo"
+              }
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ],
+          "name": "undo restores the previous snapshot (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              {
+                "index": 0,
+                "type": "set",
+                "value": 9
+              },
+              {
+                "type": "undo"
+              },
+              {
+                "type": "redo"
+              }
+            ]
+          ],
+          "expected": [
+            9,
+            2,
+            3
+          ],
+          "name": "redo re-applies the undone set"
+        },
+        {
+          "args": [
+            [
+              0,
+              0
+            ],
+            [
+              {
+                "index": 0,
+                "type": "set",
+                "value": 1
+              },
+              {
+                "index": 1,
+                "type": "set",
+                "value": 2
+              },
+              {
+                "type": "undo"
+              },
+              {
+                "type": "undo"
+              }
+            ]
+          ],
+          "expected": [
+            0,
+            0
+          ],
+          "name": "two sets, two undos (trap)"
+        },
+        {
+          "args": [
+            [
+              1
+            ],
+            [
+              {
+                "index": 0,
+                "type": "set",
+                "value": 2
+              },
+              {
+                "type": "undo"
+              },
+              {
+                "index": 0,
+                "type": "set",
+                "value": 3
+              },
+              {
+                "type": "redo"
+              }
+            ]
+          ],
+          "expected": [
+            3
+          ],
+          "name": "a new set clears the redo history"
+        },
+        {
+          "args": [
+            [
+              4,
+              5
+            ],
+            [
+              {
+                "type": "undo"
+              },
+              {
+                "index": 1,
+                "type": "set",
+                "value": 6
+              }
+            ]
+          ],
+          "expected": [
+            4,
+            6
+          ],
+          "name": "undo with no history is ignored"
+        },
+        {
+          "args": [
+            [
+              4
+            ],
+            [
+              {
+                "index": 0,
+                "type": "set",
+                "value": 1
+              },
+              {
+                "type": "redo"
+              }
+            ]
+          ],
+          "expected": [
+            1
+          ],
+          "name": "redo with nothing undone is ignored"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              {
+                "index": 0,
+                "type": "set",
+                "value": 5
+              },
+              {
+                "index": 1,
+                "type": "set",
+                "value": 6
+              },
+              {
+                "type": "undo"
+              },
+              {
+                "index": 0,
+                "type": "set",
+                "value": 7
+              }
+            ]
+          ],
+          "expected": [
+            7,
+            2
+          ],
+          "name": "undo then a fresh set (trap)"
+        },
+        {
+          "args": [
+            [
+              8,
+              9
+            ],
+            []
+          ],
+          "expected": [
+            8,
+            9
+          ],
+          "name": "no actions returns the initial array"
+        }
+      ],
+      "title": "Undo and redo over snapshots",
+      "trap": "interface Action {\n  index?: number;\n  type: 'redo' | 'set' | 'undo';\n  value?: number;\n}\n\nexport function solve(initial: number[], actions: Action[]): number[] {\n  const past: number[][] = [];\n  const future: number[][] = [];\n  let present = initial;\n  for (const { index = 0, type, value = 0 } of actions) {\n    if (type === 'set') {\n      past.push(present);\n      present[index] = value;\n      future.length = 0;\n    } else if (type === 'undo') {\n      const previous = past.pop();\n      if (previous !== undefined) {\n        future.push(present);\n        present = previous;\n      }\n    } else {\n      const next = future.pop();\n      if (next !== undefined) {\n        past.push(present);\n        present = next;\n      }\n    }\n  }\n  return present;\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Apply queue-and-stack `ops` to `start` and return the state after *each* op, oldest first: `push` and `unshift` add `value` at the back or front, `pop` and `shift` remove from the back or front (no-ops on an empty array).\n\nSignature: `solve(start: number[], ops: { type: 'pop' | 'push' | 'shift' | 'unshift'; value?: number }[]): number[][]`\n\nExample: `solve([1], [{ type: \"push\", value: 2 }, { type: \"shift\" }])` → `[[1, 2], [2]]`.",
+      "difficulty": "expert",
+      "explanation": "`push`, `pop`, `shift`, and `unshift` are four spellings of one operation — edit the array at an end — and `toSpliced` covers all four without mutating: `toSpliced(length, 0, v)` pushes, `toSpliced(0, 0, v)` unshifts, `toSpliced(-1, 1)` pops, `toSpliced(0, 1)` shifts. On an empty array the two removals delete nothing, which gives the no-op behaviour for free. Because each call returns a new array, the state after every op is a distinct value that can be kept, and `reduce` collects them: the accumulator is the history, `at(-1)` reads the latest state (falling back to `start` before any op), and the next state is appended. The mutating version records “every state” by pushing the same array into the history after each edit, so the result is one final state repeated — `map` returning `state` four times returns four references to one array. History is only history when the entries stop changing.",
+      "id": "mutator-history",
+      "methods": [
+        "reduce",
+        "toSpliced",
+        "at"
+      ],
+      "order": 17,
+      "solution": "interface Op {\n  type: 'pop' | 'push' | 'shift' | 'unshift';\n  value?: number;\n}\n\nfunction apply(state: number[], { type, value = 0 }: Op): number[] {\n  switch (type) {\n    case 'push':\n      return state.toSpliced(state.length, 0, value);\n    case 'unshift':\n      return state.toSpliced(0, 0, value);\n    case 'pop':\n      return state.toSpliced(-1, 1);\n    case 'shift':\n      return state.toSpliced(0, 1);\n  }\n}\n\nexport function solve(start: number[], ops: Op[]): number[][] {\n  return ops.reduce<number[][]>((history, op) => [...history, apply(history.at(-1) ?? start, op)], []);\n}\n",
+      "starterCode": "interface Op {\n  type: 'pop' | 'push' | 'shift' | 'unshift';\n  value?: number;\n}\n\nexport function solve(start: number[], ops: Op[]): number[][] {\n  // All four mutators are one toSpliced call each — collect every returned state, not one array four times.\n  return [];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1
+            ],
+            [
+              {
+                "type": "push",
+                "value": 2
+              },
+              {
+                "type": "shift"
+              }
+            ]
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ],
+            [
+              2
+            ]
+          ],
+          "name": "push then shift records both states (trap)"
+        },
+        {
+          "args": [
+            [
+              5
+            ],
+            [
+              {
+                "type": "unshift",
+                "value": 4
+              },
+              {
+                "type": "pop"
+              }
+            ]
+          ],
+          "expected": [
+            [
+              4,
+              5
+            ],
+            [
+              4
+            ]
+          ],
+          "name": "unshift then pop (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              {
+                "type": "pop"
+              }
+            ]
+          ],
+          "expected": [
+            [
+              1
+            ]
+          ],
+          "name": "single op"
+        },
+        {
+          "args": [
+            [],
+            [
+              {
+                "type": "pop"
+              },
+              {
+                "type": "shift"
+              },
+              {
+                "type": "push",
+                "value": 1
+              }
+            ]
+          ],
+          "expected": [
+            [],
+            [],
+            [
+              1
+            ]
+          ],
+          "name": "pop and shift on empty are no-ops (trap)"
+        },
+        {
+          "args": [
+            [
+              1
+            ],
+            []
+          ],
+          "expected": [],
+          "name": "no ops yields no states"
+        },
+        {
+          "args": [
+            [],
+            [
+              {
+                "type": "push",
+                "value": 1
+              },
+              {
+                "type": "push",
+                "value": 2
+              },
+              {
+                "type": "shift"
+              },
+              {
+                "type": "shift"
+              }
+            ]
+          ],
+          "expected": [
+            [
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2
+            ],
+            []
+          ],
+          "name": "queue: push twice, shift twice (trap)"
+        }
+      ],
+      "title": "Every state a mutator would have destroyed",
+      "trap": "interface Op {\n  type: 'pop' | 'push' | 'shift' | 'unshift';\n  value?: number;\n}\n\nexport function solve(start: number[], ops: Op[]): number[][] {\n  const state = start;\n  return ops.map(({ type, value = 0 }) => {\n    if (type === 'push') {\n      state.push(value);\n    } else if (type === 'unshift') {\n      state.unshift(value);\n    } else if (type === 'pop') {\n      state.pop();\n    } else {\n      state.shift();\n    }\n    return state;\n  });\n}\n"
+    },
+    {
+      "categoryId": "immutable-updates",
+      "description": "Set the leaf at `path` inside the nested array `tree` to `value` and return a tuple `[updated, original]` — the updated tree first, then `tree` itself, which must be unchanged at every level. Each element of `path` is an index into the next level down; an empty path leaves the tree as it is.\n\nSignature: `solve(tree: Nested, path: number[], value: number): [Nested, Nested]` where `Nested` is `(Nested | number)[]`.\n\nTrap: `[...tree]` copies one level. Everything below it is still shared with the caller.",
+      "difficulty": "expert",
+      "explanation": "Spreading `tree` copies one level: the new outer array still points at the same inner arrays, so walking down a path and assigning at the end writes into a node the original shares — the “copy” looks right and the original is corrupted along with it. An immutable nested update has to copy every array *on* the path and may share every array off it. Recursion expresses that directly: `setAt` splits the path into `head` and `rest`, recurses into `node[head]` while there is path left, and returns `node.with(head, replacement)` at each level — `with` builds a new array for exactly the ancestors of the changed leaf, while siblings come through by reference. An empty path returns the node as is, and `Array.isArray` stops the descent if the path runs into a number early. The tuple makes the sharing visible: the copy has the new leaf, the original never noticed.",
+      "id": "deep-set-path",
+      "methods": [
+        "with",
+        "Array.isArray"
+      ],
+      "order": 18,
+      "solution": "type Nested = (Nested | number)[];\n\nfunction setAt(node: Nested, path: number[], value: number): Nested {\n  const [head, ...rest] = path;\n  if (head === undefined) {\n    return node;\n  }\n  const child = node[head];\n  if (rest.length === 0 || !Array.isArray(child)) {\n    return node.with(head, value);\n  }\n  return node.with(head, setAt(child, rest, value));\n}\n\nexport function solve(tree: Nested, path: number[], value: number): [Nested, Nested] {\n  return [setAt(tree, path, value), tree];\n}\n",
+      "starterCode": "type Nested = (Nested | number)[];\n\nexport function solve(tree: Nested, path: number[], value: number): [Nested, Nested] {\n  // Every array along the path needs its own with() — recurse down, rebuild on the way up.\n  return [[], []];\n}\n",
+      "tests": [
+        {
+          "args": [
+            [
+              1,
+              [
+                2,
+                3
+              ]
+            ],
+            [
+              1,
+              0
+            ],
+            9
+          ],
+          "expected": [
+            [
+              1,
+              [
+                9,
+                3
+              ]
+            ],
+            [
+              1,
+              [
+                2,
+                3
+              ]
+            ]
+          ],
+          "name": "sets a leaf two levels deep, original intact (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              2
+            ],
+            0
+          ],
+          "expected": [
+            [
+              1,
+              2,
+              0
+            ],
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "name": "top-level path only needs one copy"
+        },
+        {
+          "args": [
+            [
+              [
+                [
+                  1
+                ]
+              ]
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            7
+          ],
+          "expected": [
+            [
+              [
+                [
+                  7
+                ]
+              ]
+            ],
+            [
+              [
+                [
+                  1
+                ]
+              ]
+            ]
+          ],
+          "name": "three levels deep (trap)"
+        },
+        {
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ]
+            ],
+            [
+              1,
+              1
+            ],
+            0
+          ],
+          "expected": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                0
+              ]
+            ],
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ]
+            ]
+          ],
+          "name": "untouched siblings keep their values (trap)"
+        },
+        {
+          "args": [
+            [
+              1,
+              2
+            ],
+            [],
+            5
+          ],
+          "expected": [
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "name": "empty path returns the tree unchanged"
+        },
+        {
+          "args": [
+            [
+              [
+                1
+              ],
+              [
+                2,
+                [
+                  3
+                ]
+              ]
+            ],
+            [
+              1,
+              1,
+              0
+            ],
+            8
+          ],
+          "expected": [
+            [
+              [
+                1
+              ],
+              [
+                2,
+                [
+                  8
+                ]
+              ]
+            ],
+            [
+              [
+                1
+              ],
+              [
+                2,
+                [
+                  3
+                ]
+              ]
+            ]
+          ],
+          "name": "sets a leaf in the second branch (trap)"
+        }
+      ],
+      "title": "Set a nested leaf, share the rest",
+      "trap": "type Nested = (Nested | number)[];\n\nexport function solve(tree: Nested, path: number[], value: number): [Nested, Nested] {\n  const copy = [...tree];\n  const parent = path.slice(0, -1).reduce<Nested>((node, index) => node[index] as Nested, copy);\n  parent[path[path.length - 1]] = value;\n  return [copy, tree];\n}\n"
     },
     {
       "categoryId": "grouping-and-aggregation",
