@@ -7,6 +7,7 @@ import { flatteningAndComposing } from './flattening-and-composing';
 import { groupingAndAggregation } from './grouping-and-aggregation';
 import { immutableUpdates } from './immutable-updates';
 import { iterationBasics } from './iteration-basics';
+import { iteratorHelpers } from './iterator-helpers';
 import { mappingAndTransforming } from './mapping-and-transforming';
 import { reduceAndFolding } from './reduce-and-folding';
 import { sortingAndOrdering } from './sorting-and-ordering';
@@ -20,6 +21,7 @@ const modules: CategoryModule[] = [
   groupingAndAggregation,
   immutableUpdates,
   iterationBasics,
+  iteratorHelpers,
   mappingAndTransforming,
   reduceAndFolding,
   sortingAndOrdering,
