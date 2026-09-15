@@ -12,7 +12,9 @@ One practice problem: a task, a starter, a reference solution, test cases, an ex
 _Avoid_: Exercise, problem, kata, question
 
 **Category**:
-A named group of challenges organised around one family of array methods (e.g. Reduce & Folding).
+A named group of challenges organised around one family of methods that array code depends on: the array methods
+themselves (e.g. Reduce & Folding), or the built-ins arrays hand off to and receive from — Set, Iterator, and
+Promise (e.g. Sets & Set Algebra). Those three names are the boundary; see ADR 0001.
 _Avoid_: Topic, section, module, chapter
 
 **Catalog**:
