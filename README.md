@@ -1,6 +1,6 @@
 # The Array Methods Challenge
 
-Practice every JavaScript/TypeScript array method — from `at` to `toSpliced` — through 66 hands-on challenges
+Practice every JavaScript/TypeScript array method — from `at` to `toSpliced` — through 196 hands-on challenges
 across 11 categories, from novice to expert. Each challenge ships with a problem statement, an in-browser
 TypeScript editor, instant test feedback, and a spoiler that explains a correct solution when you're stuck.
 
