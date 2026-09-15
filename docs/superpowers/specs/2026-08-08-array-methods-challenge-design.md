@@ -71,7 +71,7 @@ React UI ── Zustand (UI prefs, spoilers, filters)
 
 ## Challenge catalog
 
-11 categories, 196 challenges (6 per category originally, grown to 16–19 each with 12–16 advanced and expert), each: id, slug, title, category, difficulty, description (markdown-ish),
+15 categories, 268 challenges (6 per category originally, grown to 16–19 each with 12–16 advanced and expert), each: id, slug, title, category, difficulty, description (markdown-ish),
 starter code (typed signature), hand-authored test cases, reference solution, explanation (why it's correct,
 tricks/patterns highlighted), hints on relevant methods.
 
@@ -79,7 +79,10 @@ Categories: creating-arrays · access-and-search · iteration-basics · filterin
 mapping-and-transforming · reduce-and-folding · sorting-and-ordering · flattening-and-composing ·
 immutable-updates (ES2023 `toSorted`/`toReversed`/`toSpliced`/`with`) · grouping-and-aggregation
 (ES2024 `Object.groupBy`/`Map.groupBy`, `Array.fromAsync`) · tricks-and-patterns (chunk, zip, unique,
-partition, sliding window, transpose, build-your-own-polyfill exercises).
+partition, sliding window, transpose, build-your-own-polyfill exercises) · mutating-in-place ·
+sets-and-set-algebra (ES2025 `union`/`intersection`/`difference`) · iterator-helpers (ES2025
+`Iterator.prototype` `map`/`filter`/`take`/`drop`) · async-arrays-and-promises (`Promise.all`/`allSettled`/
+`any`/`race`/`withResolvers`). The last three are array-adjacent categories; see ADR 0001.
 
 ## Error handling
 
