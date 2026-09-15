@@ -1,0 +1,42 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  solutionMustPass,
+  starterMustNotPass,
+  starterTranspileIssues,
+  structuralIssues,
+  trapMustNotPass,
+} from '@/data/catalog-invariants';
+import { installPolyfills } from '@/lib/polyfills';
+
+import { iteratorHelpers } from './iterator-helpers';
+
+installPolyfills();
+
+describe('iterator-helpers category', () => {
+  it('satisfies the structural invariants', () => {
+    expect(structuralIssues(iteratorHelpers)).toEqual([]);
+  });
+
+  it.each(iteratorHelpers.challenges.map((challenge) => [challenge.id, challenge] as const))(
+    '%s: starter transpiles, exports solve, and does not already pass',
+    async (_id, challenge) => {
+      expect(starterTranspileIssues(challenge)).toEqual([]);
+      expect(await starterMustNotPass(challenge)).toBeNull();
+    },
+  );
+
+  it.each(iteratorHelpers.challenges.map((challenge) => [challenge.id, challenge] as const))(
+    '%s: reference solution passes its own tests',
+    async (_id, challenge) => {
+      expect(await solutionMustPass(challenge)).toBeNull();
+    },
+  );
+
+  it.each(iteratorHelpers.challenges.map((challenge) => [challenge.id, challenge] as const))(
+    '%s: trap, when present, transpiles and fails at least one test',
+    async (_id, challenge) => {
+      expect(await trapMustNotPass(challenge)).toBeNull();
+    },
+  );
+});
