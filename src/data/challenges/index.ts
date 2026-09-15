@@ -1,6 +1,7 @@
 import type { Category, CategoryModule, Challenge } from '@/data/types';
 
 import { accessAndSearch } from './access-and-search';
+import { asyncArraysAndPromises } from './async-arrays-and-promises';
 import { creatingArrays } from './creating-arrays';
 import { filteringAndSlicing } from './filtering-and-slicing';
 import { flatteningAndComposing } from './flattening-and-composing';
@@ -17,6 +18,7 @@ import { tricksAndPatterns } from './tricks-and-patterns';
 
 const modules: CategoryModule[] = [
   accessAndSearch,
+  asyncArraysAndPromises,
   creatingArrays,
   filteringAndSlicing,
   flatteningAndComposing,
