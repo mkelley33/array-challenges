@@ -5,7 +5,9 @@ across 11 categories, from novice to expert. Each challenge ships with a problem
 TypeScript editor, instant test feedback, and a spoiler that explains a correct solution when you're stuck.
 
 The catalog targets **ES2024** (including `Array.fromAsync`, `toSorted`, `toReversed`, `toSpliced`, `with`,
-`findLast`) and installs polyfills for ES2025+ proposals where needed (`Object.groupBy`, `Map.groupBy`).
+`findLast`) and installs polyfills for `Object.groupBy` and `Map.groupBy` where needed. The array-adjacent
+categories (Sets & Set Algebra, Iterator Helpers, Async Arrays & Promises) lean on the ES2025 Set methods,
+Iterator Helpers, and `Promise.withResolvers`, which are **not** polyfilled — see the runtime baseline below.
 
 ## Run it locally
 
@@ -30,6 +32,13 @@ to leave `pnpm dev` running on a network you do not trust.
 ```sh
 corepack enable
 ```
+
+**Runtime baseline.** Your solutions run in the browser, so the browser is the runtime that matters. The catalog
+assumes an evergreen browser — Chrome 122+, Firefox 131+, or Safari 18.4+ — and Node 24 for the test suite and
+the `db.json` generator. Those are the versions that ship the ES2025 Set methods (`union`, `intersection`,
+`difference`, …), the Iterator Helpers (`Iterator.prototype.map`, `take`, …), and `Promise.withResolvers`
+natively; nothing polyfills them, so older browsers fail those categories with a `TypeError`. The reasoning is
+recorded in [ADR 0001](docs/adr/0001-array-adjacent-categories.md).
 
 ## Quickstart
 

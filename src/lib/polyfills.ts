@@ -7,6 +7,15 @@
  * are unit-tested directly. The module is imported for its side effect by the
  * app entry, the solution worker, and the db generator so user solutions can
  * rely on these APIs in every execution environment.
+ *
+ * Deliberately NOT polyfilled: the ES2025 Set methods (`union`, `intersection`,
+ * `difference`, `isSubsetOf`, ...), the Iterator Helpers (`Iterator.prototype.map`,
+ * `filter`, `take`, `drop`, `toArray`, ...), and `Promise.withResolvers`, which the
+ * Sets & Set Algebra, Iterator Helpers, and Async Arrays & Promises categories
+ * use. The tsconfig `lib` is not raised for them either — reference solutions are
+ * untyped `code()` strings. The catalog assumes Node 24 or an evergreen browser
+ * (Chrome 122+, Firefox 131+, Safari 18.4+), all of which ship them natively.
+ * See docs/adr/0001-array-adjacent-categories.md.
  */
 
 export async function fromAsyncImpl<T>(source: ArrayLike<T> | AsyncIterable<T> | Iterable<T>): Promise<Awaited<T>[]>;
