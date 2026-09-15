@@ -10,6 +10,7 @@ import { iterationBasics } from './iteration-basics';
 import { mappingAndTransforming } from './mapping-and-transforming';
 import { mutatingInPlace } from './mutating-in-place';
 import { reduceAndFolding } from './reduce-and-folding';
+import { setsAndSetAlgebra } from './sets-and-set-algebra';
 import { sortingAndOrdering } from './sorting-and-ordering';
 import { tricksAndPatterns } from './tricks-and-patterns';
 
@@ -24,6 +25,7 @@ const modules: CategoryModule[] = [
   mappingAndTransforming,
   mutatingInPlace,
   reduceAndFolding,
+  setsAndSetAlgebra,
   sortingAndOrdering,
   tricksAndPatterns,
 ];
