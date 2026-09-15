@@ -20185,7 +20185,7 @@
       "description": "Split `values` into runs of consecutive equal elements, preserving order: `[\"a\", \"a\", \"b\", \"a\"]` → `[[\"a\", \"a\"], [\"b\"], [\"a\"]]`. A value that reappears later starts a *new* run — it must not be merged into the earlier one.\n\nSignature: `solve(values: string[]): string[][]`\n\nTrap: grouping by the value itself merges every copy of `\"a\"` into one group, wherever it sits.",
       "difficulty": "expert",
       "explanation": "groupBy keys are global: every element with the same key lands in the same group wherever it appears, so `Object.groupBy(values, (value) => value)` flattens `a a b a` into two groups and loses the adjacency the task is about. The fix is to make the *key* position-aware. A `reduce` assigns each element a run id: the id stays the same while the element equals its predecessor and increments when it changes, so `a a b a` becomes `0 0 1 2`. `Map.groupBy` then groups by that id, using the index argument of its callback to look it up — `(_value, index) => runIds[index]` — and because the ids are created in ascending order the `Map` iterates the runs in sequence; spreading `.values()` discards the ids. Any “group consecutive” problem works the same way: compute a key that changes exactly at the boundaries you care about, then let groupBy bucket.",
-      "id": "consecutive-runs",
+      "id": "group-consecutive-runs",
       "methods": [
         "Map.groupBy",
         "reduce"

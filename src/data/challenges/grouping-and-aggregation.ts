@@ -1787,7 +1787,7 @@ export function solve(votes: Vote[]): Record<string, string> {
         'ascending order the `Map` iterates the runs in sequence; spreading `.values()` discards the ids. Any ' +
         '“group consecutive” problem works the same way: compute a key that changes exactly at the boundaries ' +
         'you care about, then let groupBy bucket.',
-      id: 'consecutive-runs',
+      id: 'group-consecutive-runs',
       methods: ['Map.groupBy', 'reduce'],
       order: 18,
       solution: code(`

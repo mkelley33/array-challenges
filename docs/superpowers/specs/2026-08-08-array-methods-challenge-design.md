@@ -71,7 +71,7 @@ React UI ── Zustand (UI prefs, spoilers, filters)
 
 ## Challenge catalog
 
-11 categories × 6 challenges = 66, each: id, slug, title, category, difficulty, description (markdown-ish),
+11 categories, 196 challenges (6 per category originally, grown to 16–19 each with 12–16 advanced and expert), each: id, slug, title, category, difficulty, description (markdown-ish),
 starter code (typed signature), hand-authored test cases, reference solution, explanation (why it's correct,
 tricks/patterns highlighted), hints on relevant methods.
 
