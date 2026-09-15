@@ -8,6 +8,7 @@ import { groupingAndAggregation } from './grouping-and-aggregation';
 import { immutableUpdates } from './immutable-updates';
 import { iterationBasics } from './iteration-basics';
 import { mappingAndTransforming } from './mapping-and-transforming';
+import { mutatingInPlace } from './mutating-in-place';
 import { reduceAndFolding } from './reduce-and-folding';
 import { sortingAndOrdering } from './sorting-and-ordering';
 import { tricksAndPatterns } from './tricks-and-patterns';
@@ -21,6 +22,7 @@ const modules: CategoryModule[] = [
   immutableUpdates,
   iterationBasics,
   mappingAndTransforming,
+  mutatingInPlace,
   reduceAndFolding,
   sortingAndOrdering,
   tricksAndPatterns,
