@@ -166,7 +166,12 @@ export function Dashboard(): React.JSX.Element {
             </SelectContent>
           </Select>
         </div>
-        <ChallengeList challenges={visibleChallenges} onOpen={openChallenge} solvedIds={solvedIds} />
+        <ChallengeList
+          challenges={challenges}
+          onOpen={openChallenge}
+          solvedIds={solvedIds}
+          visibleIds={new Set(visibleChallenges.map((challenge) => challenge.id))}
+        />
       </section>
 
       <p className="sr-only" role="status">
