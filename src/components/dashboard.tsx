@@ -1,9 +1,13 @@
+import { useId } from 'react';
+
 import { useCategories, useChallenges, useSubmissions } from '@/api/hooks';
 import { ChallengeList } from '@/components/challenge-list';
+import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { deriveProgress } from '@/lib/progress';
+import { useCategoryFocus } from '@/lib/use-category-focus';
 import { cn } from '@/lib/utils';
 import { useUiStore } from '@/stores/ui-store';
 
@@ -18,6 +22,8 @@ export function Dashboard(): React.JSX.Element {
   const openChallenge = useUiStore((state) => state.openChallenge);
   const setCategoryFilter = useUiStore((state) => state.setCategoryFilter);
   const setDifficultyFilter = useUiStore((state) => state.setDifficultyFilter);
+  const categoriesId = useId();
+  const { announce, challengesRef, focus, locked, registerCard } = useCategoryFocus(categoryFilter);
 
   if (categoriesQuery.isError || challengesQuery.isError || submissionsQuery.isError) {
     return (
@@ -40,9 +46,29 @@ export function Dashboard(): React.JSX.Element {
   );
   const visibleChallenges = challenges.filter(
     (challenge) =>
-      (categoryFilter === null || challenge.categoryId === categoryFilter) &&
+      (focus.shownCategoryId === null || challenge.categoryId === focus.shownCategoryId) &&
       (difficultyFilter === 'all' || challenge.difficulty === difficultyFilter),
   );
+  const shownCategory = categories.find((category) => category.id === focus.shownCategoryId);
+  // Once the siblings are gone the lone card sits directly above the list and names it; the heading would repeat it.
+  const collapsed = focus.step === 'collapsing' || focus.step === 'focused';
+  const siblingsInvisible = focus.step === 'expanding' || focus.step === 'revealing';
+  const statusMessage = !announce
+    ? ''
+    : shownCategory === undefined
+      ? `Showing all ${categories.length} categories`
+      : `Showing ${shownCategory.title} — ${visibleChallenges.length} ${visibleChallenges.length === 1 ? 'challenge' : 'challenges'}`;
+
+  const viewAllCategories = (): void => {
+    if (locked || focus.shownCategoryId === null) {
+      return;
+    }
+    // The button unmounts once the grid is back; hand focus to the card being closed rather than dropping it on <body>.
+    const card = document.getElementById(`${categoriesId}-${focus.shownCategoryId}`);
+    card?.focus();
+    setCategoryFilter(null);
+  };
+
   const overallPercent = progress.overall.total === 0 ? 0 : (progress.overall.solved / progress.overall.total) * 100;
 
   return (
@@ -57,15 +83,35 @@ export function Dashboard(): React.JSX.Element {
         </CardHeader>
       </Card>
 
-      <section aria-label="Categories" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section
+        aria-busy={locked}
+        aria-label="Categories"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        id={categoriesId}
+      >
         {categories.map((category) => {
           const count = progress.byCategory[category.id] ?? { solved: 0, total: 0 };
-          const selected = categoryFilter === category.id;
+          const selected = focus.shownCategoryId === category.id;
+          if (collapsed && !selected) {
+            return null;
+          }
           return (
             <button
+              aria-disabled={locked}
+              aria-pressed={selected}
               className="rounded-xl text-left focus-visible:outline-none"
+              id={`${categoriesId}-${category.id}`}
               key={category.id}
-              onClick={() => setCategoryFilter(selected ? null : category.id)}
+              onClick={() => {
+                // aria-disabled rather than disabled: a disabled button drops keyboard focus mid-animation.
+                if (!locked) {
+                  setCategoryFilter(selected ? null : category.id);
+                }
+              }}
+              ref={(element) => {
+                registerCard(category.id, element);
+              }}
+              style={siblingsInvisible && !selected ? { opacity: 0 } : undefined}
               type="button"
             >
               <Card className={cn('h-full gap-2 py-4 transition-colors', selected && 'border-primary bg-accent')}>
@@ -85,13 +131,22 @@ export function Dashboard(): React.JSX.Element {
         })}
       </section>
 
-      <section aria-label="Challenges" className="flex flex-col gap-3">
+      <section aria-label="Challenges" className="flex flex-col gap-3" ref={challengesRef}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">
-            {categoryFilter === null
-              ? 'All challenges'
-              : (categories.find((c) => c.id === categoryFilter)?.title ?? '')}
+          <h2 className={cn('text-lg font-semibold', collapsed && 'sr-only')}>
+            {shownCategory?.title ?? 'All challenges'}
           </h2>
+          {collapsed && (
+            <Button
+              aria-controls={categoriesId}
+              aria-disabled={locked}
+              className="px-0"
+              onClick={viewAllCategories}
+              variant="link"
+            >
+              View all categories
+            </Button>
+          )}
           <Select
             onValueChange={(value) => setDifficultyFilter(value as (typeof DIFFICULTY_OPTIONS)[number])}
             value={difficultyFilter}
@@ -110,6 +165,10 @@ export function Dashboard(): React.JSX.Element {
         </div>
         <ChallengeList challenges={visibleChallenges} onOpen={openChallenge} solvedIds={solvedIds} />
       </section>
+
+      <p className="sr-only" role="status">
+        {statusMessage}
+      </p>
     </div>
   );
 }
