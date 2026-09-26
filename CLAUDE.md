@@ -135,5 +135,9 @@ These are load-bearing. Removing any of them reintroduces a bug that was already
   `updatedAt`) to that key remounts the workspace after each save and wipes the results panel.
 - **Ports 3001 and 5173 are shared with sibling practice projects.** Check they are free before
   starting; a stray server on 3001 will silently serve the wrong database.
+- **The dashboard's category-focus animation only advances in a visible tab.** Chrome resolves
+  `animation.finished` during rendering, which hidden (e.g. automation) tabs skip, so the machine
+  looks stuck mid-step (`aria-busy="true"`) until the tab is shown. That is not a bug; jsdom tests
+  stub `element.animate` instead.
 - `src/data/challenges/creating-arrays.ts` has no per-category test file, unlike every other
   category. The global catalog gate still covers it. Add one if you touch that module.
