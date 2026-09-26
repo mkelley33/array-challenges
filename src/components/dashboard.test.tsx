@@ -221,6 +221,29 @@ describe('Dashboard category focus', () => {
     expect(categoryCard(/Creating Arrays/)).not.toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('swaps the list and its header only while the list is faded out', async () => {
+    const { finishAll } = stubAnimate();
+    const user = userEvent.setup();
+    renderDashboard();
+    await waitForDashboard();
+
+    await user.click(categoryCard(/Creating Arrays/));
+    // hiding: the list is fading out but still shows what it showed before the click
+    expect(screen.getByRole('button', { name: /Numeric sort trap/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'All challenges' })).toBeInTheDocument();
+
+    await finishAll(); // → collapsing: the list fades in already filtered
+    await finishAll(); // → focused
+    await user.click(screen.getByRole('button', { name: 'View all categories' }));
+    // expanding: the list is fading out, so it keeps its focused header and filter until it is invisible
+    expect(screen.getByRole('button', { name: 'View all categories' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Numeric sort trap/ })).not.toBeInTheDocument();
+
+    await finishAll(); // → revealing: swapped while invisible, fading back in with the other cards
+    expect(screen.queryByRole('button', { name: 'View all categories' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Numeric sort trap/ })).toBeInTheDocument();
+  });
+
   it('queues a selection made elsewhere mid-animation, reversing before focusing the new category', async () => {
     const { finishAll } = stubAnimate();
     const user = userEvent.setup();

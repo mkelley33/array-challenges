@@ -2,11 +2,13 @@ import type { RefObject } from 'react';
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
-import type { FocusState, FocusStep, Point } from '@/lib/category-focus';
+import type { FocusState, FocusStep, GlideFade, Point } from '@/lib/category-focus';
 
 import {
   FADE_MS,
+  GLIDE_EASING,
   GLIDE_MS,
+  glideKeyframes,
   initialFocusState,
   isFocusLocked,
   reconcileFocus,
@@ -15,8 +17,6 @@ import {
   staggerDelays,
 } from '@/lib/category-focus';
 import { usePrefersReducedMotion } from '@/lib/use-prefers-reduced-motion';
-
-const GLIDE_EASING = 'cubic-bezier(0.2, 0, 0, 1)';
 
 export interface CategoryFocus {
   /** True once a transition made on this page has come to rest; arriving already focused does not count. */
@@ -37,18 +37,15 @@ function centerOf(rect: DOMRect): Point {
 }
 
 /** FLIP "invert + play": start `element` where it was (`first`) and animate its transform back to where it is now. */
-function glide(element: HTMLElement | undefined | null, first: DOMRect | undefined): Animation | null {
+function glide(element: HTMLElement | undefined | null, first: DOMRect | undefined, fade: GlideFade): Animation | null {
   if (!element || !first) {
     return null;
   }
   const last = element.getBoundingClientRect();
-  const dx = first.left - last.left;
-  const dy = first.top - last.top;
+  const offset = { x: first.left - last.left, y: first.top - last.top };
   // Even a zero-distance glide runs, so every transition takes the same time (e.g. the top-left card never moves).
-  return element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
-    duration: GLIDE_MS,
-    easing: GLIDE_EASING,
-  });
+  // `fill: 'both'` holds a faded-out list invisible until the next step's fade takes it over in the same frame.
+  return element.animate(glideKeyframes(offset, fade), { duration: GLIDE_MS, easing: GLIDE_EASING, fill: 'both' });
 }
 
 /**
@@ -153,15 +150,23 @@ function startStep(
     const centers = new Map([...cards].map(([id, element]) => [id, centerOf(element.getBoundingClientRect())]));
     const delays = staggerDelays(centers, shownCategoryId, STAGGER_WINDOW_MS, direction);
     const keyframes = direction === 'out' ? [{ opacity: 1 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1 }];
-    return [...delays].flatMap(([id, delay]) => {
+    const siblingFades = [...delays].flatMap(([id, delay]) => {
       const element = cards.get(id);
       return element
         ? [element.animate(keyframes, { delay, duration: FADE_MS, easing: 'ease-out', fill: 'both' })]
         : [];
     });
+    // The list fades across the whole stagger, so its filter can swap while it is invisible (see `listedCategoryId`).
+    const listFade = challenges?.animate(keyframes, {
+      duration: STAGGER_WINDOW_MS + FADE_MS,
+      easing: 'ease-in-out',
+      fill: 'both',
+    });
+    return listFade ? [...siblingFades, listFade] : siblingFades;
   }
 
-  return [glide(selectedCard, first.card), glide(challenges, first.challenges)].filter(
-    (animation): animation is Animation => animation !== null,
-  );
+  return [
+    glide(selectedCard, first.card, 'none'),
+    glide(challenges, first.challenges, step === 'collapsing' ? 'in' : 'out'),
+  ].filter((animation): animation is Animation => animation !== null);
 }

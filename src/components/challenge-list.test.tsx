@@ -39,4 +39,27 @@ describe('ChallengeList', () => {
     render(<ChallengeList challenges={[]} onOpen={vi.fn()} solvedIds={new Set()} />);
     expect(screen.getByText(/no challenges/i)).toBeInTheDocument();
   });
+
+  it('keeps filtered-out rows mounted but hidden, so refiltering never remounts them', () => {
+    const { rerender } = render(
+      <ChallengeList
+        challenges={challenges}
+        onOpen={vi.fn()}
+        solvedIds={new Set()}
+        visibleIds={new Set(['double-it'])}
+      />,
+    );
+    const hiddenRow = screen.getByText('Async tax').closest('li');
+    expect(hiddenRow).not.toBeVisible();
+    expect(screen.queryByRole('button', { name: /Async tax/ })).not.toBeInTheDocument();
+
+    rerender(<ChallengeList challenges={challenges} onOpen={vi.fn()} solvedIds={new Set()} />);
+    expect(screen.getByText('Async tax').closest('li')).toBe(hiddenRow);
+    expect(screen.getByRole('button', { name: /Async tax/ })).toBeInTheDocument();
+  });
+
+  it('shows the empty state when every row is filtered out', () => {
+    render(<ChallengeList challenges={challenges} onOpen={vi.fn()} solvedIds={new Set()} visibleIds={new Set()} />);
+    expect(screen.getByText(/no challenges/i)).toBeInTheDocument();
+  });
 });

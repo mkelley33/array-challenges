@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import type { FocusState } from '@/lib/category-focus';
 
-import { initialFocusState, isFocusLocked, reconcileFocus, settleFocus, staggerDelays } from '@/lib/category-focus';
+import {
+  glideKeyframes,
+  initialFocusState,
+  isFocusLocked,
+  listedCategoryId,
+  reconcileFocus,
+  settleFocus,
+  staggerDelays,
+} from '@/lib/category-focus';
 
 const grid: FocusState = { shownCategoryId: null, step: 'grid' };
 const focusedOnSets: FocusState = { shownCategoryId: 'sets', step: 'focused' };
@@ -107,5 +115,43 @@ describe('staggerDelays', () => {
   it('falls back to no delay when the selected card was not measured', () => {
     const delays = staggerDelays(centers, 'missing', 200, 'out');
     expect([...delays.values()]).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe('listedCategoryId', () => {
+  it('keeps listing every challenge while the other cards fade out, so the list never swaps in plain sight', () => {
+    expect(listedCategoryId({ shownCategoryId: 'sets', step: 'hiding' })).toBeNull();
+  });
+
+  it.each(['collapsing', 'focused', 'expanding'] as const)('lists the shown category while %s', (step) => {
+    expect(listedCategoryId({ shownCategoryId: 'sets', step })).toBe('sets');
+  });
+
+  it('lists every challenge again as the other cards fade back in', () => {
+    expect(listedCategoryId({ shownCategoryId: 'sets', step: 'revealing' })).toBeNull();
+    expect(listedCategoryId(grid)).toBeNull();
+  });
+});
+
+describe('glideKeyframes', () => {
+  it('starts from the inverted offset and ends at rest', () => {
+    const keyframes = glideKeyframes({ x: -40, y: 120 }, 'none');
+    expect(keyframes[0]).toEqual({ transform: 'translate(-40px, 120px)' });
+    expect(keyframes.at(-1)).toEqual({ transform: 'none' });
+  });
+
+  it('fades in over the first part of the glide', () => {
+    const keyframes = glideKeyframes({ x: 0, y: 300 }, 'in');
+    expect(keyframes[0]).toMatchObject({ opacity: 0, transform: 'translate(0px, 300px)' });
+    expect(keyframes.at(-1)).toMatchObject({ opacity: 1, transform: 'none' });
+  });
+
+  it('fades out as the exact mirror of fading in', () => {
+    const fadeIn = glideKeyframes({ x: 0, y: 300 }, 'in');
+    const fadeOut = glideKeyframes({ x: 0, y: -300 }, 'out');
+    expect(fadeOut.map((frame) => frame.opacity)).toEqual(fadeIn.map((frame) => frame.opacity).reverse());
+    expect(fadeOut.map((frame) => frame.offset ?? null)).toEqual(
+      fadeIn.map((frame) => (frame.offset === undefined ? null : 1 - (frame.offset ?? 0))).reverse(),
+    );
   });
 });
