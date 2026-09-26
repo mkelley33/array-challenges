@@ -139,5 +139,10 @@ These are load-bearing. Removing any of them reintroduces a bug that was already
   `animation.finished` during rendering, which hidden (e.g. automation) tabs skip, so the machine
   looks stuck mid-step (`aria-busy="true"`) until the tab is shown. That is not a bug; jsdom tests
   stub `element.animate` instead.
+- **The category-focus animation must never change visible content.** The challenge list swaps its
+  filter only while faded out (`listedCategoryId`), and `ChallengeList` hides filtered rows rather
+  than unmounting them — remounting ~270 rows took ~250 ms in dev and stalled the animation. To
+  check smoothness without a visible tab, pause `document.getAnimations()` and seek `currentTime`:
+  positions must match across every step boundary.
 - `src/data/challenges/creating-arrays.ts` has no per-category test file, unlike every other
   category. The global catalog gate still covers it. Add one if you touch that module.
