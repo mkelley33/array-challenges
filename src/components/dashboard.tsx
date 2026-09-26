@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { listedCategoryId } from '@/lib/category-focus';
 import { deriveProgress } from '@/lib/progress';
 import { useCategoryFocus } from '@/lib/use-category-focus';
 import { cn } from '@/lib/utils';
@@ -44,20 +45,21 @@ export function Dashboard(): React.JSX.Element {
   const solvedIds = new Set(
     submissions.filter((submission) => submission.status === 'passed').map((submission) => submission.challengeId),
   );
+  // The list trails the cards: it only changes what it lists while it is faded out (see `listedCategoryId`).
+  const listedId = listedCategoryId(focus);
   const visibleChallenges = challenges.filter(
     (challenge) =>
-      (focus.shownCategoryId === null || challenge.categoryId === focus.shownCategoryId) &&
+      (listedId === null || challenge.categoryId === listedId) &&
       (difficultyFilter === 'all' || challenge.difficulty === difficultyFilter),
   );
-  const shownCategory = categories.find((category) => category.id === focus.shownCategoryId);
-  // Once the siblings are gone the lone card sits directly above the list and names it; the heading would repeat it.
+  const listedCategory = categories.find((category) => category.id === listedId);
   const collapsed = focus.step === 'collapsing' || focus.step === 'focused';
   const siblingsInvisible = focus.step === 'expanding' || focus.step === 'revealing';
   const statusMessage = !announce
     ? ''
-    : shownCategory === undefined
+    : listedCategory === undefined
       ? `Showing all ${categories.length} categories`
-      : `Showing ${shownCategory.title} — ${visibleChallenges.length} ${visibleChallenges.length === 1 ? 'challenge' : 'challenges'}`;
+      : `Showing ${listedCategory.title} — ${visibleChallenges.length} ${visibleChallenges.length === 1 ? 'challenge' : 'challenges'}`;
 
   const viewAllCategories = (): void => {
     if (locked || focus.shownCategoryId === null) {
@@ -133,10 +135,11 @@ export function Dashboard(): React.JSX.Element {
 
       <section aria-label="Challenges" className="flex flex-col gap-3" ref={challengesRef}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className={cn('text-lg font-semibold', collapsed && 'sr-only')}>
-            {shownCategory?.title ?? 'All challenges'}
+          {/* When listing one category, its card sits directly above and names it; a visible heading would repeat it. */}
+          <h2 className={cn('text-lg font-semibold', listedCategory && 'sr-only')}>
+            {listedCategory?.title ?? 'All challenges'}
           </h2>
-          {collapsed && (
+          {listedCategory && (
             <Button
               aria-controls={categoriesId}
               aria-disabled={locked}

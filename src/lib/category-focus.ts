@@ -8,7 +8,9 @@
  *
  *   grid → hiding → collapsing → focused → expanding → revealing → grid
  *
- * `hiding`/`revealing` are the staggered sibling fades; `collapsing`/`expanding` are the FLIP glides.
+ * `hiding`/`revealing` are the staggered sibling fades; `collapsing`/`expanding` are the FLIP glides. The challenge
+ * list fades out with the siblings and back in with the glide (mirrored on the way back), and only changes what it
+ * lists while it is invisible — an in-view content swap is what made the first version feel janky.
  */
 
 export type FocusStep = 'collapsing' | 'expanding' | 'focused' | 'grid' | 'hiding' | 'revealing';
@@ -25,9 +27,15 @@ export interface Point {
 
 export type StaggerDirection = 'in' | 'out';
 
+export type GlideFade = 'in' | 'none' | 'out';
+
 export const STAGGER_WINDOW_MS = 200;
 export const FADE_MS = 150;
-export const GLIDE_MS = 250;
+export const GLIDE_MS = 300;
+/** Symmetric ease-in-out: an ease-out curve covered ~60% of the distance in the first fifth and read as a lurch. */
+export const GLIDE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+/** Fraction of a glide over which the travelling list fades in (or, mirrored, the tail over which it fades out). */
+const GLIDE_FADE_SPAN = 0.6;
 
 const GRID_STATE: FocusState = { shownCategoryId: null, step: 'grid' };
 
@@ -53,6 +61,38 @@ export function reconcileFocus(state: FocusState, requestedCategoryId: null | st
     return { ...state, step: 'expanding' };
   }
   return state;
+}
+
+/**
+ * The category the challenge list shows, which lags `shownCategoryId`: while `hiding` and `revealing` the list is
+ * fading, so it keeps showing every challenge and the filter swap happens only once it is invisible.
+ */
+export function listedCategoryId({ shownCategoryId, step }: FocusState): null | string {
+  return step === 'collapsing' || step === 'focused' || step === 'expanding' ? shownCategoryId : null;
+}
+
+/**
+ * FLIP keyframes: start at the inverted offset from the element's new position and play to rest. `'in'` fades the
+ * element in over the first part of the glide; `'out'` is its exact time-mirror, fading out over the last part.
+ */
+export function glideKeyframes(offset: Point, fade: GlideFade): Keyframe[] {
+  const from = `translate(${offset.x}px, ${offset.y}px)`;
+  switch (fade) {
+    case 'in':
+      return [
+        { opacity: 0, transform: from },
+        { offset: GLIDE_FADE_SPAN, opacity: 1 },
+        { opacity: 1, transform: 'none' },
+      ];
+    case 'out':
+      return [
+        { opacity: 1, transform: from },
+        { offset: 1 - GLIDE_FADE_SPAN, opacity: 1 },
+        { opacity: 0, transform: 'none' },
+      ];
+    default:
+      return [{ transform: from }, { transform: 'none' }];
+  }
 }
 
 /** Advances past a finished animation. The shown category is cleared only once the grid is fully back. */
